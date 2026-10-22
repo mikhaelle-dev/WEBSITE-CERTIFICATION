@@ -1,0 +1,43 @@
+:root { --green: #3c8a2e; --green-dark: #2f6e24; --ink: #1b1b1b; --muted: #6b7280; }
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; color: var(--ink); background: #fff; }
+
+.auth-wrap { display: flex; min-height: 100vh; }
+
+/* panel kiri */
+.auth-hero { position: relative; flex: 1.1; color: #fff; padding: 3rem 4rem; display: flex; flex-direction: column; justify-content: center;
+             background: radial-gradient(circle at 20% 80%, #0f7f8a 0%, transparent 45%), linear-gradient(140deg, #04162e 0%, #0a3a63 100%);
+             overflow: hidden; }
+.auth-brand { position: absolute; top: 2.2rem; left: 4rem; line-height: 1.05; font-size: .95rem; }
+.auth-brand span { display: block; font-size: .8rem; }
+.auth-hero h1 { font-size: clamp(2.2rem, 4vw, 3.4rem); font-weight: 300; line-height: 1.15; margin-bottom: 1.4rem; }
+.auth-hero p { max-width: 460px; font-size: 1.1rem; opacity: .9; }
+.auth-hero-icon { position: absolute; right: -30px; bottom: -40px; font-size: 14rem; opacity: .08; }
+
+/* panel kanan */
+.auth-panel { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem 1.5rem; }
+.auth-box { width: 100%; max-width: 440px; }
+.auth-box h2 { font-weight: 400; font-size: 2rem; margin-bottom: .2rem; }
+
+.form-label { font-size: .85rem; font-weight: 600; margin-bottom: .25rem; }
+.form-control { padding: .6rem .75rem; border-radius: 4px; }
+.form-control:focus { border-color: #0b5ea8; box-shadow: 0 0 0 .15rem rgba(11,94,168,.2); }
+
+.pw-wrap { position: relative; }
+.pw-wrap .form-control { padding-right: 2.6rem; }
+.pw-toggle { position: absolute; right: .5rem; top: 50%; transform: translateY(-50%); background: none; border: 0; color: var(--muted); padding: .2rem .4rem; }
+
+.btn-login { background: #35709f; color: #fff; font-weight: 700; border-radius: 30px; padding: .65rem; }
+.btn-login:hover { background: #2a5a82; color: #fff; }
+
+.auth-alt { margin-top: 2rem; padding: 1.2rem 1.4rem; background: #f2f2f2; border-radius: 4px; }
+.auth-alt a { color: var(--green); font-weight: 700; text-decoration: none; }
+.auth-alt a:hover { text-decoration: underline; }
+
+@media (max-width: 860px) {
+    .auth-wrap { flex-direction: column; }
+    .auth-hero { padding: 5rem 1.5rem 2rem; flex: none; }
+    .auth-brand { left: 1.5rem; top: 1.4rem; }
+    .auth-hero-icon { display: none; }
+}

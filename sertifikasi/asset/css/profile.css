@@ -1,0 +1,75 @@
+/* Halaman profil. Pakai variabel & komponen dari dashboard.css */
+
+.avatar-xl { width: 76px; height: 76px; font-size: 2rem; background: #fff; color: var(--green); }
+
+.pf-banner { background: linear-gradient(120deg, #06203f 0%, #0b4a6f 55%, #0f7f6a 100%); color: #fff; padding: 1.6rem 0; }
+.pf-name { font-size: 1.6rem; font-weight: 300; margin: 0; letter-spacing: .02em; }
+.pf-stats { display: flex; align-items: center; gap: 1.4rem; }
+.pf-stats > div { text-align: center; display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.pf-stats .num { font-size: 1.6rem; color: var(--green-light); font-weight: 600; }
+.pf-stats small { display: block; width: 100%; font-size: .72rem; opacity: .85; }
+.pf-stats .sep { width: 1px; height: 40px; background: rgba(255,255,255,.4); }
+
+.pf-main { padding-top: 1.2rem; padding-bottom: 3rem; }
+
+.pf-tabs { list-style: none; display: flex; gap: 1.6rem; padding: 0; margin: 0 0 1.4rem; border-bottom: 1px solid #e3e3e3; flex-wrap: wrap; }
+.pf-tabs a { display: inline-block; padding: .8rem .2rem; color: var(--muted); font-weight: 600; text-decoration: none; border-bottom: 3px solid transparent; }
+.pf-tabs a:hover { color: var(--ink); }
+.pf-tabs a.on { color: var(--ink); border-bottom-color: var(--green-light); }
+
+.pf-card { background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 1.8rem; max-width: 980px; margin: 0 auto; }
+.pf-h { font-size: 1rem; font-weight: 700; color: #0b3a66; margin-bottom: .9rem; }
+.form-label { font-size: .82rem; font-weight: 600; margin-bottom: .25rem; }
+
+.profile-photo-form { position: relative; display: inline-flex; align-items: flex-end; flex: none; margin: 0; }
+.profile-photo-edit { position: absolute; right: -3px; bottom: -3px; width: 32px; height: 32px; display: inline-flex; margin: 0;
+                      align-items: center; justify-content: center; border: 2px solid #fff; border-radius: 50%;
+                      background: var(--green); color: #fff; cursor: pointer; }
+.profile-photo-edit:hover { background: var(--green-dark); }
+.profile-photo-edit:focus-visible { outline: 3px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 5px var(--green); }
+.profile-crop-stage { width: 100%; height: min(60vh, 420px); background: #111; }
+.profile-crop-stage img { display: block; max-width: 100%; }
+.cropper-view-box, .cropper-face { border-radius: 50%; }
+
+.pf-filter { display: flex; gap: .8rem; align-items: center; flex-wrap: wrap; justify-content: space-between; }
+.pf-filter .search-box { flex: 1; max-width: 340px; }
+
+/* kartu sertifikat & lencana */
+.ach-card { position: relative; background: #fff; border: 1px solid #ddd; border-radius: 4px; text-align: center;
+            padding: 2.2rem 1rem 0; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+.ach-tag { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: #dff0d8; color: #2f6e24;
+           font-size: .68rem; font-weight: 700; padding: .1rem .7rem; border-radius: 3px; }
+.ach-icon { font-size: 3rem; color: var(--green-light); }
+.ach-title { font-weight: 700; font-size: .92rem; margin: .6rem 0 1rem; flex: 1; }
+.ach-date { background: #f1f1f1; margin: 0 -1rem; padding: .6rem; font-size: .78rem; color: var(--muted); }
+.ach-card-link { color: inherit; text-decoration: none; }
+.ach-card-link:hover { border-color: var(--green); color: inherit; box-shadow: 0 6px 18px rgba(0,0,0,.1); transform: translateY(-2px); }
+.ach-medallion { width: 76px; height: 76px; align-self: center; display: grid; place-items: center; border: 3px double #6cc04a; border-radius: 50%; background: radial-gradient(circle, #f4faef 0 55%, #fff 56%); }
+.ach-medallion .ach-icon { font-size: 2.4rem; color: #4c9b3b; }
+.ach-course-name { margin-top: -.65rem; color: var(--muted); font-size: .78rem; }
+.ach-description { min-height: 38px; margin: .75rem 0; color: var(--muted); font-size: .78rem; }
+.ach-action { margin: .75rem 0; color: var(--green); font-size: .8rem; font-weight: 700; }
+.ach-badge-card { border: 1px solid #b7d9ad; background: radial-gradient(circle at 50% 34%, #f0fae9 0, #fff 44%); }
+.ach-badge-card .ach-tag { background: #3c8a2e; color: #fff; }
+.ach-badge-card .ach-medallion { width: 88px; height: 88px; border: 4px double #70b94f; background: radial-gradient(circle, #e8f7df 0 48%, #fff 50%); box-shadow: 0 0 0 5px rgba(108,192,74,.12), 0 6px 14px rgba(55,115,41,.13); }
+.ach-badge-card .ach-medallion .ach-icon { color: #37802b; font-size: 2.8rem; }
+.ach-certificate-card { border: 1px solid #c5a45a; padding-top: 2.2rem; background: linear-gradient(150deg, #fffdf6, #fff 48%, #f3f7f7); box-shadow: inset 0 0 0 4px rgba(197,164,90,.10); }
+.ach-certificate-card .ach-tag { background: #173b50; color: #f5dfa1; }
+.ach-certificate-card .ach-medallion { width: 88px; height: 68px; border: 2px solid #c5a45a; border-radius: 10px 10px 5px 5px; background: linear-gradient(145deg, #fff8dc, #fff); box-shadow: 0 5px 12px rgba(23,59,80,.12); }
+.ach-certificate-card .ach-medallion .ach-icon { color: #a77b23; font-size: 2.5rem; }
+.ach-certificate-card .ach-title { color: #173b50; }
+.ach-certificate-card .ach-action { color: #8a671e; }
+.ach-certificate-card .ach-date { background: #f2ead3; color: #65552e; }
+
+/* baris riwayat */
+.hist-row { display: grid; grid-template-columns: 2.4fr 1fr 1fr 1fr; gap: 1rem; align-items: center; background: #fff;
+            border: 1px solid #ddd; border-radius: 4px; padding: .9rem 1rem; margin-top: .9rem; }
+.hist-main { display: flex; gap: .9rem; align-items: center; }
+.hist-thumb { width: 64px; height: 64px; flex: none; border-radius: 4px; display: flex; align-items: center; justify-content: center;
+              background: linear-gradient(135deg, #1e3a5f, #3a7ca5); color: #fff; font-size: 1.6rem; }
+
+@media (max-width: 767px) {
+    .hist-row { grid-template-columns: 1fr 1fr; }
+    .hist-main { grid-column: 1 / -1; }
+    .pf-stats { width: 100%; }
+}
