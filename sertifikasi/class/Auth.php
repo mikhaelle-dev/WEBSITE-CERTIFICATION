@@ -46,6 +46,30 @@ class Auth extends Database
         return ['ok' => true, 'error' => ''];
     }
 
+    public function changePassword(int $userId, string $currentPassword, string $newPassword): bool
+    {
+        $this->db->beginTransaction();
+        try {
+            $stmt = $this->db->prepare('SELECT password FROM user WHERE id = ? AND status = 1 FOR UPDATE');
+            $stmt->execute([$userId]);
+            $user = $stmt->fetch();
+            if (!$user || !password_verify($currentPassword, $user['password'])) {
+                $this->db->rollBack();
+                return false;
+            }
+
+            $update = $this->db->prepare('UPDATE user SET password = ? WHERE id = ?');
+            $update->execute([password_hash($newPassword, PASSWORD_DEFAULT), $userId]);
+            $this->db->commit();
+            return true;
+        } catch (Throwable $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            throw $e;
+        }
+    }
+
     public function getProfile(int $userId): ?array
     {
         $stmt = $this->db->prepare(
@@ -98,7 +122,7 @@ class Auth extends Database
                 $profile['tujuan_karier'],
                 $profile['foto_profil'] ?? null,
             ]);
-
+            $this->db->commit();
             $this->db->commit();
             return true;
         } catch (Throwable $e) {

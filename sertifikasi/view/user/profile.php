@@ -39,14 +39,16 @@ $p   = $data['profil'];
             <div>
                 <small class="d-block opacity-75">Selamat datang,</small>
                 <h1 class="pf-name"><?= e(strtoupper($data['namaLengkap'])) ?></h1>
-                <small class="opacity-75">Learner</small>
+                <small class="opacity-75"><?= e(ucfirst($data['role'])) ?></small>
             </div>
         </div>
+        <?php if ($data['role'] === 'siswa'): ?>
         <div class="pf-stats">
             <div><i class="bi bi-award"></i> <span class="num"><?= (int) $data['totalSertifikat'] ?></span><small>Sertifikat</small></div>
             <div class="sep"></div>
             <div><i class="bi bi-book"></i> <span class="num"><?= (int) $data['totalSelesai'] ?></span><small>Kursus selesai</small></div>
         </div>
+        <?php endif; ?>
     </div>
 </header>
 
@@ -54,9 +56,11 @@ $p   = $data['profil'];
 
     <!-- TAB -->
     <ul class="pf-tabs">
-        <li><a class="<?= $tab === 'profil' ? 'on' : '' ?>"      href="?tab=profil"><i class="bi bi-person"></i> Profil</a></li>
-        <li><a class="<?= $tab === 'sertifikat' ? 'on' : '' ?>"  href="?tab=sertifikat"><i class="bi bi-award"></i> Sertifikat &amp; Lencana</a></li>
-        <li><a class="<?= $tab === 'riwayat' ? 'on' : '' ?>"     href="?tab=riwayat"><i class="bi bi-clock-history"></i> Riwayat Belajar</a></li>
+        <li><a class="<?= $tab === 'profil' ? 'on' : '' ?>" href="?tab=profil"><i class="bi bi-person"></i> Profil</a></li>
+        <?php if ($data['role'] === 'siswa'): ?>
+            <li><a class="<?= $tab === 'sertifikat' ? 'on' : '' ?>" href="?tab=sertifikat"><i class="bi bi-award"></i> Sertifikat &amp; Lencana</a></li>
+            <li><a class="<?= $tab === 'riwayat' ? 'on' : '' ?>" href="?tab=riwayat"><i class="bi bi-clock-history"></i> Riwayat Belajar</a></li>
+        <?php endif; ?>
     </ul>
 
     <?php if ($tab === 'profil'): ?>
@@ -126,6 +130,30 @@ $p   = $data['profil'];
             </div>
 
             <button class="btn btn-enroll mt-4 px-4" type="submit">Simpan</button>
+            </form>
+        </div>
+
+        <div class="pf-card mt-4">
+            <h2 class="pf-h">Ganti password</h2>
+            <p class="text-muted">Masukkan password saat ini untuk memastikan perubahan berasal dari pemilik akun.</p>
+            <form method="POST" action="ProfileController.php?tab=profil" autocomplete="off">
+                <input type="hidden" name="aksi" value="ubah_password">
+                <input type="hidden" name="csrf_token" value="<?= e($data['csrf']) ?>">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label" for="password_lama">Password saat ini</label>
+                        <input class="form-control" type="password" id="password_lama" name="password_lama" autocomplete="current-password" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="password_baru">Password baru</label>
+                        <input class="form-control" type="password" id="password_baru" name="password_baru" minlength="8" maxlength="200" autocomplete="new-password" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="konfirmasi_password">Ulangi password baru</label>
+                        <input class="form-control" type="password" id="konfirmasi_password" name="konfirmasi_password" minlength="8" maxlength="200" autocomplete="new-password" required>
+                    </div>
+                </div>
+                <button class="btn btn-enroll mt-4 px-4" type="submit">Simpan password baru</button>
             </form>
         </div>
 

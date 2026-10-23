@@ -3,7 +3,7 @@
  * Dashboard Siswa
  * Controller: cek sesi -> siapkan data -> include view
  */
-session_start();
+require_once __DIR__ . '/../../config/session.php';
 
 require_once __DIR__ . '/../../config/helpers.php';
 require_once __DIR__ . '/../../class/Course.php';
@@ -26,8 +26,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || $_SESSI
 }
 
 if (isset($_GET['logout'])) {
-    session_destroy();
-    header('Location: ../../view/login.php');
+    header('Location: ../AuthController.php?aksi=logout');
     exit();
 }
 

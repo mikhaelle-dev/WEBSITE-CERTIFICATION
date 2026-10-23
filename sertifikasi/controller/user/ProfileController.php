@@ -3,7 +3,7 @@
  * Profil Siswa: 3 tab (profil, sertifikat & lencana, riwayat belajar)
  * Controller: cek sesi -> proses form -> siapkan data -> include view
  */
-session_start();
+require_once __DIR__ . '/../../config/session.php';
 
 require_once __DIR__ . '/../../config/helpers.php';
 require_once __DIR__ . '/../../class/Auth.php';
@@ -17,7 +17,8 @@ if ($DEV_MODE && !isset($_SESSION['logged_in'])) {
     $_SESSION['role']      = 'siswa';
 }
 
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || $_SESSION['role'] !== 'siswa') {
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true
+    || !in_array($_SESSION['role'] ?? '', ['siswa', 'instruktur', 'admin'], true)) {
     header('Location: ../../view/login.php');
     exit();
 }
@@ -28,6 +29,9 @@ if (!isset($_SESSION['csrf_token'])) {
 
 // ---------- tab aktif (whitelist) ----------
 $tabValid = ['profil', 'sertifikat', 'riwayat'];
+if ($_SESSION['role'] !== 'siswa') {
+    $tabValid = ['profil'];
+}
 $tab = $_GET['tab'] ?? 'profil';
 if (!is_string($tab) || !in_array($tab, $tabValid, true)) {
     $tab = 'profil';
@@ -70,6 +74,44 @@ try {
         'tujuan_karier' => '',
         'foto_profil' => null,
     ];
+}
+
+// ---------- ubah password ----------
+$aksiSimpan = $_POST['aksi'] ?? '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $aksiSimpan === 'ubah_password') {
+    $tab = 'profil';
+    $token = $_POST['csrf_token'] ?? '';
+    if (!is_string($token) || !hash_equals($_SESSION['csrf_token'], $token)) {
+        $errors[] = 'Sesi form tidak valid, muat ulang halaman.';
+    } else {
+        $passwordLama = (string) ($_POST['password_lama'] ?? '');
+        $passwordBaru = (string) ($_POST['password_baru'] ?? '');
+        $konfirmasiPassword = (string) ($_POST['konfirmasi_password'] ?? '');
+
+        if ($passwordLama === '')                         $errors[] = 'Password saat ini wajib diisi.';
+        if (strlen($passwordBaru) < 8 || strlen($passwordBaru) > 200) {
+            $errors[] = 'Password baru harus 8 sampai 200 karakter.';
+        }
+        if ($passwordBaru !== $konfirmasiPassword)        $errors[] = 'Konfirmasi password baru tidak sama.';
+
+        if (!$errors) {
+            try {
+                if (!(new Auth())->changePassword((int) $_SESSION['id_user'], $passwordLama, $passwordBaru)) {
+                    $errors[] = 'Password saat ini salah atau akun tidak aktif.';
+                } else {
+                    session_regenerate_id(true);
+                    header('Location: ProfileController.php?tab=profil&status=password_changed');
+                    exit();
+                }
+            } catch (PDOException $e) {
+                error_log('Change password error: ' . $e->getMessage());
+                $errors[] = 'Password gagal diperbarui. Silakan coba lagi.';
+            } catch (Throwable $e) {
+                error_log('Change password error: ' . $e->getMessage());
+                $errors[] = 'Password gagal diperbarui. Silakan coba lagi.';
+            }
+        }
+    }
 }
 
 // ---------- simpan profil atau foto profil ----------
@@ -203,6 +245,8 @@ if (($_GET['status'] ?? '') === 'saved') {
     $pesan = 'Profil berhasil disimpan.';
 } elseif (($_GET['status'] ?? '') === 'photo_saved') {
     $pesan = 'Foto profil berhasil diperbarui.';
+} elseif (($_GET['status'] ?? '') === 'password_changed') {
+    $pesan = 'Password berhasil diperbarui.';
 }
 
 // ---------- tab sertifikat: filter jenis + cari ----------
@@ -211,7 +255,9 @@ $jenis       = isset($_GET['jenis']) && in_array($_GET['jenis'], $jenisValid, tr
 $q           = isset($_GET['q']) && is_string($_GET['q']) ? trim($_GET['q']) : '';
 
 $courseModel = new Course();
-$semuaPencapaian = $courseModel->getAchievements((int) $_SESSION['id_user']);
+$semuaPencapaian = $_SESSION['role'] === 'siswa'
+    ? $courseModel->getAchievements((int) $_SESSION['id_user'])
+    : [];
 $pencapaian = array_values(array_filter($semuaPencapaian, function ($p) use ($jenis, $q) {
     if ($jenis !== 'Semua' && $p['jenis'] !== $jenis) return false;
     if (
@@ -225,7 +271,9 @@ $pencapaian = array_values(array_filter($semuaPencapaian, function ($p) use ($je
 $statusValid = ['Semua', 'Selesai'];
 $status      = isset($_GET['status_belajar']) && in_array($_GET['status_belajar'], $statusValid, true) ? $_GET['status_belajar'] : 'Semua';
 
-$riwayatKursus = $courseModel->getCompletedCourses((int) $_SESSION['id_user']);
+$riwayatKursus = $_SESSION['role'] === 'siswa'
+    ? $courseModel->getCompletedCourses((int) $_SESSION['id_user'])
+    : [];
 $riwayat = array_values(array_filter($riwayatKursus, function ($r) use ($status, $q) {
     if ($status !== 'Semua' && $r['status'] !== $status) return false;
     if ($q !== '' && stripos($r['judul'], $q) === false) return false;

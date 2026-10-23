@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../config/helpers.php';
 
 if (empty($_SESSION['logged_in'])) {
@@ -20,6 +20,7 @@ $role = $_SESSION['role'];
     <div class="text-center">
         <h1 class="h3">Dashboard <?= e($role) ?> belum dibuat</h1>
         <p class="text-muted">Login sebagai <strong><?= e($_SESSION['username']) ?></strong> berhasil. Role terbaca dari database: <code><?= e($role) ?></code>.</p>
+        <a class="btn btn-primary me-2" href="../controller/user/ProfileController.php?tab=profil">Profil &amp; ganti password</a>
         <a class="btn btn-outline-dark" href="../controller/AuthController.php?aksi=logout">Logout</a>
     </div>
 </body>

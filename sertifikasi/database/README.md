@@ -20,3 +20,7 @@ Jalankan file satu per satu di HeidiSQL sesuai urutan di atas. File skema dan se
 Untuk database yang sudah menjalankan file sebelumnya, jalankan `08_enrollments.sql` agar pendaftaran dan riwayat penyelesaian kursus tersimpan.
 Untuk database yang sudah memiliki kursus dan pendaftaran, jalankan `09_achievements.sql` untuk menambahkan sistem badge dan sertifikat.
 Untuk database yang sudah memiliki kursus dan badge, jalankan `10_submateri.sql` agar progres dihitung setelah seluruh submateri dalam modul dibuka.
+
+Dashboard admin dan fitur ganti/reset password menggunakan tabel `user` yang sudah dibuat oleh `01_users.sql`; tidak ada migrasi database tambahan. Akun yang dibuat atau diubah melalui aplikasi tersimpan langsung di database aktif, bukan di file seed.
+
+Konfigurasi koneksi dapat disesuaikan tanpa menyimpan kredensial di Git: salin `../config/database.local.example.php` menjadi `../config/database.local.php`, lalu isi host, port, nama database, username, dan password. File lokal tersebut diabaikan oleh Git. Agar perubahan akun terlihat dari laptop berbeda, aplikasi yang diakses semua orang harus tersambung ke database hosting yang sama; sekadar `git pull` pada aplikasi yang masih memakai MySQL lokal tidak menyinkronkan data.

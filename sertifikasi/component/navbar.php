@@ -9,10 +9,15 @@ $menuKursus  = array_slice($_menu['kursus'], 0, 3);
 $menuKategori = $_menu['kategori'];
 $aktif       = $aktif ?? 'mylearning';
 $inisial     = strtoupper(substr($data['username'], 0, 1));
+$role        = $data['role'] ?? 'siswa';
+$dashboardPath = $role === 'admin'
+    ? '../admin/DashboardController.php'
+    : ($role === 'instruktur' ? '../../view/placeholder.php' : 'DashboardController.php');
+$logoutPath = '../AuthController.php?aksi=logout';
 ?>
 <nav class="navbar navbar-expand-lg sticky-top topnav">
     <div class="container-fluid px-4">
-        <a class="navbar-brand brand" href="DashboardController.php">
+        <a class="navbar-brand brand" href="<?= e($dashboardPath) ?>">
             <span class="brand-small">Sertifikasi</span><br><strong>Academy</strong>
         </a>
 
@@ -23,6 +28,7 @@ $inisial     = strtoupper(substr($data['username'], 0, 1));
         <div class="collapse navbar-collapse" id="navMenu">
 
             <!-- EXPLORE (mega menu) -->
+            <?php if ($role === 'siswa'): ?>
             <div class="dropdown me-3">
                 <button class="btn btn-explore dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                     <i class="bi bi-grid-3x3-gap-fill"></i> Explore
@@ -55,15 +61,18 @@ $inisial     = strtoupper(substr($data['username'], 0, 1));
                     </div>
                 </div>
             </div>
+            <?php endif; ?>
 
+            <?php if ($role === 'siswa'): ?>
             <form class="search-box flex-grow-1 me-3" action="DashboardController.php" method="GET">
                 <i class="bi bi-search"></i>
                 <input type="search" name="q" placeholder="Cari kursus..." class="form-control" value="<?= e($data['q'] ?? '') ?>">
             </form>
+            <?php endif; ?>
 
             <ul class="navbar-nav align-items-lg-center ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link <?= $aktif === 'mylearning' ? 'nav-active' : '' ?>" href="DashboardController.php">My Learning</a>
+                    <a class="nav-link <?= $aktif === 'mylearning' ? 'nav-active' : '' ?>" href="<?= e($dashboardPath) ?>"><?= $role === 'admin' ? 'Dashboard Admin' : ($role === 'instruktur' ? 'Dashboard Instruktur' : 'My Learning') ?></a>
                 </li>
                 <li class="nav-item ms-lg-4">
                     <!-- klik avatar -> buka drawer -->
@@ -75,7 +84,7 @@ $inisial     = strtoupper(substr($data['username'], 0, 1));
                         <?php endif; ?>
                         <span class="ms-2 lh-1 text-start">
                             <span class="d-block fw-bold small"><?= e(strtoupper($data['username'])) ?></span>
-                            <span class="d-block text-muted tiny">Learner</span>
+                            <span class="d-block text-muted tiny"><?= e(ucfirst($role)) ?></span>
                         </span>
                     </button>
                 </li>
@@ -93,20 +102,21 @@ $inisial     = strtoupper(substr($data['username'], 0, 1));
             <span class="avatar avatar-lg"><?= e($inisial) ?></span>
         <?php endif; ?>
         <div class="flex-grow-1 fw-semibold" id="userDrawerLabel"><?= e(strtoupper($data['username'])) ?></div>
-        <a class="btn btn-enroll btn-sm" href="DashboardController.php?logout=1"><i class="bi bi-box-arrow-right"></i> Logout</a>
     </div>
 
     <div class="offcanvas-body p-0">
         <div class="drawer-sec">
             <div class="drawer-title"><i class="bi bi-speedometer2"></i> Dashboard</div>
-            <a class="drawer-link" href="DashboardController.php">My Learning <i class="bi bi-chevron-right"></i></a>
+            <a class="drawer-link" href="<?= e($dashboardPath) ?>"><?= $role === 'admin' ? 'Dashboard Admin' : ($role === 'instruktur' ? 'Dashboard Instruktur' : 'My Learning') ?> <i class="bi bi-chevron-right"></i></a>
         </div>
 
         <div class="drawer-sec">
             <div class="drawer-title"><i class="bi bi-person"></i> Profil</div>
             <a class="drawer-link" href="ProfileController.php?tab=profil">Update Profil <i class="bi bi-chevron-right"></i></a>
-            <a class="drawer-link" href="ProfileController.php?tab=sertifikat">Sertifikat &amp; Lencana <i class="bi bi-chevron-right"></i></a>
-            <a class="drawer-link" href="ProfileController.php?tab=riwayat">Riwayat Belajar <i class="bi bi-chevron-right"></i></a>
+            <?php if ($role === 'siswa'): ?>
+                <a class="drawer-link" href="ProfileController.php?tab=sertifikat">Sertifikat &amp; Lencana <i class="bi bi-chevron-right"></i></a>
+                <a class="drawer-link" href="ProfileController.php?tab=riwayat">Riwayat Belajar <i class="bi bi-chevron-right"></i></a>
+            <?php endif; ?>
         </div>
 
         <div class="drawer-sec">
@@ -116,7 +126,7 @@ $inisial     = strtoupper(substr($data['username'], 0, 1));
         </div>
 
         <div class="p-3">
-            <a class="btn btn-outline-dark rounded-pill px-4" href="DashboardController.php?logout=1">Logout</a>
+            <a class="btn btn-outline-dark rounded-pill px-4" href="<?= e($logoutPath) ?>"><i class="bi bi-box-arrow-right me-1"></i>Logout</a>
         </div>
     </div>
 </div>

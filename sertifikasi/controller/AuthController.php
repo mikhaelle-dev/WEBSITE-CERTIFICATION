@@ -3,7 +3,7 @@
  * Menangani: login, register, logout.
  * View (login.php / register.php) hanya menampilkan form + pesan flash.
  */
-session_start();
+require_once __DIR__ . '/../config/session.php';
 
 require_once __DIR__ . '/../class/Auth.php';
 
@@ -11,6 +11,18 @@ $aksi = $_GET['aksi'] ?? '';
 
 // ---------- logout ----------
 if ($aksi === 'logout') {
+    $_SESSION = [];
+    if (ini_get('session.use_cookies')) {
+        $cookie = session_get_cookie_params();
+        setcookie(session_name(), '', [
+            'expires' => time() - 42000,
+            'path' => $cookie['path'],
+            'domain' => $cookie['domain'],
+            'secure' => $cookie['secure'],
+            'httponly' => $cookie['httponly'],
+            'samesite' => $cookie['samesite'] ?? 'Lax',
+        ]);
+    }
     session_destroy();
     header('Location: ../view/login.php');
     exit();
@@ -69,8 +81,10 @@ if ($aksi === 'login') {
     // Arahkan sesuai role (dibaca dari database, bukan pilihan user)
     if ($u['role'] === 'siswa') {
         header('Location: user/DashboardController.php');
+    } elseif ($u['role'] === 'admin') {
+        header('Location: admin/DashboardController.php');
     } else {
-        header('Location: ../view/placeholder.php');   // dashboard admin/instruktur belum dibuat
+        header('Location: ../view/placeholder.php');   // dashboard instruktur belum dibuat
     }
     exit();
 }

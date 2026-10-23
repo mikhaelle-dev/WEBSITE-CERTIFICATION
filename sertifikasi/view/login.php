@@ -1,10 +1,16 @@
 <?php
-session_start();
+require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../config/helpers.php';
 
 // Sudah login? langsung ke dashboard sesuai role.
 if (!empty($_SESSION['logged_in'])) {
-    header('Location: ' . ($_SESSION['role'] === 'siswa' ? '../controller/user/DashboardController.php' : 'placeholder.php'));
+    if ($_SESSION['role'] === 'siswa') {
+        header('Location: ../controller/user/DashboardController.php');
+    } elseif ($_SESSION['role'] === 'admin') {
+        header('Location: ../controller/admin/DashboardController.php');
+    } else {
+        header('Location: placeholder.php');
+    }
     exit();
 }
 
