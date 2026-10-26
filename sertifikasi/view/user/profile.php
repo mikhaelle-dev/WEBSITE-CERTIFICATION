@@ -248,7 +248,6 @@ $p   = $data['profil'];
     <?php else: ?>
     <!-- ============ TAB RIWAYAT BELAJAR ============ -->
         <?php $kosongRiwayat = !$data['riwayat'] && $data['statusBelajar'] === 'Semua' && $data['q'] === ''; ?>
-        <?php if (!$kosongRiwayat): ?>
         <form method="GET" class="pf-filter">
             <input type="hidden" name="tab" value="riwayat">
             <div class="search-box">
@@ -257,11 +256,10 @@ $p   = $data['profil'];
             </div>
             <select class="form-select w-auto" name="status_belajar" data-submit-on-change aria-label="Filter progres belajar">
                 <?php foreach ($data['statusValid'] as $s): ?>
-                    <option <?= $data['statusBelajar'] === $s ? 'selected' : '' ?>><?= e($s) ?></option>
+                    <option value="<?= e($s) ?>" <?= $data['statusBelajar'] === $s ? 'selected' : '' ?>><?= e($s) ?></option>
                 <?php endforeach; ?>
             </select>
         </form>
-        <?php endif; ?>
 
         <?php if ($kosongRiwayat): ?>
             <div class="text-center text-muted py-5">

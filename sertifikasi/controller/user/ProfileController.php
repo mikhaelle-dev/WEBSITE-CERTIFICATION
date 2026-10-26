@@ -308,14 +308,15 @@ $pencapaian = array_values(array_filter($semuaPencapaian, function ($p) use ($je
 }));
 
 // ---------- tab riwayat: filter status + cari ----------
-$statusValid = ['Semua', 'Berjalan', 'Selesai'];
+$statusValid = ['Semua', 'Progres', 'Selesai'];
 $status      = isset($_GET['status_belajar']) && in_array($_GET['status_belajar'], $statusValid, true) ? $_GET['status_belajar'] : 'Semua';
 
 $riwayatKursus = $_SESSION['role'] === 'siswa'
     ? $courseModel->getLearningHistory((int) $_SESSION['id_user'])
     : [];
 $riwayat = array_values(array_filter($riwayatKursus, function ($r) use ($status, $q) {
-    if ($status !== 'Semua' && $r['status'] !== $status) return false;
+    if ($status === 'Progres' && $r['status'] !== 'Berjalan') return false;
+    if ($status === 'Selesai' && $r['status'] !== 'Selesai') return false;
     if ($q !== '' && stripos($r['judul'], $q) === false) return false;
     return true;
 }));

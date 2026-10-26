@@ -3,6 +3,20 @@ require_once __DIR__ . '/Database.php';
 
 class Auth extends Database
 {
+    public function getActiveAdminEmail(): ?string
+    {
+        $stmt = $this->db->query(
+            "SELECT email
+             FROM user
+             WHERE role = 'admin' AND status = 1 AND masuk_sampah_pada IS NULL
+             ORDER BY id
+             LIMIT 1"
+        );
+        $email = $stmt->fetchColumn();
+
+        return is_string($email) && filter_var($email, FILTER_VALIDATE_EMAIL) ? $email : null;
+    }
+
     public function hasAdminAccount(): bool
     {
         return (bool) $this->db->query("SELECT id FROM user WHERE role = 'admin' LIMIT 1")->fetchColumn();

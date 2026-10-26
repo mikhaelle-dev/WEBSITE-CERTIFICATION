@@ -5,7 +5,7 @@ if (!isset($data['inTrash']) || !array_key_exists('remainingSeconds', $data)) {
 }
 
 $closeUrl = '../controller/AuthController.php?aksi=logout';
-$adminEmail = admin_contact_email();
+$adminEmail = $data['adminEmail'] ?? admin_contact_email();
 $remainingSeconds = $data['remainingSeconds'];
 $remainingLabel = '';
 if ($remainingSeconds !== null && $remainingSeconds > 0) {

@@ -107,7 +107,7 @@ $logoutPath = '../AuthController.php?aksi=logout';
     <div class="offcanvas-body p-0">
         <div class="drawer-sec">
             <div class="drawer-title"><i class="bi bi-speedometer2"></i> Dashboard</div>
-            <a class="drawer-link" href="<?= e($dashboardPath) ?>"><?= $role === 'admin' ? 'Dashboard Admin' : ($role === 'instruktur' ? 'Dashboard Instruktur' : 'My Learning') ?> <i class="bi bi-chevron-right"></i></a>
+            <a class="drawer-link" href="<?= e($dashboardPath) ?>"><?= $role === 'admin' ? 'Dashboard Admin' : ($role === 'instruktur' ? 'Dashboard Instruktur' : 'Home') ?> <i class="bi bi-chevron-right"></i></a>
         </div>
 
         <div class="drawer-sec">
