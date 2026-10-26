@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 class RateLimiter
 {
-    private const MAX_FAILURES = 3;
-    private const LOCKOUT_SECONDS = 10;
+    public const MAX_FAILURES = 3;
+    public const LOCKOUT_SECONDS = 10;
     private const STORAGE_DIR = __DIR__ . '/../temp';
 
     private static function filePath(string $ip): string

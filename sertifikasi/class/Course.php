@@ -83,16 +83,20 @@ class Course extends Database
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
-    public function getCompletedCourses(int $userId): array
+    public function getLearningHistory(int $userId): array
     {
         $stmt = $this->db->prepare(
             'SELECT kursus.judul, kursus.slug, kursus.kategori, kursus.durasi,
-                    \'Self-paced\' AS tipe, \'Selesai\' AS status,
+                    \'Self-paced\' AS tipe,
+                    CASE
+                        WHEN pendaftaran.selesai_pada IS NULL THEN \'Berjalan\'
+                        ELSE \'Selesai\'
+                    END AS status,
                     pendaftaran.mulai_pada, pendaftaran.selesai_pada
              FROM pendaftaran_kursus pendaftaran
              JOIN kursus ON kursus.id = pendaftaran.kursus_id
-             WHERE pendaftaran.user_id = ? AND pendaftaran.selesai_pada IS NOT NULL
-             ORDER BY pendaftaran.selesai_pada DESC'
+             WHERE pendaftaran.user_id = ?
+             ORDER BY COALESCE(pendaftaran.selesai_pada, pendaftaran.mulai_pada) DESC'
         );
         $stmt->execute([$userId]);
 

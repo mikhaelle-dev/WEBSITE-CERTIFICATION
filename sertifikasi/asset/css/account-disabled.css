@@ -107,7 +107,9 @@ body.account-disabled-page {
 .disabled-account-name { margin: .35rem 0 0; color: var(--brutal-muted); font-weight: 700; }
 .disabled-dialog #disabled-description { margin: 1rem 0 1.4rem; color: var(--brutal-ink); line-height: 1.55; }
 .disabled-dialog #disabled-countdown { font-variant-numeric: tabular-nums; }
-.disabled-close { width: 100%; }
+.disabled-close, .disabled-contact { width: 100%; }
+.disabled-contact { margin-bottom: .65rem; }
+.disabled-contact-hint { font-size: .85rem; color: #6b7280; }
 .disabled-close:focus-visible { outline: 3px solid var(--brutal-focus); outline-offset: 4px; }
 
 @media (max-width: 600px) {

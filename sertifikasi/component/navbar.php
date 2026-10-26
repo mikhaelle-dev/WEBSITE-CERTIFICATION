@@ -72,7 +72,7 @@ $logoutPath = '../AuthController.php?aksi=logout';
 
             <ul class="navbar-nav align-items-lg-center ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link <?= $aktif === 'mylearning' ? 'nav-active' : '' ?>" href="<?= e($dashboardPath) ?>"><?= $role === 'admin' ? 'Dashboard Admin' : ($role === 'instruktur' ? 'Dashboard Instruktur' : 'My Learning') ?></a>
+                    <a class="nav-link <?= $aktif === 'mylearning' ? 'nav-active' : '' ?>" href="<?= e($dashboardPath) ?>"><i class="bi bi-house-door me-1"></i><?= $role === 'admin' ? 'Dashboard Admin' : ($role === 'instruktur' ? 'Dashboard Instruktur' : 'Home') ?></a>
                 </li>
                 <li class="nav-item ms-lg-4">
                     <!-- klik avatar -> buka drawer -->

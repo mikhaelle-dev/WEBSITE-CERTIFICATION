@@ -45,7 +45,6 @@ $statCards = [
             <h1>Manajemen akun</h1>
             <p>Kelola akses, status, dan kata sandi pengguna dari satu tempat.</p>
         </div>
-        <a class="btn btn-admin-primary" href="#addAccount" data-open-details="addAccount"><i class="bi bi-plus-lg me-2"></i>Tambah akun</a>
     </header>
 
     <?php if ($data['success'] !== ''): ?>
@@ -92,46 +91,6 @@ $statCards = [
             </div>
         <?php endforeach; ?>
     </section>
-
-    <details class="admin-panel admin-add-panel mb-4" id="addAccount">
-        <summary class="admin-panel-summary">
-            <span class="admin-panel-icon"><i class="bi bi-person-plus"></i></span>
-            <span class="flex-grow-1"><strong>Tambah akun baru</strong><small>Buat akun siswa, instruktur, atau admin</small></span>
-            <i class="bi bi-chevron-down admin-chevron"></i>
-        </summary>
-        <div class="admin-panel-body">
-            <form method="POST" data-confirm="Tambahkan akun baru dengan role dan password awal ini?">
-                <input type="hidden" name="csrf_token" value="<?= e($data['csrf']) ?>">
-                <input type="hidden" name="aksi" value="tambah">
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-3">
-                        <label class="form-label" for="newName">Nama</label>
-                        <input class="form-control" id="newName" name="nama" maxlength="100" required>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label" for="newEmail">Email</label>
-                        <input class="form-control" type="email" id="newEmail" name="email" maxlength="100" required>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label" for="newRole">Role</label>
-                        <select class="form-select" id="newRole" name="role" required>
-                            <option value="siswa">Siswa</option>
-                            <option value="instruktur">Instruktur</option>
-                            <option value="admin">Admin</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label" for="newPassword">Kata sandi awal</label>
-                        <input class="form-control" type="password" id="newPassword" name="password" minlength="8" maxlength="200" autocomplete="new-password" required>
-                    </div>
-                    <div class="col-md-1">
-                        <button class="btn btn-admin-primary w-100" type="submit"><i class="bi bi-plus-lg me-1"></i><span class="d-md-none d-xl-inline">Buat</span></button>
-                    </div>
-                </div>
-                <p class="admin-form-hint"><i class="bi bi-info-circle me-1"></i>Kata sandi disimpan dalam bentuk hash dan tidak bisa dilihat setelah akun dibuat.</p>
-            </form>
-        </div>
-    </details>
 
     <section class="admin-panel admin-users-panel">
         <div class="admin-users-heading">
@@ -308,12 +267,15 @@ $statCards = [
                                             <input type="hidden" name="user_id" value="<?= (int) $user['id'] ?>">
                                             <?php foreach ($returnFilters as $key => $value): ?><input type="hidden" name="<?= e($key) ?>" value="<?= e($value) ?>"><?php endforeach; ?>
                                             <label for="password-<?= (int) $user['id'] ?>">Kata sandi baru</label>
-                                            <input class="form-control form-control-sm" id="password-<?= (int) $user['id'] ?>" type="password" name="password_baru" minlength="8" maxlength="200" placeholder="Minimal 8 karakter" autocomplete="new-password" required>
+                                            <div class="input-group input-group-sm">
+                                                <input class="form-control" id="password-<?= (int) $user['id'] ?>" type="password" name="password_baru" minlength="8" maxlength="200" placeholder="Minimal 8 karakter" autocomplete="new-password" required>
+                                                <button class="btn btn-admin-quiet" type="button" data-toggle-password aria-label="Tampilkan password" aria-controls="password-<?= (int) $user['id'] ?>" aria-pressed="false"><i class="bi bi-eye"></i></button>
+                                            </div>
                                             <div class="d-flex gap-2">
                                                 <button class="btn btn-sm btn-admin-filter flex-grow-1" name="mode" value="manual" type="submit">Ubah kata sandi</button>
                                                 <button class="btn btn-sm btn-admin-quiet flex-grow-1" name="mode" value="generate" type="submit" formnovalidate>Buat acak</button>
                                             </div>
-                                            <small>Kata sandi tidak ditampilkan setelah disimpan.</small>
+                                            <small>Password lama tidak dapat dilihat; tombol mata hanya menampilkan password baru sebelum disimpan.</small>
                                         </form>
                                     <?php endif; ?>
 
@@ -392,8 +354,6 @@ $statCards = [
                                         <input type="hidden" name="aksi" value="hapus_permanen">
                                         <input type="hidden" name="user_id" value="<?= (int) $user['id'] ?>">
                                         <input type="hidden" name="tab" value="sampah">
-                                        <label class="visually-hidden" for="purge-confirm-<?= (int) $user['id'] ?>">Ketik HAPUS untuk menghapus akun permanen</label>
-                                        <input class="form-control form-control-sm" id="purge-confirm-<?= (int) $user['id'] ?>" name="konfirmasi_hapus" autocomplete="off" pattern="HAPUS" title="Ketik HAPUS dengan huruf kapital" placeholder="Ketik HAPUS" required>
                                         <button class="btn btn-sm btn-outline-danger" type="submit" aria-label="Hapus <?= e($user['nama']) ?> permanen">
                                             <i class="bi bi-x-octagon me-1"></i>Hapus sekarang
                                         </button>

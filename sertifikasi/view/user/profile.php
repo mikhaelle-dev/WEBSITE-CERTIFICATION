@@ -54,6 +54,7 @@ $p   = $data['profil'];
 </header>
 
 <main class="container pf-main">
+    <a class="btn btn-sm btn-outline-dark mb-3" href="DashboardController.php"><i class="bi bi-arrow-left me-1"></i>Kembali ke Home</a>
 
     <!-- TAB -->
     <ul class="pf-tabs">
@@ -248,7 +249,7 @@ $p   = $data['profil'];
                 <i class="bi bi-search"></i>
                 <input type="search" name="q" class="form-control" placeholder="Cari kursus" value="<?= e($data['q']) ?>">
             </div>
-            <select class="form-select w-auto" name="status_belajar" data-submit-on-change>
+            <select class="form-select w-auto" name="status_belajar" data-submit-on-change aria-label="Filter progres belajar">
                 <?php foreach ($data['statusValid'] as $s): ?>
                     <option <?= $data['statusBelajar'] === $s ? 'selected' : '' ?>><?= e($s) ?></option>
                 <?php endforeach; ?>

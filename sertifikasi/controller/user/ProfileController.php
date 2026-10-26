@@ -280,11 +280,11 @@ $pencapaian = array_values(array_filter($semuaPencapaian, function ($p) use ($je
 }));
 
 // ---------- tab riwayat: filter status + cari ----------
-$statusValid = ['Semua', 'Selesai'];
+$statusValid = ['Semua', 'Berjalan', 'Selesai'];
 $status      = isset($_GET['status_belajar']) && in_array($_GET['status_belajar'], $statusValid, true) ? $_GET['status_belajar'] : 'Semua';
 
 $riwayatKursus = $_SESSION['role'] === 'siswa'
-    ? $courseModel->getCompletedCourses((int) $_SESSION['id_user'])
+    ? $courseModel->getLearningHistory((int) $_SESSION['id_user'])
     : [];
 $riwayat = array_values(array_filter($riwayatKursus, function ($r) use ($status, $q) {
     if ($status !== 'Semua' && $r['status'] !== $status) return false;
@@ -294,7 +294,7 @@ $riwayat = array_values(array_filter($riwayatKursus, function ($r) use ($status,
 
 // ---------- statistik banner (dihitung dari data penuh, bukan hasil filter) ----------
 $totalSertifikat = count(array_filter($semuaPencapaian, fn($p) => $p['jenis'] === 'Sertifikat'));
-$totalSelesai    = count($riwayatKursus);
+$totalSelesai    = count(array_filter($riwayatKursus, static fn($r) => $r['status'] === 'Selesai'));
 
 $namaLengkap = trim($profil['nama_depan'] . ' ' . $profil['nama_belakang']);
 

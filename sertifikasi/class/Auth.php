@@ -3,6 +3,11 @@ require_once __DIR__ . '/Database.php';
 
 class Auth extends Database
 {
+    public function hasAdminAccount(): bool
+    {
+        return (bool) $this->db->query("SELECT id FROM user WHERE role = 'admin' LIMIT 1")->fetchColumn();
+    }
+
     public function isActiveAccount(int $userId): bool
     {
         $stmt = $this->db->prepare('SELECT id FROM user WHERE id = ? AND status = 1');
@@ -77,6 +82,36 @@ class Auth extends Database
         $restricted = $user['masuk_sampah_pada'] !== null || (int) $user['status'] !== 1;
         unset($user['password']);
         return ['ok' => true, 'user' => $user, 'restricted' => $restricted, 'error' => ''];
+    }
+
+    public function createInitialAdmin(string $nama, string $email, string $password): void
+    {
+        $database = $this->db->query('SELECT DATABASE()')->fetchColumn();
+        if (!is_string($database) || $database === '') {
+            throw new RuntimeException('Unable to identify the active database for initial admin setup.');
+        }
+
+        $lockName = 'sertifikasi_setup_' . substr(hash('sha256', $database), 0, 40);
+        $lock = $this->db->prepare('SELECT GET_LOCK(?, 5)');
+        $lock->execute([$lockName]);
+        if ((int) $lock->fetchColumn() !== 1) {
+            throw new RuntimeException('Unable to acquire the initial admin setup lock.');
+        }
+
+        try {
+            $adminExists = $this->db->query("SELECT id FROM user WHERE role = 'admin' LIMIT 1")->fetchColumn();
+            if ($adminExists !== false) {
+                throw new DomainException('Setup admin sudah selesai. Silakan login.');
+            }
+
+            $insert = $this->db->prepare(
+                "INSERT INTO user (email, nama, password, role) VALUES (?, ?, ?, 'admin')"
+            );
+            $insert->execute([$email, $nama, password_hash($password, PASSWORD_DEFAULT)]);
+        } finally {
+            $release = $this->db->prepare('SELECT RELEASE_LOCK(?)');
+            $release->execute([$lockName]);
+        }
     }
 
     /**

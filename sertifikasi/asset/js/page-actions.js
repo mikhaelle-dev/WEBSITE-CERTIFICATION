@@ -4,6 +4,16 @@ document.addEventListener('click', async (event) => {
         return;
     }
 
+    const backTrigger = target.closest('[data-history-back]');
+    if (backTrigger) {
+        const previousUrl = document.referrer;
+        if (previousUrl && new URL(previousUrl).origin === window.location.origin && window.history.length > 1) {
+            event.preventDefault();
+            window.history.back();
+        }
+        return;
+    }
+
     const passwordToggle = target.closest('[data-toggle-password]');
     if (passwordToggle) {
         const input = document.getElementById(passwordToggle.getAttribute('aria-controls'));

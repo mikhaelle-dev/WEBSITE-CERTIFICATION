@@ -15,6 +15,16 @@ if (!function_exists('tgl_indo')) {
         if (!$tanggal) {
             return '-';
         }
+
+        if (!function_exists('admin_contact_email')) {
+            function admin_contact_email(): string
+            {
+                $email = getenv('ADMIN_CONTACT_EMAIL');
+                return is_string($email) && filter_var($email, FILTER_VALIDATE_EMAIL)
+                    ? $email
+                    : '';
+            }
+        }
         $timestamp = strtotime($tanggal);
         if ($timestamp === false) {
             return '-';

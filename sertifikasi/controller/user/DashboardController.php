@@ -52,6 +52,7 @@ $courseModel = new Course();
 $userId = (int) $_SESSION['id_user'];
 $activeCourse = $courseModel->getActiveEnrollment($userId);
 $completedCourseSlugs = $courseModel->getCompletedCourseSlugs($userId);
+$activeCourseSlug = $activeCourse['slug'] ?? null;
 $kursusSaya = [];
 
 if ($activeCourse !== null) {
@@ -76,8 +77,11 @@ if ($kategori !== '' && !in_array($kategori, $dummy['kategori'], true)) {
     $kategori = '';
 }
 $rekomendasi = $dummy['kursus'];
-$rekomendasi = array_values(array_filter($rekomendasi, function ($course) use ($completedCourseSlugs, $kategori, $q) {
-    if (isset($course['slug']) && in_array($course['slug'], $completedCourseSlugs, true)) {
+$rekomendasi = array_values(array_filter($rekomendasi, function ($course) use ($completedCourseSlugs, $activeCourseSlug, $kategori, $q) {
+    if (
+        isset($course['slug'])
+        && (in_array($course['slug'], $completedCourseSlugs, true) || $course['slug'] === $activeCourseSlug)
+    ) {
         return false;
     }
     if ($kategori !== '' && $course['kategori'] !== $kategori) {

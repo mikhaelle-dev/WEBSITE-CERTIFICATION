@@ -79,18 +79,6 @@ class AdminUser extends Database
         return $stmt->fetchAll();
     }
 
-    public function createUser(int $actorId, string $nama, string $email, string $password, string $role): void
-    {
-        if (!in_array($role, ['admin', 'instruktur', 'siswa'], true)) {
-            throw new DomainException('Role akun tidak valid.');
-        }
-
-        $this->withLockedUsers($actorId, function () use ($nama, $email, $password, $role): void {
-            $stmt = $this->db->prepare('INSERT INTO user (email, nama, password, role) VALUES (?, ?, ?, ?)');
-            $stmt->execute([$email, $nama, password_hash($password, PASSWORD_DEFAULT), $role]);
-        });
-    }
-
     public function changeRole(int $actorId, int $userId, string $role): string
     {
         if (!in_array($role, ['admin', 'instruktur', 'siswa'], true)) {
@@ -248,11 +236,8 @@ class AdminUser extends Database
         });
     }
 
-    public function permanentlyDeleteTrashedUser(int $actorId, int $userId, string $confirmation): string
+    public function permanentlyDeleteTrashedUser(int $actorId, int $userId): string
     {
-        if ($confirmation !== 'HAPUS') {
-            throw new DomainException('Ketik HAPUS dengan benar untuk menghapus akun permanen.');
-        }
         if ($actorId === $userId) {
             throw new DomainException('Kamu tidak dapat menghapus akun sendiri.');
         }

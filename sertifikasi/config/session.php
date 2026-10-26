@@ -15,7 +15,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     ini_set('session.gc_maxlifetime', (string) $sessionLifetime);
     ini_set('session.use_strict_mode', '1');
     session_set_cookie_params([
-        'lifetime' => $sessionLifetime,
+        'lifetime' => 0,
         'path' => '/',
         'secure' => isRequestSecure(),
         'httponly' => true,

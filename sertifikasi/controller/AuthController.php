@@ -94,6 +94,18 @@ if ($aksi === 'login') {
     $_SESSION['foto_profil']         = $u['foto_profil'] ?? null;
     $_SESSION['account_restricted'] = $hasil['restricted'];
 
+    if (isset($_POST['remember_me']) && $_POST['remember_me'] === '1') {
+        $cookie = session_get_cookie_params();
+        setcookie(session_name(), session_id(), [
+            'expires' => time() + 60 * 60 * 24 * 30,
+            'path' => $cookie['path'],
+            'domain' => $cookie['domain'],
+            'secure' => $cookie['secure'],
+            'httponly' => $cookie['httponly'],
+            'samesite' => $cookie['samesite'] ?? 'Lax',
+        ]);
+    }
+
     // Redirect based on role / restriction
     if ($hasil['restricted']) {
         header('Location: AccountDisabledController.php');

@@ -88,6 +88,14 @@ unset($_SESSION['flash_error'], $_SESSION['flash_success'], $_SESSION['old_email
                     </button>
                 </div>
 
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-2">
+                    <label class="form-check d-flex align-items-center gap-2 mb-0">
+                        <input class="form-check-input mt-0" type="checkbox" name="remember_me" value="1">
+                        <span class="small">Ingat saya selama 30 hari</span>
+                    </label>
+                    <a class="small" href="forgot-password.php">Lupa password?</a>
+                </div>
+
                 <button class="btn brutal-btn brutal-btn--primary btn-login w-100 mt-3" type="submit">Login</button>
             </form>
 

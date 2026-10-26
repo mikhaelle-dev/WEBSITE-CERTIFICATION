@@ -5,6 +5,7 @@ if (!isset($data['inTrash']) || !array_key_exists('remainingSeconds', $data)) {
 }
 
 $closeUrl = '../controller/AuthController.php?aksi=logout';
+$adminEmail = admin_contact_email();
 $remainingSeconds = $data['remainingSeconds'];
 $remainingLabel = '';
 if ($remainingSeconds !== null && $remainingSeconds > 0) {
@@ -75,6 +76,13 @@ if ($remainingSeconds !== null && $remainingSeconds > 0) {
                 <?php endif; ?>
                 Hubungi admin untuk meminta bantuan<?= $data['inTrash'] ? ' dan pemulihan akun' : '' ?>.
             </p>
+            <?php if ($adminEmail !== ''): ?>
+                <a class="btn brutal-btn disabled-contact" href="mailto:<?= e($adminEmail) ?>?subject=Permintaan%20bantuan%20akun">
+                    <i class="bi bi-envelope me-1"></i>Hubungi admin
+                </a>
+            <?php else: ?>
+                <p class="disabled-contact-hint">Email admin belum dikonfigurasi. Hubungi admin melalui kanal komunikasi yang biasa digunakan.</p>
+            <?php endif; ?>
             <a class="btn brutal-btn brutal-btn--primary disabled-close" href="<?= e($closeUrl) ?>" autofocus>
                 Tutup dan kembali ke login
             </a>

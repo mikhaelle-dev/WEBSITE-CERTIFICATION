@@ -295,6 +295,16 @@ body.auth-page::-webkit-scrollbar-thumb {
     letter-spacing: -0.04em;
 }
 
+.auth-brutal .forgot-password-brand {
+    position: fixed;
+    z-index: 2;
+    top: clamp(1rem, 3vw, 2rem);
+    left: clamp(1rem, 4vw, 3rem);
+    margin: 0;
+    color: var(--brutal-ink);
+    text-decoration: none;
+}
+
 .auth-brutal .auth-hero h1 {
     max-width: 12ch;
     margin: 0 0 1rem;

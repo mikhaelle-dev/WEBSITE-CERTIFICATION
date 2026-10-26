@@ -56,24 +56,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         switch ($action) {
-            case 'tambah':
-                $nama = trim($postString('nama'));
-                $email = strtolower(trim($postString('email')));
-                $password = $postString('password');
-                $role = $postString('role');
-                if ($nama === '' || mb_strlen($nama) > 100) {
-                    throw new DomainException('Nama wajib diisi dan maksimal 100 karakter.');
-                }
-                if (mb_strlen($email) > 100 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    throw new DomainException('Email tidak valid (maksimal 100 karakter).');
-                }
-                if (strlen($password) < 8 || strlen($password) > 200) {
-                    throw new DomainException('Password awal harus 8 sampai 200 karakter.');
-                }
-                $adminUsers->createUser($actorId, $nama, $email, $password, $role);
-                $_SESSION['admin_success'] = 'Akun berhasil ditambahkan.';
-                break;
-
             case 'role':
                 if (!$userId) {
                     throw new DomainException('Akun tidak valid.');
@@ -130,8 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 $_SESSION['admin_success'] = $adminUsers->permanentlyDeleteTrashedUser(
                     $actorId,
-                    $userId,
-                    $postString('konfirmasi_hapus')
+                    $userId
                 );
                 break;
 
