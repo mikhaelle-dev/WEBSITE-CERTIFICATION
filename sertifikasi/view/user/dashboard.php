@@ -37,11 +37,11 @@ $punyaKursus = !empty($data['kursusSaya']);
 
             <?php endif; ?>
 
-            <?php if ($punyaKursus && $data['q'] === ''): ?>
+            <?php if ($punyaKursus): ?>
                 <section aria-labelledby="progress-heading">
                     <div class="d-flex justify-content-between align-items-center gap-2">
                         <h3 class="section-title mb-0" id="progress-heading">Progres belajar</h3>
-                        <a href="ProfileController.php?tab=riwayat&amp;status_belajar=Berjalan" class="small">Riwayat progres</a>
+                        <a href="ProfileController.php?tab=riwayat&amp;status_belajar=Progres" class="small">Riwayat progres</a>
                     </div>
                     <?php foreach ($data['kursusSaya'] as $k): ?>
                         <article class="course-card mb-4">
@@ -60,16 +60,14 @@ $punyaKursus = !empty($data['kursusSaya']);
             <?php endif; ?>
 
             <div class="d-flex justify-content-between align-items-center gap-2">
-                <h3 class="section-title" id="rekomendasi">
+                <h3 class="section-title mb-0" id="rekomendasi">
                     <?php if ($data['q'] !== ''): ?>
                         Hasil pencarian: <?= e($data['q']) ?>
                     <?php else: ?>
-                        <?= $data['kategori'] !== '' ? 'Kursus ' . e($data['kategori']) : 'Lihat semua kursus' ?>
+                        <?= $data['kategori'] !== '' ? 'Kursus ' . e($data['kategori']) : 'Kursus tersedia' ?>
                     <?php endif; ?>
                 </h3>
-                <?php if ($data['kategori'] !== ''): ?>
-                    <a href="DashboardController.php#rekomendasi" class="small">Tampilkan semua</a>
-                <?php endif; ?>
+                <a href="DashboardController.php#rekomendasi" class="small text-nowrap">Lihat semua kursus</a>
             </div>
             <?php $daftarKartu = $data['rekomendasi']; ?>
 
@@ -121,7 +119,7 @@ $punyaKursus = !empty($data['kursusSaya']);
                     </div>
                 <?php else: ?>
                     <?php foreach ($data['pencapaian'] as $p): ?>
-                        <a class="ach-item" href="ProfileController.php?tab=sertifikat" data-history-back>
+                        <a class="ach-item" href="DashboardController.php" data-history-back>
                             <i class="bi <?= e($p['ikon']) ?>"></i>
                             <div>
                                 <small class="text-muted text-uppercase"><?= e($p['jenis']) ?></small>

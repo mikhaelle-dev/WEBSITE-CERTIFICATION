@@ -19,7 +19,7 @@ $quiz = $data['quiz'];
 <?php $aktif = 'mylearning'; include __DIR__ . '/../../component/navbar.php'; ?>
 
 <main class="container py-4 course-page">
-    <a class="course-back" href="DashboardController.php"><i class="bi bi-arrow-left"></i> Kembali ke My Learning</a>
+    <a class="course-back" href="DashboardController.php"><i class="bi bi-arrow-left"></i> Kembali ke Home</a>
     <header class="course-heading">
         <span class="badge text-bg-success"><?= e($course['kategori']) ?> · <?= e($course['level']) ?></span>
         <h1><?= e($course['judul']) ?></h1>

@@ -33,6 +33,7 @@ $data = [
     'username' => $_SESSION['username'] ?? '',
     'inTrash' => $accountAccess['masuk_sampah_pada'] !== null,
     'remainingSeconds' => $accountAccess['waktu_sampah_tersisa'],
+    'adminEmail' => $auth->getActiveAdminEmail() ?? admin_contact_email(),
 ];
 
 include __DIR__ . '/../view/account_disabled.php';

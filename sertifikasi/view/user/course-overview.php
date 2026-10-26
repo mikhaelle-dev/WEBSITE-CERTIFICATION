@@ -17,7 +17,7 @@ $course = $data['course'];
 <?php $aktif = 'mylearning'; include __DIR__ . '/../../component/navbar.php'; ?>
 
 <main class="container course-page py-4">
-    <a class="course-back" href="DashboardController.php"><i class="bi bi-arrow-left"></i> Kembali ke My Learning</a>
+    <a class="course-back" href="DashboardController.php"><i class="bi bi-arrow-left"></i> Kembali ke Home</a>
 
     <section class="overview-hero">
         <div class="overview-hero-content">
@@ -147,12 +147,12 @@ $course = $data['course'];
                     <div class="alert alert-success"><i class="bi bi-check-circle-fill"></i> Kursus ini sudah selesai.</div>
                     <a class="btn btn-enroll w-100" href="CourseController.php?slug=<?= urlencode($course['slug']) ?>&submateri=<?= (int) $data['resumeSublessonId'] ?>">Lihat materi</a>
                 <?php elseif ($data['active']): ?>
-                    <p class="text-muted">Kursus ini sudah ada di My Learning. Lanjutkan dari progres terakhirmu.</p>
+                    <p class="text-muted">Kursus ini sudah ada di Home. Lanjutkan dari progres terakhirmu.</p>
                     <a class="btn btn-enroll w-100" href="CourseController.php?slug=<?= urlencode($course['slug']) ?>&submateri=<?= (int) $data['resumeSublessonId'] ?>">Resume Course</a>
                 <?php elseif ($data['activeCourse'] !== null): ?>
                     <p class="fw-semibold">Selesaikan kursus aktifmu terlebih dahulu.</p>
                     <p class="text-muted mb-3"><?= e($data['activeCourse']['judul']) ?> masih berjalan.</p>
-                    <a class="btn btn-enroll w-100" href="DashboardController.php">Kembali ke My Learning</a>
+                    <a class="btn btn-enroll w-100" href="DashboardController.php">Kembali ke Home</a>
                 <?php else: ?>
                     <p class="text-muted">Mulai belajar mandiri dan lanjutkan progresmu kapan saja.</p>
                     <form method="POST">
