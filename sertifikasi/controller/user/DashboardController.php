@@ -38,6 +38,10 @@ if (!empty($_SESSION['account_restricted'])) {
     header('Location: ../AccountDisabledController.php');
     exit();
 }
+if ($auth->mustChangePassword((int) $_SESSION['id_user'])) {
+    header('Location: ProfileController.php?tab=profil&must_change=1');
+    exit();
+}
 
 if (isset($_GET['logout'])) {
     header('Location: ../AuthController.php?aksi=logout');

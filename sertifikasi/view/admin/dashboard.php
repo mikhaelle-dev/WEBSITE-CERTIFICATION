@@ -58,18 +58,21 @@ $statCards = [
             <i class="bi bi-key-fill"></i>
             <div class="flex-grow-1">
                 <strong>Kata sandi sementara — hanya ditampilkan sekali</strong>
-                <div class="small mt-1">Salin dan berikan secara aman kepada pemilik akun.</div>
-            <div class="input-group mt-2">
+                <div class="small mt-1">Berikan kepada pemilik akun secara langsung setelah memverifikasi identitasnya.</div>
+                <div class="input-group mt-2">
                     <input class="form-control font-monospace" id="generatedPassword" value="<?= e($data['generatedPassword']) ?>" readonly>
                     <button class="btn btn-admin-quiet" type="button" data-copy-target="generatedPassword">Salin</button>
                 </div>
             </div>
         </div>
     <?php endif; ?>
-
     <nav class="admin-view-tabs" aria-label="Bagian manajemen akun">
         <a class="<?= $data['activeTab'] === 'akun' ? 'is-active' : '' ?>" href="DashboardController.php">
             <i class="bi bi-people"></i> Daftar akun
+        </a>
+        <a class="<?= $data['activeTab'] === 'reset' ? 'is-active' : '' ?>" href="DashboardController.php?tab=reset">
+            <i class="bi bi-key"></i> Permintaan reset
+            <?php if ($data['pendingResetCount'] > 0): ?><span class="admin-trash-count"><?= (int) $data['pendingResetCount'] ?></span><?php endif; ?>
         </a>
         <a class="<?= $data['activeTab'] === 'sampah' ? 'is-active' : '' ?>" href="DashboardController.php?tab=sampah">
             <i class="bi bi-trash3"></i> Sampah
@@ -300,7 +303,7 @@ $statCards = [
             </table>
         </div>
     </section>
-    <?php else: ?>
+    <?php elseif ($data['activeTab'] === 'sampah'): ?>
     <section class="admin-panel admin-trash-panel" aria-labelledby="trash-heading">
         <div class="admin-users-heading">
             <div>
@@ -364,6 +367,74 @@ $statCards = [
                     <?php endforeach; ?>
                     </tbody>
                 </table>
+            </div>
+        <?php endif; ?>
+    </section>
+    <?php else: ?>
+    <section class="admin-panel admin-users-panel" aria-labelledby="reset-heading">
+        <div class="admin-users-heading">
+            <div>
+                <h2 id="reset-heading">Permintaan reset password</h2>
+                <p>Verifikasi identitas pemilik secara langsung sebelum menetapkan password baru.</p>
+            </div>
+            <i class="bi bi-key admin-users-heading-icon" aria-hidden="true"></i>
+        </div>
+        <?php if (!$data['pendingResetRequests']): ?>
+            <div class="admin-empty-state">
+                <i class="bi bi-inbox" aria-hidden="true"></i>
+                <strong>Tidak ada permintaan tertunda</strong>
+                <span>Permintaan dari pengguna akan muncul di sini.</span>
+            </div>
+        <?php else: ?>
+            <div class="d-grid gap-3">
+                <?php foreach ($data['pendingResetRequests'] as $request): ?>
+                    <details class="admin-panel p-3">
+                        <summary class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <span>
+                                <strong><?= e($request['nama']) ?></strong>
+                                <span class="d-block small text-muted"><?= e($request['email']) ?> · <?= e(ucfirst($request['role'])) ?></span>
+                            </span>
+                            <span class="small text-muted">Diminta <?= e($request['created_at']) ?></span>
+                        </summary>
+                        <?php if ($request['masuk_sampah_pada'] !== null): ?>
+                            <div class="alert alert-warning mt-3 mb-0" role="status">
+                                Pulihkan akun dari sampah sebelum mereset password.
+                            </div>
+                        <?php elseif ((int) $request['status'] !== 1): ?>
+                            <div class="alert alert-warning mt-3 mb-0" role="status">
+                                Aktifkan akun terlebih dahulu dari daftar akun sebelum memproses reset password.
+                            </div>
+                        <?php else: ?>
+                            <form method="POST" class="admin-action-form mt-3">
+                                <input type="hidden" name="csrf_token" value="<?= e($data['csrf']) ?>">
+                                <input type="hidden" name="aksi" value="reset_password_request">
+                                <input type="hidden" name="request_id" value="<?= (int) $request['request_id'] ?>">
+                                <input type="hidden" name="user_id" value="<?= (int) $request['user_id'] ?>">
+                                <input type="hidden" name="tab" value="reset">
+                                <label for="reset-password-<?= (int) $request['request_id'] ?>">Password baru</label>
+                                <input
+                                    class="form-control"
+                                    id="reset-password-<?= (int) $request['request_id'] ?>"
+                                    type="password"
+                                    name="password_baru"
+                                    minlength="8"
+                                    maxlength="200"
+                                    autocomplete="new-password"
+                                    required
+                                >
+                                <small>Minimal 8 karakter. Password akan ditampilkan sekali jika dibuat acak.</small>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button class="btn btn-sm btn-admin-filter" name="mode" value="manual" type="submit">
+                                        Reset dengan password ini
+                                    </button>
+                                    <button class="btn btn-sm btn-admin-quiet" name="mode" value="generate" type="submit" formnovalidate>
+                                        Buat password acak
+                                    </button>
+                                </div>
+                            </form>
+                        <?php endif; ?>
+                    </details>
+                <?php endforeach; ?>
             </div>
         <?php endif; ?>
     </section>

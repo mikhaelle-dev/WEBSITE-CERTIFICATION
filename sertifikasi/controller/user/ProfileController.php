@@ -34,6 +34,7 @@ if (!empty($_SESSION['account_restricted'])) {
     header('Location: ../AccountDisabledController.php');
     exit();
 }
+$mustChangePassword = $auth->mustChangePassword((int) $_SESSION['id_user']);
 
 if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -42,6 +43,9 @@ if (!isset($_SESSION['csrf_token'])) {
 // ---------- tab aktif (whitelist) ----------
 $tabValid = ['profil', 'sertifikat', 'riwayat'];
 if ($_SESSION['role'] !== 'siswa') {
+    $tabValid = ['profil'];
+}
+if ($mustChangePassword) {
     $tabValid = ['profil'];
 }
 $tab = $_GET['tab'] ?? 'profil';
@@ -100,19 +104,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $aksiSimpan === 'ubah_password') {
         $passwordBaru = (string) ($_POST['password_baru'] ?? '');
         $konfirmasiPassword = (string) ($_POST['konfirmasi_password'] ?? '');
 
-        if ($passwordLama === '')                         $errors[] = 'Password saat ini wajib diisi.';
+        if (!$mustChangePassword && $passwordLama === '') {
+            $errors[] = 'Password saat ini wajib diisi.';
+        }
         if (strlen($passwordBaru) < 8 || strlen($passwordBaru) > 200) {
             $errors[] = 'Password baru harus 8 sampai 200 karakter.';
+        }
+        if (!$mustChangePassword && $passwordBaru !== '' && $passwordBaru === $passwordLama) {
+            $errors[] = 'Password baru harus berbeda dari password saat ini.';
         }
         if ($passwordBaru !== $konfirmasiPassword)        $errors[] = 'Konfirmasi password baru tidak sama.';
 
         if (!$errors) {
             try {
-                if (!(new Auth())->changePassword((int) $_SESSION['id_user'], $passwordLama, $passwordBaru)) {
-                    $errors[] = 'Password saat ini salah atau akun tidak aktif.';
+                $auth = new Auth();
+                $passwordChanged = $mustChangePassword
+                    ? $auth->completeRequiredPasswordChange((int) $_SESSION['id_user'], $passwordBaru)
+                    : $auth->changePassword((int) $_SESSION['id_user'], $passwordLama, $passwordBaru);
+                if (!$passwordChanged) {
+                    $errors[] = $mustChangePassword
+                        ? 'Password tidak dapat diperbarui. Muat ulang halaman dan coba lagi.'
+                        : 'Password saat ini salah atau akun tidak aktif.';
                 } else {
+                    $_SESSION['must_change_password'] = false;
                     session_regenerate_id(true);
-                    header('Location: ProfileController.php?tab=profil&status=password_changed');
+                    $dashboardPath = match ($_SESSION['role']) {
+                        'admin' => '../admin/DashboardController.php',
+                        'siswa' => 'DashboardController.php',
+                        default => '../../view/placeholder.php',
+                    };
+                    header('Location: ' . $dashboardPath . '?status=password_changed');
                     exit();
                 }
             } catch (PDOException $e) {
@@ -128,7 +149,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $aksiSimpan === 'ubah_password') {
 
 // ---------- simpan profil atau foto profil ----------
 $aksiSimpan = $_POST['aksi'] ?? '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($aksiSimpan, ['simpan_profil', 'simpan_foto'], true)) {
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST'
+    && in_array($aksiSimpan, ['simpan_profil', 'simpan_foto'], true)
+    && $mustChangePassword
+) {
+    $tab = 'profil';
+    $errors[] = 'Ganti password terlebih dahulu sebelum mengubah informasi profil.';
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($aksiSimpan, ['simpan_profil', 'simpan_foto'], true)) {
     $tab = 'profil';
     $hanyaSimpanFoto = $aksiSimpan === 'simpan_foto';
 
@@ -302,6 +330,7 @@ $data = [
     'username'        => $_SESSION['username'],
     'foto_profil'     => $profil['foto_profil'],
     'role'            => $_SESSION['role'],
+    'mustChangePassword' => $mustChangePassword,
     'tab'             => $tab,
     'profil'          => $profil,
     'namaLengkap'     => $namaLengkap,

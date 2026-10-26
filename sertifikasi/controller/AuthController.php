@@ -93,6 +93,7 @@ if ($aksi === 'login') {
     $_SESSION['role']               = $u['role'];
     $_SESSION['foto_profil']         = $u['foto_profil'] ?? null;
     $_SESSION['account_restricted'] = $hasil['restricted'];
+    $_SESSION['must_change_password'] = $u['must_change_password'];
 
     if (isset($_POST['remember_me']) && $_POST['remember_me'] === '1') {
         $cookie = session_get_cookie_params();
@@ -109,6 +110,8 @@ if ($aksi === 'login') {
     // Redirect based on role / restriction
     if ($hasil['restricted']) {
         header('Location: AccountDisabledController.php');
+    } elseif ($u['must_change_password']) {
+        header('Location: user/ProfileController.php?tab=profil&must_change=1');
     } elseif ($u['role'] === 'siswa') {
         header('Location: user/DashboardController.php');
     } elseif ($u['role'] === 'admin') {

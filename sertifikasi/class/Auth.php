@@ -59,7 +59,7 @@ class Auth extends Database
     public function login(string $email, string $password): array
     {
         $sql = sprintf(
-            'SELECT u.id, u.email, u.nama, u.password, u.role, u.status, u.masuk_sampah_pada,
+            'SELECT u.id, u.email, u.nama, u.password, u.role, u.status, u.must_change_password, u.masuk_sampah_pada,
                     GREATEST(0, TIMESTAMPDIFF(
                         SECOND,
                         CURRENT_TIMESTAMP,
@@ -80,8 +80,16 @@ class Auth extends Database
             return ['ok' => false, 'user' => null, 'error' => 'Email atau password salah.'];
         }
         $restricted = $user['masuk_sampah_pada'] !== null || (int) $user['status'] !== 1;
+        $user['must_change_password'] = (bool) $user['must_change_password'];
         unset($user['password']);
         return ['ok' => true, 'user' => $user, 'restricted' => $restricted, 'error' => ''];
+    }
+
+    public function mustChangePassword(int $userId): bool
+    {
+        $stmt = $this->db->prepare('SELECT must_change_password FROM user WHERE id = ?');
+        $stmt->execute([$userId]);
+        return (bool) $stmt->fetchColumn();
     }
 
     public function createInitialAdmin(string $nama, string $email, string $password): void
@@ -143,7 +151,9 @@ class Auth extends Database
                 return false;
             }
 
-            $update = $this->db->prepare('UPDATE user SET password = ? WHERE id = ?');
+            $update = $this->db->prepare(
+                'UPDATE user SET password = ?, must_change_password = 0 WHERE id = ?'
+            );
             $update->execute([password_hash($newPassword, PASSWORD_DEFAULT), $userId]);
             $this->db->commit();
             return true;
@@ -153,6 +163,17 @@ class Auth extends Database
             }
             throw $e;
         }
+    }
+
+    public function completeRequiredPasswordChange(int $userId, string $newPassword): bool
+    {
+        $stmt = $this->db->prepare(
+            'UPDATE user
+             SET password = ?, must_change_password = 0
+             WHERE id = ? AND status = 1 AND must_change_password = 1'
+        );
+        $stmt->execute([password_hash($newPassword, PASSWORD_DEFAULT), $userId]);
+        return $stmt->rowCount() === 1;
     }
 
     public function getProfile(int $userId): ?array

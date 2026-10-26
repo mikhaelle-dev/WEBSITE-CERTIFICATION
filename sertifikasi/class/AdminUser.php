@@ -149,8 +149,77 @@ class AdminUser extends Database
             if ($target['masuk_sampah_pada'] !== null) {
                 throw new DomainException('Pulihkan akun dari sampah sebelum mereset kata sandi.');
             }
-            $stmt = $this->db->prepare('UPDATE user SET password = ? WHERE id = ?');
+            $stmt = $this->db->prepare(
+                'UPDATE user SET password = ?, must_change_password = 1 WHERE id = ?'
+            );
             $stmt->execute([password_hash($password, PASSWORD_DEFAULT), $userId]);
+        });
+    }
+
+    public function getPendingPasswordResetRequests(): array
+    {
+        $stmt = $this->db->query(
+            "SELECT r.id AS request_id, r.created_at, u.id AS user_id, u.nama, u.email,
+                    u.role, u.status, u.masuk_sampah_pada
+             FROM password_reset_requests r
+             INNER JOIN user u ON u.id = r.user_id
+             WHERE r.status = 'pending'
+             ORDER BY r.created_at ASC, r.id ASC"
+        );
+        return $stmt->fetchAll();
+    }
+
+    public function resetPasswordForRequest(
+        int $actorId,
+        int $requestId,
+        int $userId,
+        string $password
+    ): void {
+        if ($actorId === $userId) {
+            throw new DomainException('Minta admin lain untuk memproses reset password akun admin.');
+        }
+
+        $this->withLockedUsers($actorId, function () use (
+            $actorId,
+            $requestId,
+            $userId,
+            $password
+        ): void {
+            $request = $this->db->prepare(
+                "SELECT id FROM password_reset_requests
+                 WHERE id = ? AND user_id = ? AND status = 'pending'
+                 FOR UPDATE"
+            );
+            $request->execute([$requestId, $userId]);
+            if ($request->fetchColumn() === false) {
+                throw new DomainException('Permintaan reset tidak ditemukan atau sudah diproses.');
+            }
+
+            $target = $this->getLockedUser($userId);
+            if ($target === null) {
+                throw new DomainException('Akun tidak ditemukan.');
+            }
+            if ($target['masuk_sampah_pada'] !== null) {
+                throw new DomainException('Pulihkan akun dari sampah sebelum mereset kata sandi.');
+            }
+            if ($target['status'] !== 1) {
+                throw new DomainException('Aktifkan akun sebelum memproses permintaan reset password.');
+            }
+
+            $updatePassword = $this->db->prepare(
+                'UPDATE user SET password = ?, must_change_password = 1 WHERE id = ?'
+            );
+            $updatePassword->execute([password_hash($password, PASSWORD_DEFAULT), $userId]);
+
+            $completeRequest = $this->db->prepare(
+                "UPDATE password_reset_requests
+                 SET status = 'done', processed_at = CURRENT_TIMESTAMP, processed_by = ?
+                 WHERE id = ? AND status = 'pending'"
+            );
+            $completeRequest->execute([$actorId, $requestId]);
+            if ($completeRequest->rowCount() !== 1) {
+                throw new DomainException('Permintaan reset sudah diproses oleh admin lain.');
+            }
         });
     }
 

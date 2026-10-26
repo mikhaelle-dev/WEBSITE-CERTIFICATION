@@ -1,7 +1,42 @@
 <?php
-require_once __DIR__ . '/../config/helpers.php';
+declare(strict_types=1);
 
-$adminEmail = admin_contact_email();
+require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../config/helpers.php';
+require_once __DIR__ . '/../class/PasswordResetRequest.php';
+
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+$error = '';
+$success = '';
+$email = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $token = $_POST['csrf_token'] ?? '';
+    $email = strtolower(trim(is_string($_POST['email'] ?? null) ? $_POST['email'] : ''));
+
+    if (!is_string($token) || !hash_equals($_SESSION['csrf_token'], $token)) {
+        $error = 'Sesi form tidak valid. Muat ulang halaman dan coba lagi.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 100) {
+        $error = 'Masukkan alamat email yang valid.';
+    } else {
+        try {
+            (new PasswordResetRequest())->submit($email);
+            $success = 'Jika email cocok dengan akun, permintaan reset sudah diteruskan ke admin. Temui admin secara langsung untuk verifikasi.';
+            $email = '';
+        } catch (PDOException $exception) {
+            error_log('Password reset request database error: ' . $exception->getMessage());
+            http_response_code(503);
+            $error = 'Permintaan belum dapat disimpan. Pastikan database sudah menjalankan migrasi reset password.';
+        } catch (Throwable $exception) {
+            error_log('Password reset request error: ' . $exception->getMessage());
+            http_response_code(500);
+            $error = 'Permintaan reset gagal disimpan. Silakan coba lagi.';
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -22,14 +57,15 @@ $adminEmail = admin_contact_email();
         <section class="auth-panel w-100">
             <div class="auth-box brutal-card">
                 <h1 class="h2">Lupa password?</h1>
-                <p class="text-muted">Hubungi admin untuk meminta reset password akun. Demi keamanan, password lama tidak dapat ditampilkan.</p>
-                <?php if ($adminEmail !== ''): ?>
-                    <a class="btn brutal-btn brutal-btn--primary w-100" href="mailto:<?= e($adminEmail) ?>?subject=Permintaan%20reset%20password">
-                        <i class="bi bi-envelope me-1"></i>Hubungi admin
-                    </a>
-                <?php else: ?>
-                    <div class="alert alert-info" role="status">Email admin belum dikonfigurasi. Hubungi admin melalui kanal komunikasi yang biasa digunakan.</div>
-                <?php endif; ?>
+                <p class="text-muted">Masukkan email akun. Setelah mengirim permintaan, temui admin secara langsung untuk verifikasi dan reset password.</p>
+                <?php if ($error !== ''): ?><div class="alert alert-danger" role="alert"><?= e($error) ?></div><?php endif; ?>
+                <?php if ($success !== ''): ?><div class="alert alert-success" role="status"><?= e($success) ?></div><?php endif; ?>
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token']) ?>">
+                    <label class="form-label" for="email">Email akun</label>
+                    <input class="form-control mb-3" type="email" id="email" name="email" maxlength="100" autocomplete="email" value="<?= e($email) ?>" required>
+                    <button class="btn brutal-btn brutal-btn--primary w-100" type="submit">Kirim permintaan reset</button>
+                </form>
                 <a class="d-inline-flex align-items-center gap-1 mt-3" href="login.php"><i class="bi bi-arrow-left"></i>Kembali ke login</a>
             </div>
         </section>

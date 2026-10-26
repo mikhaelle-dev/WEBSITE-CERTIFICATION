@@ -1,12 +1,18 @@
 <?php
 require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../config/helpers.php';
+require_once __DIR__ . '/../class/Auth.php';
 
 if (empty($_SESSION['logged_in'])) {
     header('Location: login.php');
     exit();
 }
 $role = $_SESSION['role'];
+$mustChangePassword = (new Auth())->mustChangePassword((int) $_SESSION['id_user']);
+if ($mustChangePassword) {
+    header('Location: ../controller/user/ProfileController.php?tab=profil&must_change=1');
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">

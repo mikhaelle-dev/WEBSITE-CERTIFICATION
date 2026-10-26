@@ -24,6 +24,10 @@ if (!empty($_SESSION['account_restricted'])) {
     header('Location: ../AccountDisabledController.php');
     exit();
 }
+if ($auth->mustChangePassword((int) $_SESSION['id_user'])) {
+    header('Location: ProfileController.php?tab=profil&must_change=1');
+    exit();
+}
 
 $certificateId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 if ($certificateId === false || $certificateId === null || $certificateId < 1) {

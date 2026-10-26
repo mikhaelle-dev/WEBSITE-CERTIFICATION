@@ -54,9 +54,12 @@ $p   = $data['profil'];
 </header>
 
 <main class="container pf-main">
-    <a class="btn btn-sm btn-outline-dark mb-3" href="DashboardController.php"><i class="bi bi-arrow-left me-1"></i>Kembali ke Home</a>
+    <?php if (!$data['mustChangePassword']): ?>
+        <a class="btn btn-sm btn-outline-dark mb-3" href="DashboardController.php"><i class="bi bi-arrow-left me-1"></i>Kembali ke Home</a>
+    <?php endif; ?>
 
     <!-- TAB -->
+    <?php if (!$data['mustChangePassword']): ?>
     <ul class="pf-tabs">
         <li><a class="<?= $tab === 'profil' ? 'on' : '' ?>" href="?tab=profil"><i class="bi bi-person"></i> Profil</a></li>
         <?php if ($data['role'] === 'siswa'): ?>
@@ -64,6 +67,7 @@ $p   = $data['profil'];
             <li><a class="<?= $tab === 'riwayat' ? 'on' : '' ?>" href="?tab=riwayat"><i class="bi bi-clock-history"></i> Riwayat Belajar</a></li>
         <?php endif; ?>
     </ul>
+    <?php endif; ?>
 
     <?php if ($tab === 'profil'): ?>
     <!-- ============ TAB PROFIL ============ -->
@@ -135,7 +139,8 @@ $p   = $data['profil'];
             </form>
         </div>
 
-        <div class="pf-card mt-4">
+        <?php if (!$data['mustChangePassword']): ?>
+        <div class="pf-card mt-4" id="change-password">
             <h2 class="pf-h">Ganti password</h2>
             <p class="text-muted">Masukkan password saat ini untuk memastikan perubahan berasal dari pemilik akun.</p>
             <form method="POST" action="ProfileController.php?tab=profil" autocomplete="off">
@@ -158,6 +163,7 @@ $p   = $data['profil'];
                 <button class="btn btn-enroll mt-4 px-4" type="submit">Simpan password baru</button>
             </form>
         </div>
+        <?php endif; ?>
 
         <div class="modal fade" id="profilePhotoCropModal" tabindex="-1" aria-labelledby="profilePhotoCropTitle" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -290,9 +296,45 @@ $p   = $data['profil'];
 
 </main>
 
+<?php if ($data['mustChangePassword']): ?>
+    <div class="modal fade" id="requiredPasswordChangeModal" tabindex="-1" aria-labelledby="requiredPasswordChangeTitle" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="requiredPasswordChangeTitle">
+                        <i class="bi bi-shield-exclamation text-warning me-1"></i>Ganti password sebelum melanjutkan
+                    </h2>
+                </div>
+                <div class="modal-body">
+                    Password akunmu direset oleh admin. Untuk menjaga keamanan akun, kamu harus mengganti password sebelum dapat membuka dashboard.
+                    <?php if ($data['errors']): ?>
+                        <div class="alert alert-danger mt-3 mb-0" role="alert">
+                            <ul class="m-0 ps-3"><?php foreach ($data['errors'] as $error): ?><li><?= e($error) ?></li><?php endforeach; ?></ul>
+                        </div>
+                    <?php endif; ?>
+                    <form method="POST" action="ProfileController.php?tab=profil" id="requiredPasswordChangeForm" class="mt-3" autocomplete="off">
+                        <input type="hidden" name="aksi" value="ubah_password">
+                        <input type="hidden" name="csrf_token" value="<?= e($data['csrf']) ?>">
+                        <label class="form-label" for="password_baru">Password baru</label>
+                        <input class="form-control mb-3" type="password" id="password_baru" name="password_baru" minlength="8" maxlength="200" autocomplete="new-password" required>
+                        <label class="form-label" for="konfirmasi_password">Konfirmasi password baru</label>
+                        <input class="form-control" type="password" id="konfirmasi_password" name="konfirmasi_password" minlength="8" maxlength="200" autocomplete="new-password" required>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" type="submit" form="requiredPasswordChangeForm">Simpan password baru</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
 <script src="../../asset/js/profile-photo.js?v=3"></script>
 <script src="../../asset/js/page-actions.js"></script>
+<?php if ($data['mustChangePassword']): ?>
+    <script src="../../asset/js/required-password-change.js"></script>
+<?php endif; ?>
 </body>
 </html>

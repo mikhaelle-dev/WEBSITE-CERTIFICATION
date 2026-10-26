@@ -15,6 +15,7 @@ Semua tabel tetap berada di database `db_sertifikasi`. File SQL dipisahkan berda
 11. `10_submateri.sql` — submateri kursus dan progres per submateri.
 12. `11_account_trash.sql` — status sampah akun untuk pemulihan dan penghapusan terjadwal setelah 5 menit.
 13. `12_account_trash_scheduler.sql` — MySQL Event untuk menghapus akun kedaluwarsa tanpa menunggu dashboard admin dibuka.
+14. `13_password_reset_requests.sql` — permintaan reset password dan penanda agar pengguna mengganti password setelah login.
 
 Jalankan file satu per satu di HeidiSQL sesuai urutan di atas. File skema dan seed dapat dijalankan kembali tanpa menggandakan data contoh.
 
@@ -24,6 +25,7 @@ Untuk database yang sudah memiliki kursus dan pendaftaran, jalankan `09_achievem
 Untuk database yang sudah memiliki kursus dan badge, jalankan `10_submateri.sql` agar progres dihitung setelah seluruh submateri dalam modul dibuka.
 Jalankan `11_account_trash.sql` setelah `10_submateri.sql` untuk mengaktifkan fitur tempat sampah akun. Jalankan satu kali pada database yang sudah ada.
 Jalankan `12_account_trash_scheduler.sql` setelah `11_account_trash.sql` agar MySQL menghapus akun sampah kedaluwarsa tanpa bergantung pada dashboard admin. Skrip membuat antrean foto profil yang perlu dibersihkan, memasang trigger untuk mengantrekan foto saat akun dihapus, dan mengaktifkan event terjadwal setiap detik. Jika event sudah ada, jalankan ulang skrip untuk memperbarui trigger dan jadwal event. Berkas foto yang masuk antrean dihapus saat aplikasi menerima permintaan database berikutnya. MySQL Event Scheduler server tetap harus aktif dan pengguna database memerlukan izin `EVENT`. Verifikasi dengan `SHOW GLOBAL VARIABLES LIKE 'event_scheduler';`. Jika nilainya `OFF`, aktifkan `event_scheduler=ON` pada konfigurasi MySQL (misalnya `my.ini`) lalu mulai ulang MySQL; event yang berstatus `ENABLE` tetap tidak berjalan saat scheduler server mati.
+Jalankan `13_password_reset_requests.sql` setelah `12_account_trash_scheduler.sql`. Pada database yang sudah ada, jalankan migrasi ini satu kali sebelum menggunakan halaman lupa password atau dashboard admin. Permintaan hanya masuk ke daftar admin jika email cocok dengan akun; halaman tetap menampilkan pesan yang sama untuk mencegah pengecekan email terdaftar. Admin harus memverifikasi pemilik secara langsung, lalu memberikan password baru secara langsung. Pengguna dapat login dan akan melihat pengingat dashboard sampai password diganti dari profil.
 Admin dapat memindahkan akun ke sampah tanpa mengetik konfirmasi; akun dinonaktifkan dan dapat dipulihkan selama lima menit. Waktu dihitung berdasarkan timestamp database sehingga tetap berjalan saat dashboard ditutup. Jika pemilik mencoba login dalam masa tersebut dengan password yang benar, halaman login menampilkan sisa waktu dan meminta mereka segera menghubungi admin.
 
 Dashboard admin dan fitur ganti/reset password menggunakan tabel `user` yang dibuat oleh `01_users.sql`. Buat admin pertama melalui `sertifikasi/set_up.php`; setelah admin pertama tersimpan, setup tidak dapat dipakai kembali. Admin tidak membuat akun melalui dashboard. Akun siswa tetap dibuat melalui form pendaftaran.
