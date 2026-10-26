@@ -1,0 +1,32 @@
+.support-page { max-width: 1100px; }
+.support-heading { padding: 1.4rem 1.6rem; border-radius: 8px; background: linear-gradient(120deg, #eef6ec, #f8fbff); }
+.support-eyebrow { color: #347a2c; font-size: .72rem; font-weight: 800; letter-spacing: .12em; }
+.support-heading .page-title { margin-top: .3rem; }
+.support-tabs { display: flex; gap: .6rem; border-bottom: 1px solid #dedede; }
+.support-tabs a { display: inline-flex; align-items: center; gap: .45rem; padding: .75rem 1rem; color: #59636e; font-weight: 700; text-decoration: none; border-bottom: 3px solid transparent; }
+.support-tabs a.active { color: #286c25; border-color: #67a94c; }
+.support-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem; }
+.support-card { padding: 1.5rem; border: 1px solid #e0e5e0; border-radius: 8px; background: #fff; box-shadow: 0 4px 14px rgba(22, 40, 28, .04); }
+.support-card h2 { margin: .8rem 0 .4rem; font-size: 1.25rem; font-weight: 700; }
+.support-icon { display: grid; width: 44px; height: 44px; place-items: center; border-radius: 10px; background: #edf6e9; color: #347a2c; font-size: 1.35rem; }
+.support-card .accordion { margin-top: .8rem; }
+.support-card .accordion-button { padding: .85rem .25rem; font-weight: 600; }
+.support-card .accordion-body { padding: 0 .25rem 1rem; color: #59636e; }
+.help-steps { display: grid; gap: .9rem; padding-left: 1.3rem; margin: 1.1rem 0; }
+.help-steps li { padding-left: .2rem; }
+.help-steps span { display: block; margin-top: .15rem; color: #68727c; font-size: .9rem; }
+.support-inline-link { color: #347a2c; font-weight: 700; text-decoration: none; }
+.support-contact-card { grid-column: 1 / -1; }
+.feedback-card { max-width: 760px; }
+.rating-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.rating-options label { cursor: pointer; }
+.rating-options input { position: absolute; opacity: 0; }
+.rating-options span { display: inline-block; padding: .55rem .8rem; border: 1px solid #d7ded4; border-radius: 5px; color: #5e6871; font-weight: 700; }
+.rating-options i { color: #d39d22; }
+.rating-options input:checked + span { border-color: #4c8f3d; background: #edf6e9; color: #286c25; }
+.rating-options input:focus-visible + span { outline: 3px solid rgba(76, 143, 61, .35); outline-offset: 2px; }
+@media (max-width: 767px) {
+    .support-grid { grid-template-columns: 1fr; }
+    .support-contact-card { grid-column: auto; }
+    .support-card { padding: 1.2rem; }
+}

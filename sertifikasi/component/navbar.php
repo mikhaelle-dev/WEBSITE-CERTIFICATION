@@ -121,8 +121,8 @@ $logoutPath = '../AuthController.php?aksi=logout';
 
         <div class="drawer-sec">
             <div class="drawer-title"><i class="bi bi-chat-dots"></i> Bantuan</div>
-            <a class="drawer-link" href="#">Support <i class="bi bi-chevron-right"></i></a>
-            <a class="drawer-link" href="#">Feedback <i class="bi bi-chevron-right"></i></a>
+            <a class="drawer-link" href="SupportController.php?tab=support">Support <i class="bi bi-chevron-right"></i></a>
+            <a class="drawer-link" href="SupportController.php?tab=feedback">Feedback <i class="bi bi-chevron-right"></i></a>
         </div>
 
         <div class="p-3">

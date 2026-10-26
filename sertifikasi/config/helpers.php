@@ -9,6 +9,16 @@ if (!function_exists('e')) {
     }
 }
 
+if (!function_exists('admin_contact_email')) {
+    function admin_contact_email(): string
+    {
+        $email = getenv('ADMIN_CONTACT_EMAIL');
+        return is_string($email) && filter_var($email, FILTER_VALIDATE_EMAIL)
+            ? $email
+            : '';
+    }
+}
+
 if (!function_exists('tgl_indo')) {
     function tgl_indo(?string $tanggal): string
     {
@@ -16,15 +26,6 @@ if (!function_exists('tgl_indo')) {
             return '-';
         }
 
-        if (!function_exists('admin_contact_email')) {
-            function admin_contact_email(): string
-            {
-                $email = getenv('ADMIN_CONTACT_EMAIL');
-                return is_string($email) && filter_var($email, FILTER_VALIDATE_EMAIL)
-                    ? $email
-                    : '';
-            }
-        }
         $timestamp = strtotime($tanggal);
         if ($timestamp === false) {
             return '-';
