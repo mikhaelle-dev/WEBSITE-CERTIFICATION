@@ -14,8 +14,9 @@ $p   = $data['profil'];
     <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet">
     <link href="../../asset/css/dashboard.css" rel="stylesheet">
     <link href="../../asset/css/profile.css" rel="stylesheet">
+    <link href="../../asset/css/brutal.css" rel="stylesheet">
 </head>
-<body>
+<body class="brutal-app">
 
 <?php $aktif = 'profil'; include __DIR__ . '/../../component/navbar.php'; ?>
 
@@ -280,7 +281,7 @@ $p   = $data['profil'];
                 <div class="hist-col"><small class="text-muted">Selesai</small><div class="fw-semibold"><?= e(tgl_indo($r['selesai_pada'] ?? $r['selesai'] ?? null)) ?></div></div>
                 <div class="hist-col">
                     <small class="text-muted">Status</small>
-                    <div><span class="badge <?= $r['status'] === 'Selesai' ? 'text-bg-success' : 'text-bg-warning' ?>"><?= e($r['status']) ?></span></div>
+                    <div><span class="badge <?= $r['status'] === 'Selesai' ? 'brutal-status-complete' : 'text-bg-warning' ?>"><?= e($r['status']) ?></span></div>
                 </div>
             </div>
         <?php endforeach; ?>

@@ -22,7 +22,7 @@ body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; color: var(--i
 
 .form-label { font-size: .85rem; font-weight: 600; margin-bottom: .25rem; }
 .form-control { padding: .6rem .75rem; border-radius: 4px; }
-.form-control:focus { border-color: #0b5ea8; box-shadow: 0 0 0 .15rem rgba(11,94,168,.2); }
+.form-control:focus { border-color: #171717; box-shadow: 3px 3px 0 #171717; }
 
 .pw-wrap { position: relative; }
 .pw-wrap .form-control { padding-right: 2.6rem; }

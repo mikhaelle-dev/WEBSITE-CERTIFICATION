@@ -22,12 +22,12 @@ $statCards = [
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../../asset/css/admin.css" rel="stylesheet">
+    <link href="../../asset/css/brutal.css" rel="stylesheet">
 </head>
-<body class="admin-body">
+<body class="admin-body brutal-app">
 <nav class="navbar navbar-expand-lg admin-navbar sticky-top">
     <div class="container-fluid admin-container">
         <a class="navbar-brand admin-brand" href="DashboardController.php">
-            <span class="admin-brand-mark"><i class="bi bi-mortarboard-fill"></i></span>
             <span>Sertifikasi <strong>Academy</strong><small>ADMINISTRATION</small></span>
         </a>
         <div class="ms-auto d-flex align-items-center gap-2 gap-md-3">

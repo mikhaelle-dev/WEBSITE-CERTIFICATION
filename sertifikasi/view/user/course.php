@@ -13,8 +13,9 @@ $quiz = $data['quiz'];
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../../asset/css/dashboard.css" rel="stylesheet">
     <link href="../../asset/css/course.css?v=2" rel="stylesheet">
+    <link href="../../asset/css/brutal.css" rel="stylesheet">
 </head>
-<body>
+<body class="brutal-app">
 <?php $aktif = 'mylearning'; include __DIR__ . '/../../component/navbar.php'; ?>
 
 <main class="container py-4 course-page">

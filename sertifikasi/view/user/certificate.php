@@ -9,8 +9,9 @@ $certificate = $data['certificate'];
     <title>Sertifikat <?= e($certificate['judul_kursus']) ?> | Sertifikasi Academy</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../../asset/css/certificate.css" rel="stylesheet">
+    <link href="../../asset/css/brutal.css" rel="stylesheet">
 </head>
-<body>
+<body class="brutal-app certificate-page">
 <nav class="certificate-toolbar" aria-label="Aksi sertifikat">
     <a href="ProfileController.php?tab=sertifikat"><i class="bi bi-arrow-left"></i> Kembali ke pencapaian</a>
     <button type="button" onclick="window.print()"><i class="bi bi-printer"></i> Cetak / Simpan PDF</button>

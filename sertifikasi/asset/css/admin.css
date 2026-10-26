@@ -215,7 +215,7 @@
 .admin-panel-body .form-control:focus,
 .admin-panel-body .form-select:focus,
 .admin-filter-bar .form-control:focus,
-.admin-filter-bar .form-select:focus { border-color: #8b9af0; box-shadow: 0 0 0 .2rem rgba(64, 87, 200, .12); }
+.admin-filter-bar .form-select:focus { border-color: #171717; box-shadow: 3px 3px 0 #171717; }
 
 .admin-form-hint { margin: .9rem 0 0; color: var(--admin-muted); font-size: .77rem; }
 
