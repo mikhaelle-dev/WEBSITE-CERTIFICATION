@@ -45,7 +45,7 @@ $statCards = [
             <h1>Manajemen akun</h1>
             <p>Kelola akses, status, dan kata sandi pengguna dari satu tempat.</p>
         </div>
-        <a class="btn btn-admin-primary" href="#addAccount" onclick="document.getElementById('addAccount').open = true"><i class="bi bi-plus-lg me-2"></i>Tambah akun</a>
+        <a class="btn btn-admin-primary" href="#addAccount" data-open-details="addAccount"><i class="bi bi-plus-lg me-2"></i>Tambah akun</a>
     </header>
 
     <?php if ($data['success'] !== ''): ?>
@@ -62,12 +62,23 @@ $statCards = [
                 <div class="small mt-1">Salin dan berikan secara aman kepada pemilik akun.</div>
             <div class="input-group mt-2">
                     <input class="form-control font-monospace" id="generatedPassword" value="<?= e($data['generatedPassword']) ?>" readonly>
-                    <button class="btn btn-admin-quiet" type="button" onclick="navigator.clipboard.writeText(document.getElementById('generatedPassword').value)">Salin</button>
+                    <button class="btn btn-admin-quiet" type="button" data-copy-target="generatedPassword">Salin</button>
                 </div>
             </div>
         </div>
     <?php endif; ?>
 
+    <nav class="admin-view-tabs" aria-label="Bagian manajemen akun">
+        <a class="<?= $data['activeTab'] === 'akun' ? 'is-active' : '' ?>" href="DashboardController.php">
+            <i class="bi bi-people"></i> Daftar akun
+        </a>
+        <a class="<?= $data['activeTab'] === 'sampah' ? 'is-active' : '' ?>" href="DashboardController.php?tab=sampah">
+            <i class="bi bi-trash3"></i> Sampah
+            <span class="admin-trash-count"><?= count($data['trashUsers']) ?></span>
+        </a>
+    </nav>
+
+    <?php if ($data['activeTab'] === 'akun'): ?>
     <section class="row g-3 mb-4" aria-label="Ringkasan akun">
         <?php foreach ($statCards as [$label, $count, $icon]): ?>
             <div class="col-6 col-md-4 col-xl-2">
@@ -89,7 +100,7 @@ $statCards = [
             <i class="bi bi-chevron-down admin-chevron"></i>
         </summary>
         <div class="admin-panel-body">
-            <form method="POST" onsubmit="return confirm('Tambahkan akun baru dengan role dan password awal ini?')">
+            <form method="POST" data-confirm="Tambahkan akun baru dengan role dan password awal ini?">
                 <input type="hidden" name="csrf_token" value="<?= e($data['csrf']) ?>">
                 <input type="hidden" name="aksi" value="tambah">
                 <div class="row g-3 align-items-end">
@@ -128,7 +139,18 @@ $statCards = [
                 <h2>Daftar akun</h2>
                 <p><?= count($data['users']) ?> akun ditampilkan</p>
             </div>
-            <i class="bi bi-people admin-users-heading-icon"></i>
+            <div class="admin-users-heading-actions">
+                <button
+                    class="btn btn-sm btn-admin-quiet"
+                    id="toggleBulkTrashMode"
+                    type="button"
+                    aria-expanded="false"
+                    aria-controls="bulkTrashToolbar"
+                >
+                    <i class="bi bi-ui-checks me-1"></i>Pilih beberapa
+                </button>
+                <i class="bi bi-people admin-users-heading-icon" aria-hidden="true"></i>
+            </div>
         </div>
         <div class="admin-filter-bar">
             <form class="row g-2 align-items-center" method="GET">
@@ -164,11 +186,30 @@ $statCards = [
                 </div>
             </form>
         </div>
+        <form id="bulkTrashForm" class="admin-bulk-toolbar" method="POST" hidden>
+            <input type="hidden" name="csrf_token" value="<?= e($data['csrf']) ?>">
+            <input type="hidden" name="aksi" value="hapus">
+            <input type="hidden" name="tab" value="akun">
+            <input type="hidden" name="q" value="<?= e($data['search']) ?>">
+            <input type="hidden" name="filter_role" value="<?= e($data['roleFilter']) ?>">
+            <input type="hidden" name="filter_status" value="<?= e($data['statusFilter']) ?>">
+            <div>
+                <strong>Pilih akun untuk dipindahkan ke sampah</strong>
+                <span id="bulkTrashSelectionStatus" aria-live="polite">0 dari 5 akun dipilih</span>
+                <span id="bulkTrashLimitNotice" class="admin-bulk-limit" aria-live="polite" hidden>Maksimal lima akun dapat dipilih sekaligus.</span>
+            </div>
+            <div class="admin-bulk-actions">
+                <button class="btn btn-sm btn-admin-quiet" id="cancelBulkTrashMode" type="button">Batal</button>
+                <button class="btn btn-sm btn-outline-danger" id="bulkTrashButton" type="submit" disabled>
+                    <i class="bi bi-trash3 me-1"></i>Ke sampah
+                </button>
+            </div>
+        </form>
         <div class="table-responsive">
             <table class="table admin-users-table align-middle mb-0">
                 <thead>
                     <tr>
-                        <th>Akun</th><th>Role</th><th>Status</th><th>Tanggal daftar</th><th class="text-end">Kelola</th>
+                        <th scope="col">Akun</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Tanggal daftar</th><th scope="col" class="text-end">Kelola</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -192,24 +233,45 @@ $statCards = [
                     ?>
                     <tr>
                         <td>
-                            <div class="admin-account-cell">
+                            <label class="admin-account-cell admin-account-hitarea<?= $self ? ' is-unselectable' : '' ?>">
+                                <input
+                                    class="form-check-input admin-account-select"
+                                    type="checkbox"
+                                    name="user_ids[]"
+                                    value="<?= (int) $user['id'] ?>"
+                                    form="bulkTrashForm"
+                                    aria-label="Pilih akun <?= e($user['nama']) ?> untuk dipindahkan ke sampah"
+                                    <?= $self ? 'disabled title="Akun admin yang sedang digunakan tidak dapat dipindahkan."' : '' ?>
+                                >
                                 <?php if (!empty($user['foto_profil'])): ?>
                                     <img class="admin-account-avatar" src="../../<?= e($user['foto_profil']) ?>" alt="Foto profil <?= e($user['nama']) ?>" loading="lazy">
                                 <?php else: ?>
                                     <span class="admin-account-avatar"><?= e(strtoupper(substr($user['nama'], 0, 1))) ?></span>
                                 <?php endif; ?>
                                 <span><strong><?= e($user['nama']) ?><?= $self ? ' <small class="admin-self-label">(kamu)</small>' : '' ?></strong><small><?= e($user['email']) ?></small></span>
-                            </div>
+                            </label>
                         </td>
                         <td><span class="admin-role-badge admin-role-<?= e($user['role']) ?>"><i class="bi <?= $user['role'] === 'admin' ? 'bi-shield-lock' : ($user['role'] === 'instruktur' ? 'bi-easel' : 'bi-mortarboard') ?>"></i><?= e(ucfirst($user['role'])) ?></span></td>
                         <td><span class="admin-status-badge <?= $user['status'] === 1 ? 'is-active' : 'is-inactive' ?>"><span></span><?= $user['status'] === 1 ? 'Aktif' : 'Nonaktif' ?></span></td>
                         <td class="admin-date-cell"><?= e($user['dibuat_pada']) ?></td>
                         <td class="text-end">
-                            <details class="admin-row-actions">
-                                <summary><i class="bi bi-sliders2 me-1"></i>Kelola</summary>
+                            <button
+                                class="admin-row-actions"
+                                type="button"
+                                data-dialog-target="manage-account-<?= (int) $user['id'] ?>"
+                                aria-haspopup="dialog"
+                            ><i class="bi bi-sliders2 me-1"></i>Kelola</button>
+                            <dialog class="admin-manage-dialog" id="manage-account-<?= (int) $user['id'] ?>" aria-labelledby="manage-account-title-<?= (int) $user['id'] ?>">
                                 <div class="admin-actions-panel">
+                                    <div class="admin-actions-heading">
+                                        <div>
+                                            <h2 id="manage-account-title-<?= (int) $user['id'] ?>">Kelola akun</h2>
+                                            <p><?= e($user['nama']) ?></p>
+                                        </div>
+                                        <button class="admin-dialog-close" type="button" aria-label="Tutup dialog"><i class="bi bi-x-lg"></i></button>
+                                    </div>
                                     <h3>Akses akun</h3>
-                                    <form method="POST" class="admin-action-form" onsubmit="return confirm('Yakin mengubah role akun ini?')">
+                                    <form method="POST" class="admin-action-form" data-confirm="Yakin mengubah role akun ini?">
                                     <input type="hidden" name="csrf_token" value="<?= e($data['csrf']) ?>">
                                     <input type="hidden" name="aksi" value="role">
                                     <input type="hidden" name="user_id" value="<?= (int) $user['id'] ?>">
@@ -222,7 +284,7 @@ $statCards = [
                                         </select>
                                         <button class="btn btn-admin-filter btn-sm" type="submit" <?= $self ? 'disabled' : '' ?>>Simpan role</button>
                                     </form>
-                                    <form method="POST" class="admin-action-form" onsubmit="return confirm('<?= $user['status'] === 1 ? 'Nonaktifkan' : 'Aktifkan' ?> akun ini?')">
+                                    <form method="POST" class="admin-action-form" data-confirm="<?= e(($user['status'] === 1 ? 'Nonaktifkan' : 'Aktifkan') . ' akun ini?') ?>">
                                         <input type="hidden" name="csrf_token" value="<?= e($data['csrf']) ?>">
                                         <input type="hidden" name="aksi" value="status">
                                         <input type="hidden" name="user_id" value="<?= (int) $user['id'] ?>">
@@ -240,7 +302,7 @@ $statCards = [
 
                                     <?php if (!$self): ?>
                                         <h3 class="mt-3">Kata sandi</h3>
-                                        <form method="POST" class="admin-action-form admin-password-form" onsubmit="return confirm('Simpan password baru untuk akun ini? Password lama tidak dapat dipulihkan.')">
+                                        <form method="POST" class="admin-action-form admin-password-form" data-confirm="Simpan password baru untuk akun ini? Password lama tidak dapat dipulihkan.">
                                             <input type="hidden" name="csrf_token" value="<?= e($data['csrf']) ?>">
                                             <input type="hidden" name="aksi" value="reset_password">
                                             <input type="hidden" name="user_id" value="<?= (int) $user['id'] ?>">
@@ -255,22 +317,20 @@ $statCards = [
                                         </form>
                                     <?php endif; ?>
 
-                                    <h3 class="mt-3">Penghapusan</h3>
-                                    <?php if ($user['related_tables']): ?>
-                                        <button class="btn btn-sm btn-outline-danger" type="button" disabled title="Akun memiliki data terkait; nonaktifkan akun saja.">Hapus permanen</button>
-                                        <p class="admin-action-note">Akun memiliki data: <?= e(implode(', ', $user['related_tables'])) ?>.</p>
-                                    <?php else: ?>
-                                        <form method="POST" onsubmit="return confirm('Hapus permanen akun ini? Tindakan ini tidak bisa dibatalkan.')">
-                                            <input type="hidden" name="csrf_token" value="<?= e($data['csrf']) ?>">
-                                            <input type="hidden" name="aksi" value="hapus">
-                                            <input type="hidden" name="user_id" value="<?= (int) $user['id'] ?>">
-                                            <?php foreach ($returnFilters as $key => $value): ?><input type="hidden" name="<?= e($key) ?>" value="<?= e($value) ?>"><?php endforeach; ?>
-                                            <button class="btn btn-sm btn-outline-danger" type="submit" <?= $self ? 'disabled' : '' ?>>Hapus permanen</button>
-                                            <?php if ($self): ?><small class="admin-action-note d-block mt-1">Akun sendiri tidak dapat dihapus.</small><?php endif; ?>
-                                        </form>
-                                    <?php endif; ?>
+                                    <h3 class="mt-3">Penghapusan bertahap</h3>
+                                    <p class="admin-action-note">Akun akan dinonaktifkan sekarang dan dihapus permanen dalam 5 menit jika tidak dipulihkan. Waktu dihitung dari database dan terus berjalan meski dashboard ditutup.</p>
+                                    <form method="POST" class="admin-action-form" data-confirm="Pindahkan akun ini ke sampah? Akun akan langsung dinonaktifkan dan dihapus permanen dalam 5 menit jika tidak dipulihkan.">
+                                        <input type="hidden" name="csrf_token" value="<?= e($data['csrf']) ?>">
+                                        <input type="hidden" name="aksi" value="hapus">
+                                        <input type="hidden" name="user_id" value="<?= (int) $user['id'] ?>">
+                                        <?php foreach ($returnFilters as $key => $value): ?><input type="hidden" name="<?= e($key) ?>" value="<?= e($value) ?>"><?php endforeach; ?>
+                                        <button class="btn btn-sm btn-outline-danger" type="submit" <?= $self ? 'disabled' : '' ?>>
+                                            <i class="bi bi-trash3 me-1"></i>Ke sampah
+                                        </button>
+                                        <?php if ($self): ?><small class="admin-action-note">Akun sendiri tidak dapat dipindahkan ke sampah.</small><?php endif; ?>
+                                    </form>
                                 </div>
-                            </details>
+                            </dialog>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -278,6 +338,90 @@ $statCards = [
             </table>
         </div>
     </section>
+    <?php else: ?>
+    <section class="admin-panel admin-trash-panel" aria-labelledby="trash-heading">
+        <div class="admin-users-heading">
+            <div>
+                <h2 id="trash-heading">Sampah akun</h2>
+                <p>Akun dinonaktifkan saat dipindahkan. Akun dan semua data terkait dihapus permanen setelah 5 menit selama MySQL tetap berjalan.</p>
+            </div>
+            <i class="bi bi-trash3 admin-users-heading-icon" aria-hidden="true"></i>
+        </div>
+        <?php if (!$data['trashUsers']): ?>
+            <div class="admin-empty-state">
+                <i class="bi bi-trash3" aria-hidden="true"></i>
+                <strong>Sampah kosong</strong>
+                <span>Akun yang dipindahkan ke sampah akan tampil di sini selama 5 menit.</span>
+            </div>
+        <?php else: ?>
+            <div class="table-responsive">
+                <table class="table admin-users-table admin-trash-table align-middle mb-0">
+                    <thead>
+                        <tr><th>Akun</th><th>Dipindahkan</th><th>Penghapusan permanen</th><th class="text-end">Aksi</th></tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($data['trashUsers'] as $user): ?>
+                        <tr>
+                            <td>
+                                <div class="admin-account-cell">
+                                    <?php if (!empty($user['foto_profil'])): ?>
+                                        <img class="admin-account-avatar" src="../../<?= e($user['foto_profil']) ?>" alt="" loading="lazy">
+                                    <?php else: ?>
+                                        <span class="admin-account-avatar" aria-hidden="true"><?= e(strtoupper(substr($user['nama'], 0, 1))) ?></span>
+                                    <?php endif; ?>
+                                    <span><strong><?= e($user['nama']) ?></strong><small><?= e($user['email']) ?></small></span>
+                                </div>
+                            </td>
+                            <td class="admin-date-cell"><?= e($user['masuk_sampah_pada']) ?></td>
+                            <td>
+                                <span class="admin-trash-countdown" data-expire-at="<?= (int) $user['hapus_pada_epoch'] ?>">Menghitung waktu...</span>
+                            </td>
+                            <td class="text-end">
+                                <div class="admin-trash-actions">
+                                    <form method="POST">
+                                        <input type="hidden" name="csrf_token" value="<?= e($data['csrf']) ?>">
+                                        <input type="hidden" name="aksi" value="pulihkan">
+                                        <input type="hidden" name="user_id" value="<?= (int) $user['id'] ?>">
+                                        <input type="hidden" name="tab" value="sampah">
+                                        <button class="btn btn-sm btn-admin-quiet" type="submit">
+                                            <i class="bi bi-arrow-counterclockwise me-1"></i>Pulihkan
+                                        </button>
+                                    </form>
+                                    <form method="POST" class="admin-trash-form">
+                                        <input type="hidden" name="csrf_token" value="<?= e($data['csrf']) ?>">
+                                        <input type="hidden" name="aksi" value="hapus_permanen">
+                                        <input type="hidden" name="user_id" value="<?= (int) $user['id'] ?>">
+                                        <input type="hidden" name="tab" value="sampah">
+                                        <label class="visually-hidden" for="purge-confirm-<?= (int) $user['id'] ?>">Ketik HAPUS untuk menghapus akun permanen</label>
+                                        <input class="form-control form-control-sm" id="purge-confirm-<?= (int) $user['id'] ?>" name="konfirmasi_hapus" autocomplete="off" pattern="HAPUS" title="Ketik HAPUS dengan huruf kapital" placeholder="Ketik HAPUS" required>
+                                        <button class="btn btn-sm btn-outline-danger" type="submit" aria-label="Hapus <?= e($user['nama']) ?> permanen">
+                                            <i class="bi bi-x-octagon me-1"></i>Hapus sekarang
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+    </section>
+    <?php endif; ?>
+    <?php if ($data['trashUsers']): ?>
+        <div class="visually-hidden" aria-hidden="true">
+            <?php foreach ($data['trashUsers'] as $user): ?>
+                <span data-expire-at="<?= (int) $user['hapus_pada_epoch'] ?>"></span>
+            <?php endforeach; ?>
+        </div>
+        <form method="POST" id="purgeExpiredTrashForm" class="visually-hidden" aria-hidden="true">
+            <input type="hidden" name="csrf_token" value="<?= e($data['csrf']) ?>">
+            <input type="hidden" name="aksi" value="bersihkan_sampah">
+            <input type="hidden" name="tab" value="<?= e($data['activeTab']) ?>">
+        </form>
+    <?php endif; ?>
 </main>
+<script src="../../asset/js/admin-dashboard.js"></script>
+<script src="../../asset/js/page-actions.js"></script>
 </body>
 </html>

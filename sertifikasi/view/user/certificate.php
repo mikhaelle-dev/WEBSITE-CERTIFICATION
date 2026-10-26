@@ -14,7 +14,7 @@ $certificate = $data['certificate'];
 <body class="brutal-app certificate-page">
 <nav class="certificate-toolbar" aria-label="Aksi sertifikat">
     <a href="ProfileController.php?tab=sertifikat"><i class="bi bi-arrow-left"></i> Kembali ke pencapaian</a>
-    <button type="button" onclick="window.print()"><i class="bi bi-printer"></i> Cetak / Simpan PDF</button>
+    <button type="button" data-print-page><i class="bi bi-printer"></i> Cetak / Simpan PDF</button>
 </nav>
 
 <main class="certificate-sheet">
@@ -67,5 +67,6 @@ $certificate = $data['certificate'];
         </div>
     </div>
 </main>
+<script src="../../asset/js/page-actions.js"></script>
 </body>
 </html>

@@ -609,6 +609,26 @@ body.auth-page::-webkit-scrollbar-thumb {
 }
 
 @media screen {
+    .brutal-app main.container:not(.admin-container) {
+        width: min(100%, 1224px);
+        max-width: none;
+        margin-inline: auto;
+        padding-inline: 12px;
+    }
+
+    .brutal-app .admin-container {
+        width: min(calc(100% - 2rem), 1240px);
+        max-width: none;
+        margin-inline: auto;
+    }
+
+    .brutal-app .pf-banner > .container-fluid {
+        width: min(calc(100% - 2rem), 1200px);
+        max-width: none;
+        margin-inline: auto;
+        padding-inline: 0 !important;
+    }
+
     body.brutal-app {
         min-height: 100vh;
         min-height: 100svh;
@@ -968,15 +988,29 @@ body.auth-page::-webkit-scrollbar-thumb {
     }
 
     .brutal-app .pf-stats {
+        justify-content: center;
         color: var(--brutal-ink);
     }
 
+    .brutal-app .pf-stats > div:not(.sep) {
+        display: grid;
+        grid-template-columns: auto auto;
+        align-items: center;
+        justify-items: center;
+        column-gap: 0.5rem;
+        row-gap: 0.3rem;
+    }
+
     .brutal-app .pf-stats > div > i {
+        grid-column: 1;
+        grid-row: 1;
         color: var(--brutal-ink);
         font-size: 1.15rem;
     }
 
     .brutal-app .pf-stats .num {
+        grid-column: 2;
+        grid-row: 1;
         display: inline-flex;
         min-width: 2.25rem;
         justify-content: center;
@@ -992,6 +1026,8 @@ body.auth-page::-webkit-scrollbar-thumb {
     }
 
     .brutal-app .pf-stats small {
+        grid-column: 1 / -1;
+        grid-row: 2;
         color: var(--brutal-ink);
         font-size: 0.78rem;
         font-weight: 650;

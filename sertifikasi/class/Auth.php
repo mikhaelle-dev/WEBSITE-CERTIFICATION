@@ -3,17 +3,70 @@ require_once __DIR__ . '/Database.php';
 
 class Auth extends Database
 {
+    public function isActiveAccount(int $userId): bool
+    {
+        $stmt = $this->db->prepare('SELECT id FROM user WHERE id = ? AND status = 1');
+        $stmt->execute([$userId]);
+        return (bool) $stmt->fetch();
+    }
+    public function isRestrictedAccount(int $userId): bool
+    {
+        $accountAccess = $this->getAccountAccess($userId);
+        return $accountAccess === null
+            || (int) $accountAccess['status'] !== 1
+            || $accountAccess['masuk_sampah_pada'] !== null;
+    }
+
+    public function getAccountAccess(int $userId): ?array
+    {
+        $sql = sprintf(
+            'SELECT id, status, masuk_sampah_pada,
+                    CASE
+                        WHEN masuk_sampah_pada IS NULL THEN NULL
+                        ELSE GREATEST(0, TIMESTAMPDIFF(
+                            SECOND,
+                            CURRENT_TIMESTAMP,
+                            DATE_ADD(masuk_sampah_pada, INTERVAL %d MINUTE)
+                        ))
+                    END AS waktu_sampah_tersisa
+             FROM user
+             WHERE id = ?',
+            self::ACCOUNT_TRASH_RETENTION_MINUTES
+        );
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$userId]);
+        $access = $stmt->fetch();
+        if (!$access) {
+            return null;
+        }
+
+        $access['status'] = (int) $access['status'];
+        $access['waktu_sampah_tersisa'] = $access['waktu_sampah_tersisa'] === null
+            ? null
+            : (int) $access['waktu_sampah_tersisa'];
+
+        return $access;
+    }
+
     /**
      * @return array ['ok' => bool, 'user' => array|null, 'error' => string]
      */
     public function login(string $email, string $password): array
     {
-        $stmt = $this->db->prepare(
-            'SELECT u.id, u.email, u.nama, u.password, u.role, u.status, p.foto_profil
+        $sql = sprintf(
+            'SELECT u.id, u.email, u.nama, u.password, u.role, u.status, u.masuk_sampah_pada,
+                    GREATEST(0, TIMESTAMPDIFF(
+                        SECOND,
+                        CURRENT_TIMESTAMP,
+                        DATE_ADD(u.masuk_sampah_pada, INTERVAL %d MINUTE)
+                    )) AS waktu_sampah_tersisa,
+                    p.foto_profil
              FROM user u
              LEFT JOIN profil_user p ON p.user_id = u.id
-             WHERE u.email = ?'
+             WHERE u.email = ?',
+            self::ACCOUNT_TRASH_RETENTION_MINUTES
         );
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$email]);
         $user = $stmt->fetch();
 
@@ -21,12 +74,9 @@ class Auth extends Database
         if (!$user || !password_verify($password, $user['password'])) {
             return ['ok' => false, 'user' => null, 'error' => 'Email atau password salah.'];
         }
-        if ((int) $user['status'] !== 1) {
-            return ['ok' => false, 'user' => null, 'error' => 'Akun kamu dinonaktifkan. Hubungi admin.'];
-        }
-
+        $restricted = $user['masuk_sampah_pada'] !== null || (int) $user['status'] !== 1;
         unset($user['password']);
-        return ['ok' => true, 'user' => $user, 'error' => ''];
+        return ['ok' => true, 'user' => $user, 'restricted' => $restricted, 'error' => ''];
     }
 
     /**
@@ -122,7 +172,6 @@ class Auth extends Database
                 $profile['tujuan_karier'],
                 $profile['foto_profil'] ?? null,
             ]);
-            $this->db->commit();
             $this->db->commit();
             return true;
         } catch (Throwable $e) {

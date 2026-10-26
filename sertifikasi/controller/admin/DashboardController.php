@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../config/session.php';
 
 require_once __DIR__ . '/../../config/helpers.php';
 require_once __DIR__ . '/../../class/AdminUser.php';
+require_once __DIR__ . '/../../class/Auth.php';
 
 if (empty($_SESSION['logged_in']) || empty($_SESSION['id_user'])) {
     header('Location: ../../view/login.php');
@@ -12,8 +13,23 @@ if (empty($_SESSION['logged_in']) || empty($_SESSION['id_user'])) {
 $adminUsers = new AdminUser();
 $actorId = (int) $_SESSION['id_user'];
 if (!$adminUsers->isActiveAdmin($actorId)) {
+    $accountAccess = (new Auth())->getAccountAccess($actorId);
+    if (
+        $accountAccess !== null
+        && ((int) $accountAccess['status'] !== 1 || $accountAccess['masuk_sampah_pada'] !== null)
+    ) {
+        $_SESSION['account_restricted'] = true;
+        header('Location: ../AccountDisabledController.php');
+        exit();
+    }
+
+    $_SESSION = [];
     session_destroy();
     header('Location: ../../view/login.php');
+    exit();
+}
+if (!empty($_SESSION['account_restricted'])) {
+    header('Location: ../AccountDisabledController.php');
     exit();
 }
 
@@ -80,10 +96,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
 
             case 'hapus':
+                if ($userId) {
+                    $userIds = [(int) $userId];
+                } else {
+                    $userIdsValue = $_POST['user_ids'] ?? null;
+                    if (!is_array($userIdsValue) || !$userIdsValue || count($userIdsValue) > 5) {
+                        throw new DomainException('Pilih minimal satu dan maksimal lima akun.');
+                    }
+                    $userIds = [];
+                    foreach ($userIdsValue as $value) {
+                        if (!is_string($value) || !ctype_digit($value) || (int) $value < 1) {
+                            throw new DomainException('Pilihan akun tidak valid.');
+                        }
+                        $userIds[] = (int) $value;
+                    }
+                    if (count(array_unique($userIds)) !== count($userIds)) {
+                        throw new DomainException('Pilihan akun duplikat.');
+                    }
+                }
+                $_SESSION['admin_success'] = $adminUsers->moveUsersToTrash($actorId, $userIds);
+                break;
+
+            case 'pulihkan':
                 if (!$userId) {
                     throw new DomainException('Akun tidak valid.');
                 }
-                $_SESSION['admin_success'] = $adminUsers->deleteUser($actorId, $userId);
+                $_SESSION['admin_success'] = $adminUsers->restoreUser($actorId, $userId);
+                break;
+
+            case 'hapus_permanen':
+                if (!$userId) {
+                    throw new DomainException('Akun tidak valid.');
+                }
+                $_SESSION['admin_success'] = $adminUsers->permanentlyDeleteTrashedUser(
+                    $actorId,
+                    $userId,
+                    $postString('konfirmasi_hapus')
+                );
+                break;
+
+            case 'bersihkan_sampah':
+                $purgedCount = $adminUsers->purgeExpiredTrash($actorId);
+                if ($purgedCount > 0) {
+                    $_SESSION['admin_success'] = $purgedCount . ' akun kedaluwarsa dan seluruh data terkait telah dihapus permanen.';
+                }
                 break;
 
             case 'reset_password':
@@ -132,6 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'q' => $_POST['q'] ?? '',
         'role' => $_POST['filter_role'] ?? '',
         'status' => $_POST['filter_status'] ?? '',
+        'tab' => $_POST['tab'] ?? '',
     ], static function ($value) {
         return is_string($value) && $value !== '';
     }));
@@ -142,10 +199,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $search = isset($_GET['q']) && is_string($_GET['q']) ? trim($_GET['q']) : '';
 $roleFilter = isset($_GET['role']) && is_string($_GET['role']) ? $_GET['role'] : '';
 $statusFilter = isset($_GET['status']) && is_string($_GET['status']) ? $_GET['status'] : '';
+$activeTab = isset($_GET['tab']) && $_GET['tab'] === 'sampah' ? 'sampah' : 'akun';
 
 try {
+    $adminUsers->purgeExpiredTrash($actorId);
     $stats = $adminUsers->getStats();
     $users = $adminUsers->getUsers($search, $roleFilter, $statusFilter);
+    $trashUsers = $adminUsers->getTrashedUsers();
 } catch (PDOException $e) {
     error_log('Admin dashboard load error: ' . $e->getMessage());
     http_response_code(500);
@@ -165,6 +225,8 @@ $data = [
     'username' => $_SESSION['username'] ?? '',
     'stats' => $stats,
     'users' => $users,
+    'trashUsers' => $trashUsers,
+    'activeTab' => $activeTab,
     'search' => $search,
     'roleFilter' => $roleFilter,
     'statusFilter' => $statusFilter,

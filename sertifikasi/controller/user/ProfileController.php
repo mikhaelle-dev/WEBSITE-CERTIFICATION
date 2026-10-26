@@ -18,8 +18,20 @@ if ($DEV_MODE && !isset($_SESSION['logged_in'])) {
 }
 
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true
+    || !isset($_SESSION['id_user'])
     || !in_array($_SESSION['role'] ?? '', ['siswa', 'instruktur', 'admin'], true)) {
     header('Location: ../../view/login.php');
+    exit();
+}
+
+$auth = new Auth();
+if ($auth->isRestrictedAccount((int) $_SESSION['id_user'])) {
+    $_SESSION['account_restricted'] = true;
+    header('Location: ../AccountDisabledController.php');
+    exit();
+}
+if (!empty($_SESSION['account_restricted'])) {
+    header('Location: ../AccountDisabledController.php');
     exit();
 }
 

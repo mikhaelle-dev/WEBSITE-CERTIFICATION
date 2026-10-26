@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../../config/session.php';
 
 require_once __DIR__ . '/../../config/helpers.php';
+require_once __DIR__ . '/../../class/Auth.php';
 require_once __DIR__ . '/../../class/Course.php';
 
 if (
@@ -10,6 +11,17 @@ if (
     || $_SESSION['role'] !== 'siswa'
 ) {
     header('Location: ../../view/login.php');
+    exit();
+}
+
+$auth = new Auth();
+if ($auth->isRestrictedAccount((int) $_SESSION['id_user'])) {
+    $_SESSION['account_restricted'] = true;
+    header('Location: ../AccountDisabledController.php');
+    exit();
+}
+if (!empty($_SESSION['account_restricted'])) {
+    header('Location: ../AccountDisabledController.php');
     exit();
 }
 

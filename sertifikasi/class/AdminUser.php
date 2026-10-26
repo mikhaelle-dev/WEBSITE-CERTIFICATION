@@ -3,8 +3,6 @@ require_once __DIR__ . '/Database.php';
 
 class AdminUser extends Database
 {
-    private ?array $userReferences = null;
-
     public function isActiveAdmin(int $userId): bool
     {
         $stmt = $this->db->prepare("SELECT id FROM user WHERE id = ? AND role = 'admin' AND status = 1");
@@ -21,7 +19,8 @@ class AdminUser extends Database
                     SUM(role = 'admin') AS admin,
                     SUM(status = 1) AS aktif,
                     SUM(status = 0) AS nonaktif
-             FROM user"
+             FROM user
+             WHERE masuk_sampah_pada IS NULL"
         );
         $stmt->execute();
         $stats = $stmt->fetch();
@@ -35,7 +34,7 @@ class AdminUser extends Database
                        profil_user.foto_profil
                 FROM user
                 LEFT JOIN profil_user ON profil_user.user_id = user.id
-                WHERE 1 = 1';
+                WHERE user.masuk_sampah_pada IS NULL';
         $params = [];
 
         if ($search !== '') {
@@ -56,15 +55,28 @@ class AdminUser extends Database
         $sql .= ' ORDER BY user.dibuat_pada DESC, user.id DESC';
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
-        $users = $stmt->fetchAll();
+        return $stmt->fetchAll();
+    }
 
-        foreach ($users as &$user) {
-            $user['status'] = (int) $user['status'];
-            $user['related_tables'] = $this->getRelatedDataTables((int) $user['id']);
-        }
-        unset($user);
-
-        return $users;
+    public function getTrashedUsers(): array
+    {
+        $sql = sprintf(
+            'SELECT user.id, user.nama, user.email, user.role, user.dibuat_pada,
+                    user.masuk_sampah_pada,
+                    UNIX_TIMESTAMP(DATE_ADD(
+                        user.masuk_sampah_pada,
+                        INTERVAL %d MINUTE
+                    )) AS hapus_pada_epoch,
+                    profil_user.foto_profil
+             FROM user
+             LEFT JOIN profil_user ON profil_user.user_id = user.id
+             WHERE user.masuk_sampah_pada IS NOT NULL
+             ORDER BY user.masuk_sampah_pada ASC, user.id ASC',
+            self::ACCOUNT_TRASH_RETENTION_MINUTES
+        );
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 
     public function createUser(int $actorId, string $nama, string $email, string $password, string $role): void
@@ -93,6 +105,9 @@ class AdminUser extends Database
             if ($target === null) {
                 throw new DomainException('Akun tidak ditemukan.');
             }
+            if ($target['masuk_sampah_pada'] !== null) {
+                throw new DomainException('Pulihkan akun dari sampah sebelum mengubah role.');
+            }
             if ($target['role'] === 'admin' && $target['status'] === 1 && $role !== 'admin'
                 && $this->activeAdminCount() <= 1) {
                 throw new DomainException('Admin aktif terakhir tidak dapat diturunkan role-nya.');
@@ -118,6 +133,9 @@ class AdminUser extends Database
             if ($target === null) {
                 throw new DomainException('Akun tidak ditemukan.');
             }
+            if ($target['masuk_sampah_pada'] !== null) {
+                throw new DomainException('Pulihkan akun dari sampah sebelum mengubah status.');
+            }
             if ($target['role'] === 'admin' && $target['status'] === 1 && $status === 0
                 && $this->activeAdminCount() <= 1) {
                 throw new DomainException('Admin aktif terakhir tidak dapat dinonaktifkan.');
@@ -136,36 +154,169 @@ class AdminUser extends Database
         }
 
         $this->withLockedUsers($actorId, function () use ($userId, $password): void {
-            if ($this->getLockedUser($userId) === null) {
+            $target = $this->getLockedUser($userId);
+            if ($target === null) {
                 throw new DomainException('Akun tidak ditemukan.');
+            }
+            if ($target['masuk_sampah_pada'] !== null) {
+                throw new DomainException('Pulihkan akun dari sampah sebelum mereset kata sandi.');
             }
             $stmt = $this->db->prepare('UPDATE user SET password = ? WHERE id = ?');
             $stmt->execute([password_hash($password, PASSWORD_DEFAULT), $userId]);
         });
     }
 
-    public function deleteUser(int $actorId, int $userId): string
+    public function moveUsersToTrash(int $actorId, array $userIds): string
     {
+        if (!$userIds || count($userIds) > 5) {
+            throw new DomainException('Pilih minimal satu dan maksimal lima akun.');
+        }
+        foreach ($userIds as $userId) {
+            if (!is_int($userId) || $userId < 1) {
+                throw new DomainException('Pilihan akun tidak valid.');
+            }
+        }
+        if (count($userIds) !== count(array_unique($userIds))) {
+            throw new DomainException('Pilihan akun duplikat.');
+        }
+        $userIds = array_values($userIds);
+        if (in_array($actorId, $userIds, true)) {
+            throw new DomainException('Kamu tidak dapat memindahkan akun sendiri ke sampah.');
+        }
+
+        return $this->withLockedUsers($actorId, function () use ($userIds): string {
+            $targets = [];
+            $activeAdminsToTrash = 0;
+            foreach ($userIds as $userId) {
+                $target = $this->getLockedUser($userId);
+                if ($target === null) {
+                    throw new DomainException('Salah satu akun yang dipilih tidak ditemukan.');
+                }
+                if ($target['masuk_sampah_pada'] !== null) {
+                    throw new DomainException('Salah satu akun yang dipilih sudah berada di sampah.');
+                }
+                if ($target['role'] === 'admin' && $target['status'] === 1) {
+                    $activeAdminsToTrash++;
+                }
+                $targets[] = $userId;
+            }
+
+            if ($this->activeAdminCount() - $activeAdminsToTrash < 1) {
+                throw new DomainException('Admin aktif terakhir tidak dapat dipindahkan ke sampah.');
+            }
+
+            $stmt = $this->db->prepare(
+                'UPDATE user
+                 SET masuk_sampah_pada = CURRENT_TIMESTAMP,
+                     status_sebelum_sampah = status,
+                     status = 0
+                 WHERE id = ? AND masuk_sampah_pada IS NULL'
+            );
+            foreach ($targets as $userId) {
+                $stmt->execute([$userId]);
+            }
+            return count($targets) . ' akun dinonaktifkan dan dipindahkan ke sampah. Akun akan dihapus permanen setelah '
+                . self::ACCOUNT_TRASH_RETENTION_MINUTES . ' menit jika tidak dipulihkan.';
+        });
+    }
+
+    public function restoreUser(int $actorId, int $userId): string
+    {
+        if ($actorId === $userId) {
+            throw new DomainException('Kamu tidak dapat memulihkan akun sendiri dari sampah.');
+        }
+
+        return $this->withLockedUsers($actorId, function () use ($userId): string {
+            $target = $this->getLockedUser($userId);
+            if ($target === null || $target['masuk_sampah_pada'] === null) {
+                throw new DomainException('Akun tidak ditemukan di sampah.');
+            }
+            if ((int) $target['sampah_kedaluwarsa'] === 1) {
+                $this->deleteTrashedUser($userId);
+                return 'Waktu pemulihan akun sudah habis; akun dihapus permanen.';
+            }
+
+            $stmt = $this->db->prepare(
+                'UPDATE user
+                 SET status = COALESCE(status_sebelum_sampah, 0),
+                     status_sebelum_sampah = NULL,
+                     masuk_sampah_pada = NULL
+                 WHERE id = ? AND masuk_sampah_pada IS NOT NULL'
+            );
+            $stmt->execute([$userId]);
+            return 'Akun berhasil dipulihkan.';
+        });
+    }
+
+    public function permanentlyDeleteTrashedUser(int $actorId, int $userId, string $confirmation): string
+    {
+        if ($confirmation !== 'HAPUS') {
+            throw new DomainException('Ketik HAPUS dengan benar untuk menghapus akun permanen.');
+        }
         if ($actorId === $userId) {
             throw new DomainException('Kamu tidak dapat menghapus akun sendiri.');
         }
 
         return $this->withLockedUsers($actorId, function () use ($userId): string {
             $target = $this->getLockedUser($userId);
-            if ($target === null) {
-                throw new DomainException('Akun tidak ditemukan.');
-            }
-            if ($target['role'] === 'admin' && $target['status'] === 1 && $this->activeAdminCount() <= 1) {
-                throw new DomainException('Admin aktif terakhir tidak dapat dihapus.');
-            }
-            if ($this->getRelatedDataTables($userId)) {
-                throw new DomainException('Akun memiliki data terkait sehingga tidak dapat dihapus permanen. Nonaktifkan akun saja.');
+            if ($target === null || $target['masuk_sampah_pada'] === null) {
+                throw new DomainException('Akun tidak ditemukan di sampah.');
             }
 
-            $stmt = $this->db->prepare('DELETE FROM user WHERE id = ?');
-            $stmt->execute([$userId]);
-            return 'Akun berhasil dihapus permanen.';
+            $this->deleteTrashedUser($userId);
+            return 'Akun dan seluruh data terkait berhasil dihapus permanen.';
         });
+    }
+
+    public function purgeExpiredTrash(int $actorId): int
+    {
+        $expiredSql = sprintf(
+            'SELECT 1
+             FROM user
+             WHERE masuk_sampah_pada IS NOT NULL
+               AND masuk_sampah_pada <= CURRENT_TIMESTAMP - INTERVAL %d MINUTE
+             LIMIT 1',
+            self::ACCOUNT_TRASH_RETENTION_MINUTES
+        );
+        $expired = $this->db->prepare($expiredSql);
+        $expired->execute();
+        if (!$expired->fetchColumn()) {
+            return 0;
+        }
+
+        $this->db->beginTransaction();
+        try {
+            $admin = $this->db->prepare(
+                "SELECT id FROM user WHERE id = ? AND role = 'admin' AND status = 1 FOR UPDATE"
+            );
+            $admin->execute([$actorId]);
+            if (!$admin->fetch()) {
+                throw new DomainException('Sesi admin tidak lagi aktif. Silakan login kembali.');
+            }
+
+            $deleteSql = sprintf(
+                'DELETE FROM user
+                 WHERE masuk_sampah_pada IS NOT NULL
+                   AND masuk_sampah_pada <= CURRENT_TIMESTAMP - INTERVAL %d MINUTE',
+                self::ACCOUNT_TRASH_RETENTION_MINUTES
+            );
+            $stmt = $this->db->prepare($deleteSql);
+            $stmt->execute();
+            $purgedCount = $stmt->rowCount();
+            $this->db->commit();
+            return $purgedCount;
+        } catch (Throwable $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            throw $e;
+        }
+    }
+
+    private function deleteTrashedUser(int $userId): void
+    {
+        $stmt = $this->db->prepare('DELETE FROM user WHERE id = ? AND masuk_sampah_pada IS NOT NULL');
+        $stmt->execute([$userId]);
     }
 
     private function withLockedUsers(int $actorId, callable $callback)
@@ -192,7 +343,15 @@ class AdminUser extends Database
 
     private function getLockedUser(int $userId): ?array
     {
-        $stmt = $this->db->prepare('SELECT id, role, status FROM user WHERE id = ? FOR UPDATE');
+        $sql = sprintf(
+            'SELECT id, role, status, masuk_sampah_pada,
+                    (masuk_sampah_pada <= CURRENT_TIMESTAMP - INTERVAL %d MINUTE) AS sampah_kedaluwarsa
+             FROM user
+             WHERE id = ?
+             FOR UPDATE',
+            self::ACCOUNT_TRASH_RETENTION_MINUTES
+        );
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$userId]);
         $user = $stmt->fetch();
         if (!$user) {
@@ -210,45 +369,4 @@ class AdminUser extends Database
         return (int) $stmt->fetchColumn();
     }
 
-    private function getRelatedDataTables(int $userId): array
-    {
-        $tables = [];
-        foreach ($this->getUserReferences() as $reference) {
-            $table = $this->quoteIdentifier($reference['table']);
-            $column = $this->quoteIdentifier($reference['column']);
-            $stmt = $this->db->prepare("SELECT 1 FROM {$table} WHERE {$column} = ? LIMIT 1");
-            $stmt->execute([$userId]);
-            if ($stmt->fetchColumn()) {
-                $tables[] = $reference['table'];
-            }
-        }
-
-        return array_values(array_unique($tables));
-    }
-
-    private function getUserReferences(): array
-    {
-        if ($this->userReferences !== null) {
-            return $this->userReferences;
-        }
-
-        $stmt = $this->db->prepare(
-            'SELECT TABLE_NAME AS `table`, COLUMN_NAME AS `column`
-             FROM information_schema.KEY_COLUMN_USAGE
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND REFERENCED_TABLE_NAME = ?
-               AND REFERENCED_COLUMN_NAME = ?'
-        );
-        $stmt->execute(['user', 'id']);
-        $this->userReferences = $stmt->fetchAll();
-        return $this->userReferences;
-    }
-
-    private function quoteIdentifier(string $identifier): string
-    {
-        if (!preg_match('/^[A-Za-z0-9_]+$/', $identifier)) {
-            throw new RuntimeException('Nama tabel database tidak valid.');
-        }
-        return '`' . $identifier . '`';
-    }
 }

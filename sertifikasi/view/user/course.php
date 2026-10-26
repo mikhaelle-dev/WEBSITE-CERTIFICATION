@@ -59,7 +59,7 @@ $quiz = $data['quiz'];
                             </span>
                             <span class="module-progress-value"><?= $persentaseModul ?>%</span>
                             <span class="module-progress-track" role="progressbar" aria-label="Progres modul <?= e($item['judul']) ?>" aria-valuenow="<?= $persentaseModul ?>" aria-valuemin="0" aria-valuemax="100">
-                                <span style="width: <?= $persentaseModul ?>%"></span>
+                                <span data-progress="<?= $persentaseModul ?>"></span>
                             </span>
                         </summary>
                         <div class="sublesson-list">
@@ -195,6 +195,7 @@ $quiz = $data['quiz'];
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../../asset/js/page-actions.js"></script>
 <?php if ($data['isQuiz'] && !$data['hasilKuis']): ?>
 <script src="../../asset/js/course-quiz.js?v=1"></script>
 <?php endif; ?>

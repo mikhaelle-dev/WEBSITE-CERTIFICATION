@@ -4,7 +4,9 @@ require_once __DIR__ . '/../config/helpers.php';
 
 // Sudah login? langsung ke dashboard sesuai role.
 if (!empty($_SESSION['logged_in'])) {
-    if ($_SESSION['role'] === 'siswa') {
+    if (!empty($_SESSION['account_restricted'])) {
+        header('Location: ../controller/AccountDisabledController.php');
+    } elseif ($_SESSION['role'] === 'siswa') {
         header('Location: ../controller/user/DashboardController.php');
     } elseif ($_SESSION['role'] === 'admin') {
         header('Location: ../controller/admin/DashboardController.php');
@@ -81,13 +83,7 @@ unset($_SESSION['flash_error'], $_SESSION['flash_success'], $_SESSION['old_email
                 <label class="form-label" for="password">Password</label>
                 <div class="pw-wrap mb-2">
                     <input class="form-control brutal-input" type="password" id="password" name="password" autocomplete="current-password" required>
-                    <button type="button" class="pw-toggle" aria-label="Tampilkan password" aria-controls="password" aria-pressed="false" onclick="
-                        const i=document.getElementById('password');
-                        i.type = i.type==='password' ? 'text' : 'password';
-                        const visible = i.type==='text';
-                        this.setAttribute('aria-pressed', String(visible));
-                        this.setAttribute('aria-label', visible ? 'Sembunyikan password' : 'Tampilkan password');
-                        this.firstElementChild.className = visible ? 'bi bi-eye-slash' : 'bi bi-eye';">
+                    <button type="button" class="pw-toggle" aria-label="Tampilkan password" aria-controls="password" aria-pressed="false" data-toggle-password>
                         <i class="bi bi-eye"></i>
                     </button>
                 </div>
@@ -102,5 +98,6 @@ unset($_SESSION['flash_error'], $_SESSION['flash_success'], $_SESSION['old_email
     </section>
 
 </div>
+<script src="../asset/js/page-actions.js"></script>
 </body>
 </html>

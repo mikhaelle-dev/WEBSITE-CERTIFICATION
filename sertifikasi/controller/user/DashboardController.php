@@ -6,6 +6,7 @@
 require_once __DIR__ . '/../../config/session.php';
 
 require_once __DIR__ . '/../../config/helpers.php';
+require_once __DIR__ . '/../../class/Auth.php';
 require_once __DIR__ . '/../../class/Course.php';
 
 // ---------------------------------------------------------------
@@ -20,8 +21,21 @@ if ($DEV_MODE && !isset($_SESSION['logged_in'])) {
     $_SESSION['role']      = 'siswa';
 }
 
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || $_SESSION['role'] !== 'siswa') {
+if (!isset($_SESSION['logged_in'], $_SESSION['id_user'], $_SESSION['role'])
+    || $_SESSION['logged_in'] !== true || $_SESSION['role'] !== 'siswa') {
     header('Location: ../../view/login.php');
+    exit();
+}
+
+$auth = new Auth();
+if ($auth->isRestrictedAccount((int) $_SESSION['id_user'])) {
+    $_SESSION['account_restricted'] = true;
+    header('Location: ../AccountDisabledController.php');
+    exit();
+}
+
+if (!empty($_SESSION['account_restricted'])) {
+    header('Location: ../AccountDisabledController.php');
     exit();
 }
 

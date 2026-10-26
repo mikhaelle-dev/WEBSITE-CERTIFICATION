@@ -192,7 +192,7 @@ $p   = $data['profil'];
                 <i class="bi bi-search"></i>
                 <input type="search" name="q" class="form-control" placeholder="Cari judul kursus" value="<?= e($data['q']) ?>">
             </div>
-            <select class="form-select w-auto" name="jenis" onchange="this.form.submit()">
+            <select class="form-select w-auto" name="jenis" data-submit-on-change>
                 <?php foreach ($data['jenisValid'] as $j): ?>
                     <option <?= $data['jenis'] === $j ? 'selected' : '' ?>><?= e($j) ?></option>
                 <?php endforeach; ?>
@@ -248,7 +248,7 @@ $p   = $data['profil'];
                 <i class="bi bi-search"></i>
                 <input type="search" name="q" class="form-control" placeholder="Cari kursus" value="<?= e($data['q']) ?>">
             </div>
-            <select class="form-select w-auto" name="status_belajar" onchange="this.form.submit()">
+            <select class="form-select w-auto" name="status_belajar" data-submit-on-change>
                 <?php foreach ($data['statusValid'] as $s): ?>
                     <option <?= $data['statusBelajar'] === $s ? 'selected' : '' ?>><?= e($s) ?></option>
                 <?php endforeach; ?>
@@ -292,5 +292,6 @@ $p   = $data['profil'];
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
 <script src="../../asset/js/profile-photo.js?v=3"></script>
+<script src="../../asset/js/page-actions.js"></script>
 </body>
 </html>

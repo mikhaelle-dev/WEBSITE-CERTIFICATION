@@ -5,6 +5,8 @@
  */
 class Database
 {
+    public const ACCOUNT_TRASH_RETENTION_MINUTES = 5;
+
     protected $db;
 
     public function __construct()
@@ -36,6 +38,49 @@ class Database
                 PDO::ATTR_EMULATE_PREPARES   => false,
             ]
         );
+
+        $this->purgeQueuedAccountPhotos();
     }
 
+    private function purgeQueuedAccountPhotos(): void
+    {
+        try {
+            $stmt = $this->db->query(
+                'SELECT path
+                 FROM account_file_purge_queue
+                 ORDER BY queued_at ASC
+                 LIMIT 50'
+            );
+        } catch (PDOException $e) {
+            if (($e->errorInfo[1] ?? null) !== 1146) {
+                throw $e;
+            }
+
+            error_log('Account photo cleanup is unavailable: run database/12_account_trash_scheduler.sql to create its queue table.');
+            return;
+        }
+
+        $delete = $this->db->prepare('DELETE FROM account_file_purge_queue WHERE path = ?');
+        $profileDirectory = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'uploads'
+            . DIRECTORY_SEPARATOR . 'profiles';
+
+        foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $relativePath) {
+            if (
+                !is_string($relativePath)
+                || !preg_match('~\Auploads/profiles/([a-f0-9]{32}\.(?:jpg|png|webp))\z~D', $relativePath, $matches)
+            ) {
+                error_log('Account photo cleanup skipped an invalid queued path.');
+                $delete->execute([$relativePath]);
+                continue;
+            }
+
+            $photoPath = $profileDirectory . DIRECTORY_SEPARATOR . $matches[1];
+            if ((is_file($photoPath) || is_link($photoPath)) && !unlink($photoPath)) {
+                error_log('Account photo cleanup failed for ' . $photoPath);
+                continue;
+            }
+
+            $delete->execute([$relativePath]);
+        }
+    }
 }

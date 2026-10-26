@@ -78,7 +78,7 @@ $punyaKursus = !empty($data['kursusSaya']);
 
                                 <?php if ($modeProgress): ?>
                                     <div class="progress" role="progressbar" aria-valuenow="<?= (int) $k['progress'] ?>" aria-valuemin="0" aria-valuemax="100">
-                                        <div class="progress-bar" style="width: <?= (int) $k['progress'] ?>%"></div>
+                                        <div class="progress-bar" data-progress="<?= (int) $k['progress'] ?>"></div>
                                     </div>
                                     <small class="text-muted"><?= (int) $k['progress'] ?>% selesai</small>
                                     <a href="CourseController.php?slug=<?= urlencode($k['slug']) ?><?= $k['resume_sublesson_id'] !== null ? '&submateri=' . (int) $k['resume_sublesson_id'] : '' ?>" class="btn btn-sm btn-enroll mt-2">Lanjutkan belajar</a>
@@ -131,5 +131,6 @@ $punyaKursus = !empty($data['kursusSaya']);
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../../asset/js/page-actions.js"></script>
 </body>
 </html>

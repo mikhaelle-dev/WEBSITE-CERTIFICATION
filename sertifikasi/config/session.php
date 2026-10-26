@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Session configuration helper.
+ * Added detection for HTTPS behind reverse proxy via X-Forwarded-Proto.
+ */
+function isRequestSecure(): bool {
+    return (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+}
+
 if (session_status() !== PHP_SESSION_ACTIVE) {
     $sessionLifetime = 60 * 60 * 24 * 30;
 
@@ -8,10 +17,11 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_set_cookie_params([
         'lifetime' => $sessionLifetime,
         'path' => '/',
-        'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        'secure' => isRequestSecure(),
         'httponly' => true,
         'samesite' => 'Lax',
     ]);
 
     session_start();
 }
+?>
