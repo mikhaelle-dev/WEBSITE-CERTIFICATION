@@ -68,20 +68,23 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Setup admin | Sertifikasi Academy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="asset/css/auth.css" rel="stylesheet">
-    <link href="asset/css/brutal.css" rel="stylesheet">
+    <link href="asset/css/theme-soft.css" rel="stylesheet">
 </head>
-<body class="auth-page brutal-app">
-    <main class="auth-wrap auth-brutal">
+<body class="soft-app auth-page">
+    <main class="auth-wrap auth-setup">
         <section class="auth-panel w-100">
-            <div class="auth-box brutal-card">
+            <div class="auth-box">
                 <h1 class="h2">Setup admin pertama</h1>
                 <?php if ($error !== ''): ?><div class="alert alert-danger" role="alert"><?= e($error) ?></div><?php endif; ?>
                 <?php if ($setupComplete): ?>
                     <p>Admin sudah tersedia. Halaman setup tidak dapat digunakan lagi.</p>
-                    <a class="btn brutal-btn brutal-btn--primary w-100" href="view/login.php">Ke halaman login</a>
+                    <a class="btn btn-primary w-100" href="view/login.php">Ke halaman login</a>
                 <?php else: ?>
                     <p class="text-muted">Buat akun admin pertama. Halaman ini otomatis terkunci setelah admin berhasil dibuat.</p>
                     <form method="POST">
@@ -94,7 +97,7 @@ try {
                         <input class="form-control mb-3" type="password" id="password" name="password" minlength="8" maxlength="200" autocomplete="new-password" required>
                         <label class="form-label" for="konfirmasi">Konfirmasi password</label>
                         <input class="form-control mb-3" type="password" id="konfirmasi" name="konfirmasi" minlength="8" maxlength="200" autocomplete="new-password" required>
-                        <button class="btn brutal-btn brutal-btn--primary w-100" type="submit">Buat admin pertama</button>
+                        <button class="btn btn-primary w-100" type="submit">Buat admin pertama</button>
                     </form>
                 <?php endif; ?>
             </div>

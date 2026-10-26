@@ -1,26 +1,26 @@
 :root {
-    --green: #3c8a2e;
-    --green-light: #6cc04a;
-    --ink: #1b1b1b;
-    --muted: #6b7280;
-    --bg-side: #f4f4f4;
+    --green: var(--soft-purple);
+    --green-light: var(--soft-purple-light);
+    --ink: var(--soft-ink);
+    --muted: var(--soft-muted);
+    --bg-side: var(--soft-surface-muted);
 }
 
-body { background: #fff; color: var(--ink); font-family: "Segoe UI", system-ui, sans-serif; }
+body { background: var(--soft-page); color: var(--ink); font-family: "Plus Jakarta Sans", sans-serif; }
 
 /* NAVBAR */
-.topnav { background: #fff; border-bottom: 1px solid #e5e5e5; padding: .6rem 0; }
+.topnav { background: #fff; border-bottom: 1px solid var(--soft-line); padding: .6rem 0; }
 .brand { line-height: 1.05; color: var(--ink); font-size: 1rem; }
 .brand-small { font-size: .8rem; }
-.btn-explore { border: 1px solid var(--ink); border-radius: 4px; font-weight: 600; background: #fff; }
-.btn-explore:hover { background: var(--ink); color: #fff; }
+.btn-explore { border: 1px solid var(--soft-line); border-radius: 999px; font-weight: 600; background: #fff; }
+.btn-explore:hover { background: var(--soft-nav-hover); color: var(--soft-purple-dark); }
 
 .search-box { position: relative; max-width: 520px; }
 .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); }
-.search-box input { padding-left: 36px; background: #f4f4f4; border-radius: 4px; }
+.search-box input { padding-left: 36px; background: var(--soft-surface-muted); border-radius: 13px; }
 
 .nav-link { color: var(--ink); font-weight: 600; padding: 1rem .5rem; }
-.nav-active { color: var(--green); border-bottom: 3px solid var(--green); }
+.nav-active { color: #fff; border-radius: 999px; background: var(--soft-ink-dark); }
 
 .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--green); color: #fff;
           display: inline-flex; align-items: center; justify-content: center; font-weight: 700; object-fit: cover; }
@@ -33,35 +33,35 @@ body { background: #fff; color: var(--ink); font-family: "Segoe UI", system-ui, 
 
 /* PROMO BANNER */
 .promo { display: flex; justify-content: space-between; align-items: center; gap: 1rem;
-         background: linear-gradient(120deg, #06203f 0%, #0b4a6f 60%, #0f7f8a 100%);
-         color: #fff; border-radius: 10px; padding: 2rem 2.4rem; overflow: hidden; }
+         background: linear-gradient(120deg, var(--soft-purple-light), var(--soft-purple-dark));
+         color: #fff; border-radius: 22px; padding: 2rem 2.4rem; overflow: hidden; }
 .promo h2 { font-weight: 600; margin: .6rem 0; }
 .promo p { max-width: 520px; opacity: .9; }
-.promo-tag { background: var(--green-light); color: #0b2a0b; font-size: .72rem; font-weight: 700;
-             padding: .2rem .6rem; border-radius: 3px; letter-spacing: .04em; }
+.promo-tag { background: #fff; color: var(--soft-purple-dark); font-size: .72rem; font-weight: 700;
+             padding: .2rem .6rem; border-radius: 999px; letter-spacing: .04em; }
 .promo-icon { font-size: 6rem; opacity: .25; }
-.btn-promo { background: #fff; color: #06203f; font-weight: 700; border-radius: 30px; padding: .45rem 1.4rem; }
-.btn-promo:hover { background: var(--green-light); }
+.btn-promo { background: #fff; color: var(--soft-purple-dark); font-weight: 700; border-radius: 999px; padding: .45rem 1.4rem; }
+.btn-promo:hover { background: var(--soft-icon-yellow-bg); }
 
 /* COURSE CARD */
-.course-card { background: var(--bg-side); border-radius: 4px; overflow: hidden; height: 100%;
+.course-card { background: #fff; border-radius: 22px; overflow: hidden; height: 100%;
                transition: box-shadow .15s, transform .15s; }
 .course-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,.12); transform: translateY(-2px); }
 .course-thumb { position: relative; height: 130px; display: flex; align-items: center; justify-content: center;
-                background: linear-gradient(135deg, #1e3a5f, #3a7ca5); }
+                background: linear-gradient(135deg, #c4b5fd, var(--soft-purple)); }
 .course-thumb .play { font-size: 3rem; color: #fff; opacity: .9; }
-.level-badge { position: absolute; top: 10px; left: 10px; background: var(--green-light); color: #0b2a0b;
-               font-size: .7rem; font-weight: 700; padding: .15rem .5rem; border-radius: 3px; }
+.level-badge { position: absolute; top: 10px; left: 10px; background: #fff; color: var(--soft-purple-dark);
+               font-size: .7rem; font-weight: 700; padding: .15rem .5rem; border-radius: 999px; }
 .course-body { padding: 1rem; }
 .course-meta { font-size: .8rem; color: var(--muted); }
 .course-title { font-size: 1.05rem; font-weight: 700; margin: .3rem 0 .6rem; }
-.btn-enroll { background: var(--green); color: #fff; border-radius: 4px; }
-.btn-enroll:hover { background: #2f6e24; color: #fff; }
+.btn-enroll { background: linear-gradient(110deg, var(--soft-purple-light), var(--soft-purple)); color: #211531; border-radius: 999px; }
+.btn-enroll:hover { background: linear-gradient(110deg, var(--soft-purple), var(--soft-purple-dark)); color: #fff; }
 .progress { height: 6px; margin-bottom: .3rem; }
 .progress-bar { background: var(--green-light); }
 
 /* PANEL KANAN */
-.side-panel { background: var(--bg-side); padding: 1.4rem; min-height: 100%; border-radius: 4px; }
+.side-panel { background: #fff; padding: 1.4rem; min-height: 100%; border-radius: 22px; box-shadow: var(--soft-shadow-card); }
 .empty-ach { text-align: center; color: var(--muted); padding: 1.5rem .5rem; }
 .empty-ach i { font-size: 2.4rem; display: block; margin-bottom: .6rem; color: var(--green); }
 .ach-item { display: flex; gap: .8rem; align-items: center; margin-bottom: 1rem; color: inherit; text-decoration: none; }

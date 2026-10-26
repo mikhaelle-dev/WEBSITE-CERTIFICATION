@@ -23,11 +23,14 @@ if ($remainingSeconds !== null && $remainingSeconds > 0) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title>Akses akun dinonaktifkan | Sertifikasi Academy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="../asset/css/brutal.css" rel="stylesheet">
     <link href="../asset/css/account-disabled.css" rel="stylesheet">
+    <link href="../asset/css/theme-soft.css" rel="stylesheet">
 </head>
-<body class="account-disabled-page brutal-app">
+<body class="soft-app account-disabled-page">
     <main class="disabled-stage">
         <div class="disabled-dashboard-preview" aria-hidden="true" inert>
             <header class="preview-navbar">
@@ -77,13 +80,13 @@ if ($remainingSeconds !== null && $remainingSeconds > 0) {
                 Hubungi admin untuk meminta bantuan<?= $data['inTrash'] ? ' dan pemulihan akun' : '' ?>.
             </p>
             <?php if ($adminEmail !== ''): ?>
-                <a class="btn brutal-btn disabled-contact" href="mailto:<?= e($adminEmail) ?>?subject=Permintaan%20bantuan%20akun">
+                <a class="btn btn-outline-dark disabled-contact" href="mailto:<?= e($adminEmail) ?>?subject=Permintaan%20bantuan%20akun">
                     <i class="bi bi-envelope me-1"></i>Hubungi admin
                 </a>
             <?php else: ?>
                 <p class="disabled-contact-hint">Email admin belum dikonfigurasi. Hubungi admin melalui kanal komunikasi yang biasa digunakan.</p>
             <?php endif; ?>
-            <a class="btn brutal-btn brutal-btn--primary disabled-close" href="<?= e($closeUrl) ?>" autofocus>
+            <a class="btn btn-primary disabled-close" href="<?= e($closeUrl) ?>" autofocus>
                 Tutup dan kembali ke login
             </a>
         </section>

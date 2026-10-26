@@ -32,13 +32,16 @@ unset($_SESSION['flash_error'], $_SESSION['flash_success'], $_SESSION['old_email
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | Sertifikasi Academy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../asset/css/auth.css" rel="stylesheet">
-    <link href="../asset/css/brutal.css" rel="stylesheet">
+    <link href="../asset/css/theme-soft.css" rel="stylesheet">
 </head>
-<body class="auth-page brutal-app">
-<div class="auth-wrap auth-brutal">
+<body class="soft-app auth-page">
+<div class="auth-wrap">
 
     <section class="auth-hero" aria-labelledby="hero-title">
         <div class="auth-brand"><span>Sertifikasi</span><strong>Academy</strong></div>
@@ -67,22 +70,22 @@ unset($_SESSION['flash_error'], $_SESSION['flash_success'], $_SESSION['old_email
     </section>
 
     <section class="auth-panel" aria-labelledby="login-title">
-        <div class="auth-box brutal-card">
+        <div class="auth-box">
             <h2 id="login-title">Masuk ke akunmu</h2>
             <p class="text-muted">Silakan login ke akun kamu.</p>
 
-            <?php if ($success !== ''): ?><div class="alert alert-success brutal-alert brutal-alert--success py-2" role="status"><?= e($success) ?></div><?php endif; ?>
-            <?php if ($error !== ''): ?><div class="alert alert-danger brutal-alert brutal-alert--danger py-2" role="alert"><?= e($error) ?></div><?php endif; ?>
+            <?php if ($success !== ''): ?><div class="alert alert-success py-2" role="status"><?= e($success) ?></div><?php endif; ?>
+            <?php if ($error !== ''): ?><div class="alert alert-danger py-2" role="alert"><?= e($error) ?></div><?php endif; ?>
 
             <form method="POST" action="../controller/AuthController.php?aksi=login" novalidate>
                 <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token']) ?>">
 
                 <label class="form-label" for="email">Email</label>
-                <input class="form-control brutal-input mb-3" type="email" id="email" name="email" autocomplete="email" required autofocus value="<?= e($oldEmail) ?>">
+                <input class="form-control mb-3" type="email" id="email" name="email" autocomplete="email" required autofocus value="<?= e($oldEmail) ?>">
 
                 <label class="form-label" for="password">Password</label>
                 <div class="pw-wrap mb-2">
-                    <input class="form-control brutal-input" type="password" id="password" name="password" autocomplete="current-password" required>
+                    <input class="form-control" type="password" id="password" name="password" autocomplete="current-password" required>
                     <button type="button" class="pw-toggle" aria-label="Tampilkan password" aria-controls="password" aria-pressed="false" data-toggle-password>
                         <i class="bi bi-eye"></i>
                     </button>
@@ -96,7 +99,7 @@ unset($_SESSION['flash_error'], $_SESSION['flash_success'], $_SESSION['old_email
                     <a class="small" href="forgot-password.php">Lupa password?</a>
                 </div>
 
-                <button class="btn brutal-btn brutal-btn--primary btn-login w-100 mt-3" type="submit">Login</button>
+                <button class="btn btn-primary btn-login w-100 mt-3" type="submit">Login</button>
             </form>
 
             <div class="auth-alt">

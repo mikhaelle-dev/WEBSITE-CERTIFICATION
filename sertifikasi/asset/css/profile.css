@@ -41,6 +41,7 @@
            font-size: .68rem; font-weight: 700; padding: .1rem .7rem; border-radius: 3px; }
 .ach-icon { font-size: 3rem; color: var(--green-light); }
 .ach-title { font-weight: 700; font-size: .92rem; margin: .6rem 0 1rem; flex: 1; }
+.status-complete { background: var(--soft-icon-mint-bg); color: var(--soft-icon-mint-ink); }
 .ach-date { background: #f1f1f1; margin: 0 -1rem; padding: .6rem; font-size: .78rem; color: var(--muted); }
 .ach-card-link { color: inherit; text-decoration: none; }
 .ach-card-link:hover { border-color: var(--green); color: inherit; box-shadow: 0 6px 18px rgba(0,0,0,.1); transform: translateY(-2px); }

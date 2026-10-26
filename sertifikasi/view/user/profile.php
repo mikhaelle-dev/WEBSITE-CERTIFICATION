@@ -9,14 +9,17 @@ $p   = $data['profil'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profil</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet">
     <link href="../../asset/css/dashboard.css" rel="stylesheet">
     <link href="../../asset/css/profile.css" rel="stylesheet">
-    <link href="../../asset/css/brutal.css" rel="stylesheet">
+    <link href="../../asset/css/theme-soft.css" rel="stylesheet">
 </head>
-<body class="brutal-app">
+<body class="soft-app">
 
 <?php $aktif = 'profil'; include __DIR__ . '/../../component/navbar.php'; ?>
 
@@ -286,7 +289,7 @@ $p   = $data['profil'];
                 <div class="hist-col"><small class="text-muted">Selesai</small><div class="fw-semibold"><?= e(tgl_indo($r['selesai_pada'] ?? $r['selesai'] ?? null)) ?></div></div>
                 <div class="hist-col">
                     <small class="text-muted">Status</small>
-                    <div><span class="badge <?= $r['status'] === 'Selesai' ? 'brutal-status-complete' : 'text-bg-warning' ?>"><?= e($r['status']) ?></span></div>
+                    <div><span class="badge <?= $r['status'] === 'Selesai' ? 'status-complete' : 'text-bg-warning' ?>"><?= e($r['status']) ?></span></div>
                 </div>
             </div>
         <?php endforeach; ?>

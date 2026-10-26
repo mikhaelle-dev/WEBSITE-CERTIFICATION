@@ -7,11 +7,14 @@ $certificate = $data['certificate'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sertifikat <?= e($certificate['judul_kursus']) ?> | Sertifikasi Academy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../../asset/css/certificate.css" rel="stylesheet">
-    <link href="../../asset/css/brutal.css" rel="stylesheet">
+    <link href="../../asset/css/theme-soft.css" rel="stylesheet">
 </head>
-<body class="brutal-app certificate-page">
+<body class="soft-app certificate-page">
 <nav class="certificate-toolbar" aria-label="Aksi sertifikat">
     <a href="ProfileController.php?tab=sertifikat"><i class="bi bi-arrow-left"></i> Kembali ke pencapaian</a>
     <button type="button" data-print-page><i class="bi bi-printer"></i> Cetak / Simpan PDF</button>

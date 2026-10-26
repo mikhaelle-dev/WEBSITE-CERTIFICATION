@@ -9,13 +9,16 @@ $quiz = $data['quiz'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($course['judul']) ?> | Sertifikasi Academy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../../asset/css/dashboard.css" rel="stylesheet">
     <link href="../../asset/css/course.css?v=2" rel="stylesheet">
-    <link href="../../asset/css/brutal.css" rel="stylesheet">
+    <link href="../../asset/css/theme-soft.css" rel="stylesheet">
 </head>
-<body class="brutal-app">
+<body class="soft-app">
 <?php $aktif = 'mylearning'; include __DIR__ . '/../../component/navbar.php'; ?>
 
 <main class="container py-4 course-page">

@@ -17,13 +17,16 @@ unset($_SESSION['flash_error'], $_SESSION['old_nama'], $_SESSION['old_email']);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign up | Sertifikasi Academy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../asset/css/auth.css" rel="stylesheet">
-    <link href="../asset/css/brutal.css" rel="stylesheet">
+    <link href="../asset/css/theme-soft.css" rel="stylesheet">
 </head>
-<body class="auth-page brutal-app">
-<div class="auth-wrap auth-brutal">
+<body class="soft-app auth-page">
+<div class="auth-wrap">
 
     <section class="auth-hero">
         <div class="auth-brand"><span>Sertifikasi</span><strong>Academy</strong></div>

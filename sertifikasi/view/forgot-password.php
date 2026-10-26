@@ -44,18 +44,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lupa password | Sertifikasi Academy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../asset/css/auth.css" rel="stylesheet">
-    <link href="../asset/css/brutal.css" rel="stylesheet">
+    <link href="../asset/css/theme-soft.css" rel="stylesheet">
 </head>
-<body class="auth-page brutal-app">
-    <main class="auth-wrap auth-brutal forgot-password-page">
+<body class="soft-app auth-page">
+    <main class="auth-wrap forgot-password-page">
         <a class="auth-brand forgot-password-brand" href="login.php" aria-label="Sertifikasi Academy, kembali ke login">
             <span>Sertifikasi</span><strong>Academy</strong>
         </a>
         <section class="auth-panel w-100">
-            <div class="auth-box brutal-card">
+            <div class="auth-box">
                 <h1 class="h2">Lupa password?</h1>
                 <p class="text-muted">Masukkan email akun. Setelah mengirim permintaan, temui admin secara langsung untuk verifikasi dan reset password.</p>
                 <?php if ($error !== ''): ?><div class="alert alert-danger" role="alert"><?= e($error) ?></div><?php endif; ?>
@@ -64,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token']) ?>">
                     <label class="form-label" for="email">Email akun</label>
                     <input class="form-control mb-3" type="email" id="email" name="email" maxlength="100" autocomplete="email" value="<?= e($email) ?>" required>
-                    <button class="btn brutal-btn brutal-btn--primary w-100" type="submit">Kirim permintaan reset</button>
+                    <button class="btn btn-primary w-100" type="submit">Kirim permintaan reset</button>
                 </form>
                 <a class="d-inline-flex align-items-center gap-1 mt-3" href="login.php"><i class="bi bi-arrow-left"></i>Kembali ke login</a>
             </div>

@@ -19,12 +19,15 @@ $statCards = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin | Sertifikasi Academy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../../asset/css/admin.css" rel="stylesheet">
-    <link href="../../asset/css/brutal.css" rel="stylesheet">
+    <link href="../../asset/css/theme-soft.css" rel="stylesheet">
 </head>
-<body class="admin-body brutal-app">
+<body class="soft-app admin-body">
 <nav class="navbar navbar-expand-lg admin-navbar sticky-top">
     <div class="container-fluid admin-container">
         <a class="navbar-brand admin-brand" href="DashboardController.php">

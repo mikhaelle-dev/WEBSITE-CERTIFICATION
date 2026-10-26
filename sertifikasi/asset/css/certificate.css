@@ -8,9 +8,9 @@
 body {
     margin: 0;
     padding: 24px;
-    background: #edf1f3;
-    color: #14283c;
-    font-family: "Segoe UI", Arial, sans-serif;
+    background: var(--soft-page);
+    color: var(--soft-ink);
+    font-family: "Plus Jakarta Sans", sans-serif;
 }
 
 .certificate-toolbar {
@@ -27,10 +27,10 @@ body {
     align-items: center;
     gap: 8px;
     padding: 10px 16px;
-    border: 1px solid #d3dce3;
-    border-radius: 6px;
+    border: 1px solid var(--soft-line);
+    border-radius: 999px;
     background: #fff;
-    color: #164a55;
+    color: var(--soft-purple-dark);
     font: inherit;
     text-decoration: none;
     cursor: pointer;
@@ -42,11 +42,8 @@ body {
     min-height: 680px;
     margin: 0 auto;
     padding: 18px;
-    background:
-        radial-gradient(ellipse at 0 100%, rgba(72, 166, 154, .12), transparent 34%),
-        radial-gradient(ellipse at 100% 0, rgba(198, 158, 78, .12), transparent 34%),
-        #fff;
-    box-shadow: 0 16px 48px rgba(19, 44, 60, .15);
+    background: #fff;
+    box-shadow: var(--soft-shadow-card);
 }
 
 .certificate-inner {
@@ -56,9 +53,7 @@ body {
     height: 100%;
     min-height: 644px;
     padding: 40px 58px 28px;
-    border: 1px solid #c7a65b;
-    outline: 1px solid #dce6e8;
-    outline-offset: 5px;
+    border: 1px solid #ded3f7;
 }
 
 .certificate-brand {
@@ -72,24 +67,24 @@ body {
     width: 52px;
     height: 52px;
     place-items: center;
-    border: 2px solid #1b7777;
+    border: 1px solid var(--soft-purple);
     border-radius: 50%;
-    color: #1b7777;
-    font-family: Georgia, serif;
+    color: var(--soft-purple-dark);
+    font-family: "Plus Jakarta Sans", sans-serif;
     font-size: 20px;
     font-weight: 700;
 }
 
 .brand-name { font-size: 15px; letter-spacing: .16em; }
-.brand-name strong { color: #1b7777; }
-.brand-caption { margin-top: 4px; color: #73838a; font-size: 8px; letter-spacing: .18em; }
+.brand-name strong { color: var(--soft-purple-dark); }
+.brand-caption { margin-top: 4px; color: var(--soft-muted); font-size: 8px; letter-spacing: .18em; }
 
 .certificate-seal {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-left: auto;
-    color: #1b7777;
+    color: var(--soft-purple-dark);
     font-size: 9px;
     font-weight: 700;
     letter-spacing: .1em;
@@ -97,7 +92,7 @@ body {
 }
 
 .certificate-seal i { font-size: 36px; }
-.certificate-rule { height: 1px; margin-top: 19px; background: linear-gradient(90deg, #c7a65b, #d9e3e3 58%, transparent); }
+.certificate-rule { height: 1px; margin-top: 19px; background: linear-gradient(90deg, #ded3f7, var(--soft-line) 58%, transparent); }
 
 .certificate-copy {
     margin: auto 0;
@@ -107,7 +102,7 @@ body {
 
 .certificate-copy .eyebrow {
     margin: 0 0 9px;
-    color: #1b7777;
+    color: var(--soft-purple-dark);
     font-size: 11px;
     font-weight: 700;
     letter-spacing: .34em;
@@ -115,19 +110,19 @@ body {
 
 .certificate-copy h1 {
     margin: 0;
-    color: #173b50;
-    font-family: Georgia, "Times New Roman", serif;
+    color: var(--soft-ink);
+    font-family: "Plus Jakarta Sans", sans-serif;
     font-size: clamp(36px, 4.8vw, 58px);
     font-weight: 500;
     letter-spacing: .07em;
 }
 
-.intro { margin: 17px 0 5px; color: #65767d; font-family: Georgia, serif; font-size: 16px; font-style: italic; }
-.certificate-copy h2 { margin: 0; color: #173b50; font-family: Georgia, serif; font-size: clamp(24px, 3vw, 34px); }
-.completion-copy { margin: 10px 0 7px; color: #65767d; font-size: 13px; }
-.certificate-copy h3 { margin: 0; color: #1b7777; font-size: clamp(19px, 2.4vw, 27px); }
-.category { margin: 8px 0 0; color: #73838a; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
-.category span { padding: 0 6px; color: #c7a65b; }
+.intro { margin: 17px 0 5px; color: var(--soft-muted); font-family: "Plus Jakarta Sans", sans-serif; font-size: 16px; }
+.certificate-copy h2 { margin: 0; color: var(--soft-ink); font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(24px, 3vw, 34px); }
+.completion-copy { margin: 10px 0 7px; color: var(--soft-muted); font-size: 13px; }
+.certificate-copy h3 { margin: 0; color: var(--soft-purple-dark); font-size: clamp(19px, 2.4vw, 27px); }
+.category { margin: 8px 0 0; color: var(--soft-muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.category span { padding: 0 6px; color: var(--soft-gold); }
 
 .certificate-details {
     display: flex;
@@ -138,8 +133,8 @@ body {
 }
 
 .certificate-details div { display: grid; gap: 5px; }
-.certificate-details span { color: #73838a; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
-.certificate-details strong { color: #173b50; font-size: 12px; }
+.certificate-details span { color: var(--soft-muted); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
+.certificate-details strong { color: var(--soft-ink); font-size: 12px; }
 
 .certificate-footer {
     display: flex;
@@ -148,17 +143,17 @@ body {
 }
 
 .director-signature { width: 245px; text-align: center; }
-.signature-name { color: #1b7777; font-family: "Segoe Script", "Brush Script MT", cursive; font-size: 22px; }
-.signature-line { height: 1px; margin: 2px 0 7px; background: #8a999d; }
+.signature-name { color: var(--soft-purple-dark); font-family: "Plus Jakarta Sans", sans-serif; font-size: 22px; font-weight: 600; }
+.signature-line { height: 1px; margin: 2px 0 7px; background: var(--soft-line); }
 .director-signature strong, .director-signature span { display: block; }
 .director-signature strong { font-size: 11px; }
-.director-signature span { margin-top: 3px; color: #73838a; font-size: 9px; }
+.director-signature span { margin-top: 3px; color: var(--soft-muted); font-size: 9px; }
 
 .certificate-seal-large {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #c29b47;
+    color: var(--soft-gold);
     font-size: 8px;
     font-weight: 700;
     letter-spacing: .12em;
@@ -167,8 +162,8 @@ body {
 }
 
 .certificate-seal-large i { font-size: 38px; }
-.certificate-bottom { display: flex; justify-content: space-between; margin-top: 19px; color: #87959a; font-size: 7px; letter-spacing: .1em; }
-.certificate-bottom b { color: #c7a65b; }
+.certificate-bottom { display: flex; justify-content: space-between; margin-top: 19px; color: var(--soft-muted); font-size: 7px; letter-spacing: .1em; }
+.certificate-bottom b { color: var(--soft-gold); }
 
 @media (max-width: 700px) {
     body { padding: 10px; }
