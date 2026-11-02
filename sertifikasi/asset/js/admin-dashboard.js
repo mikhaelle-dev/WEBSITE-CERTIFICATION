@@ -1,4 +1,37 @@
 (() => {
+    const adminShell = document.querySelector('.admin-console');
+    const menuToggle = document.getElementById('adminMenuToggle');
+    const sidebarOverlay = document.getElementById('adminSidebarOverlay');
+
+    if (adminShell && menuToggle && sidebarOverlay) {
+        const mobileLayout = window.matchMedia('(max-width: 760px)');
+        const setSidebarOpen = (open) => {
+            adminShell.classList.toggle('admin-sidebar-open', open);
+            document.documentElement.classList.toggle('admin-sidebar-scroll-locked', open);
+            document.body.classList.toggle('admin-sidebar-scroll-locked', open);
+            menuToggle.setAttribute('aria-expanded', String(open));
+            menuToggle.setAttribute('aria-label', open ? 'Tutup navigasi' : 'Buka navigasi');
+        };
+
+        setSidebarOpen(!mobileLayout.matches);
+        menuToggle.addEventListener('click', () => {
+            setSidebarOpen(!adminShell.classList.contains('admin-sidebar-open'));
+        });
+        sidebarOverlay.addEventListener('click', () => {
+            setSidebarOpen(false);
+            menuToggle.focus();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                if (adminShell.classList.contains('admin-sidebar-open')) {
+                    setSidebarOpen(false);
+                    menuToggle.focus();
+                }
+            }
+        });
+        mobileLayout.addEventListener('change', (event) => setSidebarOpen(!event.matches));
+    }
+
     const panel = document.querySelector('.admin-users-panel');
     const modeButton = document.getElementById('toggleBulkTrashMode');
     const cancelButton = document.getElementById('cancelBulkTrashMode');

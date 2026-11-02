@@ -5,13 +5,44 @@ if (!defined('ADMIN_DASHBOARD_AUTHORIZED')) {
 }
 
 $statCards = [
-    ['Semua akun', $data['stats']['total'], 'bi-people'],
-    ['Siswa', $data['stats']['siswa'], 'bi-mortarboard'],
-    ['Instruktur', $data['stats']['instruktur'], 'bi-easel'],
-    ['Admin', $data['stats']['admin'], 'bi-shield-lock'],
-    ['Aktif', $data['stats']['aktif'], 'bi-person-check'],
-    ['Nonaktif', $data['stats']['nonaktif'], 'bi-person-slash'],
+    ['Semua akun', $data['stats']['total'], 'bi-people', 'Total pengguna terdaftar'],
+    ['Siswa', $data['stats']['siswa'], 'bi-mortarboard', 'Akun peserta belajar'],
+    ['Instruktur', $data['stats']['instruktur'], 'bi-easel', 'Akun pengajar'],
+    ['Admin', $data['stats']['admin'], 'bi-shield-check', 'Administrator'],
+    ['Aktif', $data['stats']['aktif'], 'bi-person-check', 'Akun dapat digunakan'],
+    ['Nonaktif', $data['stats']['nonaktif'], 'bi-person-x', 'Akun dinonaktifkan'],
 ];
+$pageTitles = [
+    'akun' => ['Manajemen akun', 'Kelola akses, status, dan kata sandi pengguna dari satu tempat.'],
+    'reset' => ['Permintaan reset', 'Tinjau dan proses permintaan pengaturan ulang kata sandi.'],
+    'sampah' => ['Sampah akun', 'Pulihkan akun atau hapus akun secara permanen.'],
+];
+[$pageTitle, $pageDescription] = $pageTitles[$data['activeTab']];
+$weekdayNames = [
+    1 => 'Senin',
+    2 => 'Selasa',
+    3 => 'Rabu',
+    4 => 'Kamis',
+    5 => 'Jumat',
+    6 => 'Sabtu',
+    7 => 'Minggu',
+];
+$monthNames = [
+    1 => 'Januari',
+    2 => 'Februari',
+    3 => 'Maret',
+    4 => 'April',
+    5 => 'Mei',
+    6 => 'Juni',
+    7 => 'Juli',
+    8 => 'Agustus',
+    9 => 'September',
+    10 => 'Oktober',
+    11 => 'November',
+    12 => 'Desember',
+];
+$today = date('j') . ' ' . $monthNames[(int) date('n')] . ' ' . date('Y');
+$todayLabel = $weekdayNames[(int) date('N')] . ', ' . $today;
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -26,29 +57,72 @@ $statCards = [
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../../asset/css/admin.css" rel="stylesheet">
     <link href="../../asset/css/theme-soft.css" rel="stylesheet">
+    <link href="../../asset/css/admin-console.css?v=6" rel="stylesheet">
 </head>
-<body class="soft-app admin-body">
-<nav class="navbar navbar-expand-lg admin-navbar sticky-top">
-    <div class="container-fluid admin-container">
-        <a class="navbar-brand admin-brand" href="DashboardController.php">
-            <span class="admin-brand-mark"><i class="bi bi-shield-check"></i></span>
-            <span>Sertifikasi <strong>Academy</strong><small>ADMINISTRATION</small></span>
+<body class="soft-app admin-body admin-console">
+<div class="admin-console-shell">
+    <aside class="admin-console-sidebar" id="adminSidebar">
+        <a class="admin-console-brand" href="DashboardController.php" aria-label="Sertifikasi Academy Admin">
+            <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+                <rect x="7" y="5" width="42" height="48" rx="5" stroke="currentColor" stroke-width="3.5"/>
+                <path d="M15 17H39M15 26H39M15 35H31" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>
+                <circle cx="45" cy="43" r="10" fill="#F4D982" stroke="currentColor" stroke-width="3"/>
+                <path d="M39 51L36 62L45 57L52 62L51 51" fill="#77B991" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+            </svg>
+            <span class="admin-console-brand-copy"><span>Sertifikasi</span><strong>Academy</strong><small>ADMINISTRATION</small></span>
         </a>
-        <div class="ms-auto d-flex align-items-center gap-2 gap-md-3">
-            <a class="btn btn-admin-quiet btn-sm" href="../user/ProfileController.php?tab=profil"><i class="bi bi-person-gear me-1"></i><span class="d-none d-sm-inline">Profil &amp; password</span><span class="d-sm-none">Profil</span></a>
-            <span class="admin-user-name d-none d-md-inline"><?= e($data['username']) ?></span>
-            <a class="btn btn-admin-logout btn-sm" href="../AuthController.php?aksi=logout"><i class="bi bi-box-arrow-right me-1"></i>Keluar</a>
-        </div>
-    </div>
-</nav>
 
-<main class="container-fluid admin-container py-4 py-lg-5">
+        <div class="admin-console-menu-label">MENU UTAMA</div>
+        <nav class="admin-console-nav" aria-label="Navigasi administrasi">
+            <a class="<?= $data['activeTab'] === 'akun' ? 'is-active' : '' ?>" href="DashboardController.php" <?= $data['activeTab'] === 'akun' ? 'aria-current="page"' : '' ?>>
+                <i class="bi bi-people" aria-hidden="true"></i><span>Manajemen Akun</span>
+            </a>
+            <a class="<?= $data['activeTab'] === 'reset' ? 'is-active' : '' ?>" href="DashboardController.php?tab=reset" <?= $data['activeTab'] === 'reset' ? 'aria-current="page"' : '' ?>>
+                <i class="bi bi-key" aria-hidden="true"></i><span>Permintaan Reset</span>
+                <?php if ($data['pendingResetCount'] > 0): ?><b class="admin-console-nav-count"><?= (int) $data['pendingResetCount'] ?></b><?php endif; ?>
+            </a>
+            <a class="<?= $data['activeTab'] === 'sampah' ? 'is-active' : '' ?>" href="DashboardController.php?tab=sampah" <?= $data['activeTab'] === 'sampah' ? 'aria-current="page"' : '' ?>>
+                <i class="bi bi-trash3" aria-hidden="true"></i><span>Sampah</span>
+                <?php if ($data['trashUsers']): ?><b class="admin-console-nav-count"><?= count($data['trashUsers']) ?></b><?php endif; ?>
+            </a>
+        </nav>
+
+        <div class="admin-console-sidebar-bottom">
+            <a class="admin-console-help" href="../user/ProfileController.php?tab=profil">
+                <i class="bi bi-shield-check" aria-hidden="true"></i>
+                <span><strong>Area Administrator</strong><small>Kelola akun dengan aman.</small></span>
+            </a>
+            <small class="admin-console-version">Sertifikasi Academy · Admin Panel</small>
+        </div>
+    </aside>
+    <button class="admin-console-overlay" id="adminSidebarOverlay" type="button" aria-label="Tutup menu"></button>
+
+    <div class="admin-console-main">
+        <header class="admin-console-topbar">
+            <div class="admin-console-topbar-left">
+                <button class="admin-console-icon-button admin-console-menu-toggle" id="adminMenuToggle" type="button" aria-label="Buka atau tutup navigasi" aria-controls="adminSidebar" aria-expanded="false">
+                    <i class="bi bi-list" aria-hidden="true"></i>
+                </button>
+                <div class="admin-console-breadcrumb"><span>Administrator</span><i class="bi bi-chevron-right" aria-hidden="true"></i><strong><?= e(ucfirst($pageTitle)) ?></strong></div>
+            </div>
+            <div class="admin-console-topbar-actions">
+                <a class="admin-console-profile" href="../user/ProfileController.php?tab=profil">
+                    <span class="admin-console-avatar"><?= e(strtoupper(substr($data['username'] !== '' ? $data['username'] : 'A', 0, 1))) ?></span>
+                    <span><strong><?= e($data['username']) ?></strong><small>Administrator</small></span>
+                    <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                </a>
+                <a class="admin-console-logout" href="../AuthController.php?aksi=logout"><i class="bi bi-box-arrow-right" aria-hidden="true"></i><span>Keluar</span></a>
+            </div>
+        </header>
+
+<main class="admin-console-content">
     <header class="admin-page-heading">
         <div>
-            <div class="admin-eyebrow"><i class="bi bi-shield-check me-1"></i> Panel administrasi</div>
-            <h1>Manajemen akun</h1>
-            <p>Kelola akses, status, dan kata sandi pengguna dari satu tempat.</p>
+            <div class="admin-eyebrow"><span class="admin-console-eyebrow-line"></span> Panel administrasi</div>
+            <h1><?= e($pageTitle) ?></h1>
+            <p><?= e($pageDescription) ?></p>
         </div>
+        <div class="admin-console-date"><i class="bi bi-calendar3" aria-hidden="true"></i><span><?= e($todayLabel) ?></span></div>
     </header>
 
     <?php if ($data['success'] !== ''): ?>
@@ -70,30 +144,15 @@ $statCards = [
             </div>
         </div>
     <?php endif; ?>
-    <nav class="admin-view-tabs" aria-label="Bagian manajemen akun">
-        <a class="<?= $data['activeTab'] === 'akun' ? 'is-active' : '' ?>" href="DashboardController.php">
-            <i class="bi bi-people"></i> Daftar akun
-        </a>
-        <a class="<?= $data['activeTab'] === 'reset' ? 'is-active' : '' ?>" href="DashboardController.php?tab=reset">
-            <i class="bi bi-key"></i> Permintaan reset
-            <?php if ($data['pendingResetCount'] > 0): ?><span class="admin-trash-count"><?= (int) $data['pendingResetCount'] ?></span><?php endif; ?>
-        </a>
-        <a class="<?= $data['activeTab'] === 'sampah' ? 'is-active' : '' ?>" href="DashboardController.php?tab=sampah">
-            <i class="bi bi-trash3"></i> Sampah
-            <span class="admin-trash-count"><?= count($data['trashUsers']) ?></span>
-        </a>
-    </nav>
-
     <?php if ($data['activeTab'] === 'akun'): ?>
     <section class="row g-3 mb-4" aria-label="Ringkasan akun">
-        <?php foreach ($statCards as [$label, $count, $icon]): ?>
+        <?php foreach ($statCards as [$label, $count, $icon, $description]): ?>
             <div class="col-6 col-md-4 col-xl-2">
                 <div class="admin-stat-card">
-                    <div>
-                        <div class="admin-stat-label"><?= e($label) ?></div>
-                        <div class="admin-stat-value"><?= (int) $count ?></div>
-                    </div>
-                    <span class="admin-stat-icon"><i class="bi <?= e($icon) ?>"></i></span>
+                    <div class="admin-stat-label"><?= e($label) ?></div>
+                    <div class="admin-stat-value"><?= (int) $count ?></div>
+                    <span class="admin-stat-icon<?= $label === 'Nonaktif' ? ' is-muted' : '' ?>"><i class="bi <?= e($icon) ?>"></i></span>
+                    <small class="admin-stat-description"><?= e($description) ?></small>
                 </div>
             </div>
         <?php endforeach; ?>
@@ -103,7 +162,7 @@ $statCards = [
         <div class="admin-users-heading">
             <div>
                 <h2>Daftar akun</h2>
-                <p><?= count($data['users']) ?> akun ditampilkan</p>
+                <p>Kelola seluruh akun yang terdaftar di sistem.</p>
             </div>
             <div class="admin-users-heading-actions">
                 <button
@@ -455,8 +514,11 @@ $statCards = [
             <input type="hidden" name="tab" value="<?= e($data['activeTab']) ?>">
         </form>
     <?php endif; ?>
+    <footer class="admin-console-footer">© <?= date('Y') ?> Sertifikasi Academy <span>·</span> Admin Panel</footer>
 </main>
-<script src="../../asset/js/admin-dashboard.js"></script>
+    </div>
+</div>
+<script src="../../asset/js/admin-dashboard.js?v=4"></script>
 <script src="../../asset/js/page-actions.js"></script>
 </body>
 </html>
