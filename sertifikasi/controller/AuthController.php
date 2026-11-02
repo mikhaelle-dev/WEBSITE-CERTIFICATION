@@ -117,7 +117,7 @@ if ($aksi === 'login') {
     } elseif ($u['role'] === 'admin') {
         header('Location: admin/DashboardController.php');
     } else {
-        header('Location: ../view/placeholder.php');
+        header('Location: instructor/DashboardController.php');
     }
     exit();
 }

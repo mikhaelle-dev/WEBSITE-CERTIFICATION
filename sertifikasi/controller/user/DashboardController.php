@@ -8,6 +8,7 @@ require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/helpers.php';
 require_once __DIR__ . '/../../class/Auth.php';
 require_once __DIR__ . '/../../class/Course.php';
+require_once __DIR__ . '/../../class/InstructorClass.php';
 
 // ---------------------------------------------------------------
 // MODE DEMO: set false kalau login.php sudah jadi.
@@ -48,11 +49,40 @@ if (isset($_GET['logout'])) {
     exit();
 }
 
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $token = $_POST['csrf_token'] ?? '';
+    if (!is_string($token) || !hash_equals($_SESSION['csrf_token'], $token)) {
+        $_SESSION['student_error'] = 'Sesi form tidak valid. Muat ulang halaman dan coba lagi.';
+        header('Location: DashboardController.php');
+        exit();
+    }
+
+    $action = $_POST['aksi'] ?? '';
+    if ($action === 'join_class') {
+        $key = trim((string) ($_POST['enroll_key'] ?? ''));
+        $classModel = new InstructorClass();
+        $result = $classModel->enrollStudentByKey((int) $_SESSION['id_user'], $key);
+        if ($result === null) {
+            $_SESSION['student_error'] = 'Enroll key tidak valid atau kelas tidak bisa diakses.';
+        } else {
+            $_SESSION['student_success'] = 'Kamu berhasil bergabung ke kelas ' . $result['judul'] . '.';
+        }
+    }
+
+    header('Location: DashboardController.php');
+    exit();
+}
+
 // ---------------------------------------------------------------
 // DATA DUMMY -> nanti diganti query class Course / Enrollment
 // ---------------------------------------------------------------
 $dummy = require __DIR__ . '/../../config/dummy_data.php';
 $courseModel = new Course();
+$instructorClassModel = new InstructorClass();
 $userId = (int) $_SESSION['id_user'];
 $activeCourse = $courseModel->getActiveEnrollment($userId);
 $completedCourseSlugs = $courseModel->getCompletedCourseSlugs($userId);
@@ -102,10 +132,14 @@ $data = [
     'foto_profil' => $_SESSION['foto_profil'] ?? null,
     'role'        => $_SESSION['role'],
     'kursusSaya'  => $kursusSaya,
+    'kelasSaya'   => $instructorClassModel->getStudentDashboardClasses($userId),
     'rekomendasi' => $rekomendasi,
     'kategori'    => $kategori,
     'q'           => $q,
     'pencapaian'  => array_slice($courseModel->getAchievements($userId), 0, 3),
+    'student_success' => $_SESSION['student_success'] ?? '',
+    'student_error' => $_SESSION['student_error'] ?? '',
 ];
+unset($_SESSION['student_success'], $_SESSION['student_error']);
 
 include __DIR__ . '/../../view/user/dashboard.php';

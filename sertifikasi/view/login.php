@@ -11,7 +11,7 @@ if (!empty($_SESSION['logged_in'])) {
     } elseif ($_SESSION['role'] === 'admin') {
         header('Location: ../controller/admin/DashboardController.php');
     } else {
-        header('Location: placeholder.php');
+        header('Location: ../controller/instructor/DashboardController.php');
     }
     exit();
 }

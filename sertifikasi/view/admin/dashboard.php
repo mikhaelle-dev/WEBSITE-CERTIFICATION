@@ -31,6 +31,7 @@ $statCards = [
 <nav class="navbar navbar-expand-lg admin-navbar sticky-top">
     <div class="container-fluid admin-container">
         <a class="navbar-brand admin-brand" href="DashboardController.php">
+            <span class="admin-brand-mark"><i class="bi bi-shield-check"></i></span>
             <span>Sertifikasi <strong>Academy</strong><small>ADMINISTRATION</small></span>
         </a>
         <div class="ms-auto d-flex align-items-center gap-2 gap-md-3">

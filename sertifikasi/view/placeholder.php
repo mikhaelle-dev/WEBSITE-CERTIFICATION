@@ -8,6 +8,10 @@ if (empty($_SESSION['logged_in'])) {
     exit();
 }
 $role = $_SESSION['role'];
+if ($role === 'instruktur') {
+    header('Location: ../controller/instructor/DashboardController.php');
+    exit();
+}
 $mustChangePassword = (new Auth())->mustChangePassword((int) $_SESSION['id_user']);
 if ($mustChangePassword) {
     header('Location: ../controller/user/ProfileController.php?tab=profil&must_change=1');

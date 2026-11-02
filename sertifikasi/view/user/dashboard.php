@@ -1,6 +1,9 @@
 <?php
 // View: HANYA tampilan. Data datang dari DashboardController lewat $data.
 $punyaKursus = !empty($data['kursusSaya']);
+$kelasSaya = $data['kelasSaya'] ?? [];
+$studentSuccess = $data['student_success'] ?? '';
+$studentError = $data['student_error'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -39,6 +42,52 @@ $punyaKursus = !empty($data['kursusSaya']);
                 </section>
 
             <?php endif; ?>
+
+            <?php if ($studentSuccess !== ''): ?>
+                <div class="alert alert-success mt-3" role="alert"><?= e($studentSuccess) ?></div>
+            <?php endif; ?>
+            <?php if ($studentError !== ''): ?>
+                <div class="alert alert-danger mt-3" role="alert"><?= e($studentError) ?></div>
+            <?php endif; ?>
+
+            <?php if (!empty($kelasSaya)): ?>
+                <section aria-labelledby="class-heading" class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center gap-2">
+                        <h3 class="section-title mb-0" id="class-heading">Kelas saya</h3>
+                    </div>
+                    <div class="row g-4 mt-1">
+                        <?php foreach ($kelasSaya as $kelas): ?>
+                            <div class="col-md-6">
+                                <article class="course-card">
+                                    <div class="course-body">
+                                        <div class="course-meta"><?= e($kelas['instruktur_nama']) ?></div>
+                                        <h4 class="course-title"><?= e($kelas['judul']) ?></h4>
+                                        <p class="text-muted mb-3"><?= e($kelas['deskripsi']) ?></p>
+                                        <div class="progress" role="progressbar" aria-valuenow="<?= (int) ($kelas['progress'] ?? 0) ?>" aria-valuemin="0" aria-valuemax="100">
+                                            <div class="progress-bar" data-progress="<?= (int) ($kelas['progress'] ?? 0) ?>"></div>
+                                        </div>
+                                        <small class="text-muted"><?= (int) ($kelas['progress'] ?? 0) ?>% selesai</small>
+                                    </div>
+                                </article>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </section>
+            <?php endif; ?>
+
+            <section class="mb-4">
+                <div class="d-flex justify-content-between align-items-center gap-2">
+                    <h3 class="section-title mb-0">Masuk kelas dengan enroll key</h3>
+                </div>
+                <form method="POST" action="DashboardController.php" class="card border-0 shadow-sm mt-3 p-3">
+                    <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token'] ?? '') ?>">
+                    <input type="hidden" name="aksi" value="join_class">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="enroll_key" placeholder="Masukkan enroll key kelas" aria-label="Enroll key">
+                        <button type="submit" class="btn btn-enroll">Gabung kelas</button>
+                    </div>
+                </form>
+            </section>
 
             <?php if ($punyaKursus): ?>
                 <section aria-labelledby="progress-heading">

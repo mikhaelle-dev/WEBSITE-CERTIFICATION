@@ -12,7 +12,7 @@ $inisial     = strtoupper(substr($data['username'], 0, 1));
 $role        = $data['role'] ?? 'siswa';
 $dashboardPath = $role === 'admin'
     ? '../admin/DashboardController.php'
-    : ($role === 'instruktur' ? '../../view/placeholder.php' : 'DashboardController.php');
+    : ($role === 'instruktur' ? '../../controller/instructor/DashboardController.php' : 'DashboardController.php');
 $logoutPath = '../AuthController.php?aksi=logout';
 ?>
 <nav class="navbar navbar-expand-lg sticky-top topnav">
