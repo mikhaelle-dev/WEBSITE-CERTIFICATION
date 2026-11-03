@@ -12,6 +12,75 @@ class Course extends Database
         return $course ?: null;
     }
 
+    public function getRecommendations(int $userId, string $category = '', string $search = ''): array
+    {
+        $term = '%' . $search . '%';
+        $stmt = $this->db->prepare(
+            "SELECT kursus.id, kursus.slug, kursus.judul, kursus.kategori, kursus.deskripsi,
+                    kursus.level, kursus.durasi, 'Self-paced' AS tipe, 1 AS sertifikat,
+                    COALESCE(peserta.total, 0) AS peserta
+             FROM kursus
+             LEFT JOIN (
+                 SELECT kursus_id, COUNT(*) AS total
+                 FROM pendaftaran_kursus
+                 GROUP BY kursus_id
+             ) peserta ON peserta.kursus_id = kursus.id
+             WHERE NOT EXISTS (
+                 SELECT 1 FROM pendaftaran_kursus pendaftaran
+                 WHERE pendaftaran.kursus_id = kursus.id AND pendaftaran.user_id = ?
+             )
+               AND (? = '' OR kursus.kategori = ?)
+               AND (? = '' OR kursus.judul LIKE ? OR kursus.kategori LIKE ?
+                    OR kursus.level LIKE ? OR kursus.deskripsi LIKE ?)
+             ORDER BY peserta.total DESC, kursus.dibuat_pada DESC, kursus.judul"
+        );
+        $stmt->execute([
+            $userId,
+            $category,
+            $category,
+            $search,
+            $term,
+            $term,
+            $term,
+            $term,
+        ]);
+
+        $courses = $stmt->fetchAll();
+        foreach ($courses as &$course) {
+            $course['cover_image'] = $this->getCoverImage($course['kategori']);
+        }
+        unset($course);
+
+        return $courses;
+    }
+
+    public function getCategories(): array
+    {
+        $stmt = $this->db->query('SELECT DISTINCT kategori FROM kursus ORDER BY kategori');
+
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    public function getCoverImage(string $category): string
+    {
+        $category = strtolower($category);
+        if (strpos($category, 'cyber') !== false || strpos($category, 'keamanan siber') !== false) {
+            return 'cybersecurity.jpg';
+        }
+        if (strpos($category, 'network') !== false || strpos($category, 'jaringan') !== false) {
+            return 'networking.jpg';
+        }
+        if (
+            strpos($category, 'artificial intelligence') !== false
+            || strpos($category, 'kecerdasan buatan') !== false
+            || strpos($category, 'ai & data') !== false
+        ) {
+            return 'artificial-intelligence.jpg';
+        }
+
+        return 'digital-learning.jpg';
+    }
+
     public function getLessons(int $courseId): array
     {
         $stmt = $this->db->prepare(
@@ -60,7 +129,8 @@ class Course extends Database
                     kursus.level, kursus.durasi, kursus.deskripsi, pendaftaran.mulai_pada
              FROM pendaftaran_kursus pendaftaran
              JOIN kursus ON kursus.id = pendaftaran.kursus_id
-             WHERE pendaftaran.user_id = ? AND pendaftaran.selesai_pada IS NULL
+             WHERE pendaftaran.user_id = ?
+               AND pendaftaran.selesai_pada IS NULL
              ORDER BY pendaftaran.mulai_pada
              LIMIT 1'
         );
@@ -88,19 +158,50 @@ class Course extends Database
         $stmt = $this->db->prepare(
             'SELECT kursus.judul, kursus.slug, kursus.kategori, kursus.durasi,
                     \'Self-paced\' AS tipe,
+                    (SELECT progres.submateri_id
+                     FROM progres_submateri progres
+                     JOIN submateri_kursus submateri ON submateri.id = progres.submateri_id
+                     JOIN materi_kursus materi ON materi.id = submateri.materi_id
+                     WHERE progres.user_id = pendaftaran.user_id
+                       AND materi.kursus_id = kursus.id
+                     ORDER BY progres.pertama_dibuka DESC, materi.urutan DESC, submateri.urutan DESC
+                     LIMIT 1) AS resume_submateri_id,
                     CASE
-                        WHEN pendaftaran.selesai_pada IS NULL THEN \'Berjalan\'
-                        ELSE \'Selesai\'
+                        WHEN pendaftaran.selesai_pada IS NOT NULL THEN \'Selesai\'
+                        ELSE \'Berjalan\'
                     END AS status,
-                    pendaftaran.mulai_pada, pendaftaran.selesai_pada
+                    pendaftaran.mulai_pada, pendaftaran.selesai_pada,
+                    kuis.judul AS judul_kuis,
+                    hasil.nilai AS nilai_kuis,
+                    hasil.lulus AS kuis_lulus,
+                    CASE
+                        WHEN hasil.id IS NULL THEN \'Belum dikerjakan\'
+                        WHEN hasil.lulus = 1 THEN \'Lulus\'
+                        ELSE \'Perlu diulang\'
+                    END AS status_kuis
              FROM pendaftaran_kursus pendaftaran
              JOIN kursus ON kursus.id = pendaftaran.kursus_id
+             LEFT JOIN kuis_kursus kuis ON kuis.kursus_id = kursus.id
+             LEFT JOIN hasil_kuis hasil ON hasil.id = (
+                 SELECT hasil_terakhir.id
+                 FROM hasil_kuis hasil_terakhir
+                 WHERE hasil_terakhir.user_id = pendaftaran.user_id
+                   AND hasil_terakhir.kuis_id = kuis.id
+                 ORDER BY hasil_terakhir.dikerjakan_pada DESC, hasil_terakhir.id DESC
+                 LIMIT 1
+             )
              WHERE pendaftaran.user_id = ?
              ORDER BY COALESCE(pendaftaran.selesai_pada, pendaftaran.mulai_pada) DESC'
         );
         $stmt->execute([$userId]);
 
-        return $stmt->fetchAll();
+        $history = $stmt->fetchAll();
+        foreach ($history as &$course) {
+            $course['cover_image'] = $this->getCoverImage($course['kategori']);
+        }
+        unset($course);
+
+        return $history;
     }
 
     public function getAchievements(int $userId): array
@@ -323,6 +424,11 @@ class Course extends Database
 
     public function updateEnrollmentCompletion(int $userId, int $courseId): void
     {
+        $enrollment = $this->getEnrollment($userId, $courseId);
+        if ($enrollment === null) {
+            return;
+        }
+
         $progress = $this->getProgress($userId, $courseId);
         if (!$progress['selesai']) {
             return;
@@ -331,7 +437,8 @@ class Course extends Database
         $stmt = $this->db->prepare(
             'UPDATE pendaftaran_kursus
              SET selesai_pada = CURRENT_TIMESTAMP
-             WHERE user_id = ? AND kursus_id = ? AND selesai_pada IS NULL'
+            WHERE user_id = ? AND kursus_id = ?
+              AND selesai_pada IS NULL'
         );
         $stmt->execute([$userId, $courseId]);
 

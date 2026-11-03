@@ -4,8 +4,9 @@
  * Data demo dibuang agar menu selalu beralih ke data nyata dari database.
  * Jika belum ada data, tampilkan state kosong agar UI tetap stabil dan tidak terikat ke contoh.
  */
-$menuKursus = [];
-$menuKategori = [];
+$menuKursus = $data['exploreCourses'] ?? [];
+$menuKategori = $data['kategoriKursus'] ?? [];
+$menuKelas = $data['kelasTersedia'] ?? [];
 $aktif = $aktif ?? 'mylearning';
 $inisial = strtoupper(substr($data['username'], 0, 1));
 $role = $data['role'] ?? 'siswa';
@@ -48,21 +49,38 @@ $logoutPath = '../AuthController.php?aksi=logout';
                             <a class="btn btn-enroll w-100 mt-3" href="DashboardController.php#rekomendasi">Lihat semua kursus</a>
                         </div>
                         <div class="col-md-8 mega-right">
-                            <div class="mega-head">Ambil kursus gratis</div>
-                            <p class="small text-muted">Pelajari topik jaringan, keamanan siber, dan pemrograman, lalu dapatkan sertifikat setelah lolos asesmen.</p>
+                            <div class="mega-head">Rekomendasi kursus</div>
                             <?php if ($menuKursus !== []): ?>
                                 <?php foreach ($menuKursus as $mk): ?>
-                                    <a class="mega-course" href="DashboardController.php?kategori=<?= urlencode($mk['kategori']) ?>#rekomendasi">
-                                        <div class="mega-thumb"><i class="bi bi-play-circle-fill"></i></div>
+                                    <a class="mega-course" href="CourseOverviewController.php?slug=<?= urlencode($mk['slug']) ?>">
+                                        <img class="mega-thumb" src="../../asset/img/courses/<?= e($mk['cover_image'] ?? 'digital-learning.jpg') ?>" alt="" loading="lazy" decoding="async">
                                         <div>
                                             <small class="text-muted"><?= e($mk['tipe']) ?> &middot; <?= e($mk['level']) ?></small>
                                             <div class="fw-bold"><?= e($mk['judul']) ?></div>
-                                            <small class="text-muted"><i class="bi bi-people"></i> <?= number_format($mk['peserta'], 0, ',', '.') ?> sudah mendaftar</small>
+                                            <small class="text-muted"><i class="bi bi-people"></i> <?= number_format((int) $mk['peserta'], 0, ',', '.') ?> sudah mendaftar</small>
                                         </div>
                                     </a>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <div class="p-3 text-muted small">Belum ada kursus yang bisa ditampilkan saat ini.</div>
+                            <?php endif; ?>
+                            <div class="mega-class-heading">
+                                <div class="mega-head mb-0">Kelas aktif dari instruktur</div>
+                                <a href="DashboardController.php#kelas-tersedia">Lihat kelas</a>
+                            </div>
+                            <?php if ($menuKelas !== []): ?>
+                                <?php foreach (array_slice($menuKelas, 0, 3) as $kelas): ?>
+                                    <a class="mega-class" href="DashboardController.php#kelas-tersedia">
+                                        <span class="mega-class-icon"><i class="bi bi-easel"></i></span>
+                                        <span class="mega-class-copy">
+                                            <strong><?= e($kelas['judul']) ?></strong>
+                                            <small><?= e($kelas['instruktur_nama']) ?></small>
+                                        </span>
+                                        <i class="bi bi-arrow-up-right"></i>
+                                    </a>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <p class="mega-empty">Kelas instruktur yang aktif akan muncul di sini.</p>
                             <?php endif; ?>
                         </div>
                     </div>

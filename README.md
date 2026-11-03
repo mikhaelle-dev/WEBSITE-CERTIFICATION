@@ -11,5 +11,4 @@
 
 - Pemulihan password dan tautan kontak akun nonaktif memakai `ADMIN_CONTACT_EMAIL`.
 - Login membatasi percobaan menjadi 3 kegagalan berturut-turut per IP dan email, lalu memblokir selama 10 detik.
-- Fitur “Ingat saya” mempertahankan sesi perangkat selama 30 hari.
-- Folder [sertifikasi/temp](sertifikasi/temp) digunakan untuk artefak sementara dan tidak dibutuhkan di repositori produksi.
+- Folder `sertifikasi/temp` menyimpan status sementara pembatas percobaan login. Folder ini dibuat otomatis, perlu dapat ditulisi aplikasi, dan isinya dikecualikan dari Git.

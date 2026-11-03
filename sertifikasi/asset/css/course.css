@@ -27,6 +27,9 @@
 .module-progress-track { grid-column: 1 / -1; height: 5px; overflow: hidden; border-radius: 999px; background: #e8ecee; }
 .module-progress-track > span { display: block; height: 100%; border-radius: inherit; background: #65bd48; transition: width .2s ease; }
 .sublesson-list { display: grid; gap: .15rem; padding: 0 0 .55rem .45rem; }
+.module-overview-link { display: flex; gap: .55rem; align-items: center; padding: .55rem .45rem; border-radius: 6px; color: var(--green-dark); font-size: .8rem; font-weight: 700; text-decoration: none; }
+.module-overview-link:hover, .module-overview-link.active { background: #edf7ea; }
+.module-overview-link i { display: inline-flex; width: 24px; height: 24px; flex: none; align-items: center; justify-content: center; }
 .sublesson-link { display: flex; gap: .55rem; align-items: flex-start; padding: .55rem .45rem; border-radius: 6px; color: var(--ink); font-size: .8rem; line-height: 1.4; text-decoration: none; }
 .sublesson-link:hover, .sublesson-link.active { background: #edf7ea; color: var(--green-dark); }
 .sublesson-link.is-complete { color: var(--green-dark); }
@@ -37,6 +40,8 @@
 .course-content h2 { font-size: 1.5rem; margin-bottom: 1rem; }
 .lesson-counter { color: var(--muted); font-size: .85rem; margin-bottom: .4rem; }
 .lesson-body { line-height: 1.75; }
+.lesson-body > :first-child { margin-top: 0; }
+.lesson-body > :last-child { margin-bottom: 0; }
 .lesson-body h3 { margin-top: 1.5rem; font-size: 1.1rem; }
 .lesson-body li { margin-bottom: .45rem; }
 .lesson-navigation { display: flex; justify-content: flex-end; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e5e5; }

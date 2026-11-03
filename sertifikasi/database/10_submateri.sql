@@ -51,6 +51,32 @@ JOIN (
 WHERE kursus.slug = 'pengenalan-keamanan-siber'
 ON DUPLICATE KEY UPDATE judul = VALUES(judul), isi = VALUES(isi);
 
+INSERT INTO submateri_kursus (materi_id, urutan, judul, isi)
+SELECT materi.id, seed.urutan, seed.judul, seed.isi
+FROM materi_kursus materi
+JOIN kursus ON kursus.id = materi.kursus_id
+JOIN (
+    SELECT 'dasar-jaringan-komputer' AS slug, 1 AS urutan_materi, 1 AS urutan,
+           'Mengenal Jaringan dan LAN' AS judul,
+           '<p>Jaringan memungkinkan perangkat bertukar data dan memakai layanan bersama. Jaringan lokal (LAN) biasanya menghubungkan perangkat di area seperti rumah, sekolah, atau kantor.</p><p>Perangkat dapat terhubung melalui kabel atau Wi-Fi. Gunakan jaringan yang dikelola dengan baik dan hubungi administrator jika perangkat yang tidak dikenal muncul.</p>' AS isi
+    UNION ALL SELECT 'dasar-jaringan-komputer', 1, 2, 'Alamat IP dan Alur Data',
+           '<p>Alamat IP membantu mengidentifikasi perangkat dan mengarahkan data pada jaringan. Router meneruskan data antarjaringan, sedangkan pengaturan alamat sering dibagikan otomatis oleh layanan jaringan.</p><p>Jika perangkat tidak dapat terhubung, periksa koneksi dan pengaturan dasar terlebih dahulu. Jangan mengubah konfigurasi jaringan organisasi tanpa izin.</p>'
+    UNION ALL SELECT 'dasar-jaringan-komputer', 2, 1, 'Peran Perangkat Jaringan',
+           '<p>Switch menghubungkan perangkat dalam LAN. Router menghubungkan jaringan yang berbeda. Access point menyediakan akses nirkabel. Setiap perangkat memiliki peran berbeda dan bekerja bersama untuk mengirim data.</p><p>Gunakan dokumentasi resmi untuk memahami perangkat yang dikelola dan minta bantuan administrator jika ada gangguan.</p>'
+    UNION ALL SELECT 'dasar-jaringan-komputer', 2, 2, 'Kebiasaan Aman Mengelola Jaringan',
+           '<ul><li>Gunakan kata sandi Wi-Fi yang kuat dan berbeda dari kata sandi akun lain.</li><li>Pasang pembaruan perangkat jaringan dari sumber resmi.</li><li>Batasi akses pengaturan hanya untuk orang yang berwenang.</li><li>Hindari aktivitas sensitif di jaringan publik yang tidak tepercaya.</li></ul><p>Laporkan perangkat atau perubahan jaringan yang tidak dikenal kepada administrator.</p>'
+    UNION ALL SELECT 'dasar-kecerdasan-buatan', 1, 1, 'AI dan Machine Learning',
+           '<p>AI mencakup beragam teknik yang membantu komputer melakukan tugas seperti mengenali pola atau memahami bahasa. Machine learning adalah pendekatan yang mempelajari pola dari contoh data.</p><p>Hasilnya dipengaruhi oleh kualitas data dan tujuan model. Karena itu, kinerja perlu dinilai sesuai konteks dan keterbatasan yang diketahui.</p>'
+    UNION ALL SELECT 'dasar-kecerdasan-buatan', 1, 2, 'Contoh dan Batasan AI',
+           '<p>AI digunakan untuk membantu tugas seperti mengelompokkan dokumen, mengenali objek, dan memberi saran. Kegunaan sebuah model bergantung pada data, pengujian, serta cara hasilnya digunakan.</p><p>AI dapat keliru atau tidak cocok untuk keputusan penting. Libatkan peninjauan manusia dan gunakan sumber tepercaya untuk memeriksa informasi.</p>'
+    UNION ALL SELECT 'dasar-kecerdasan-buatan', 2, 1, 'Cara Kerja AI Generatif',
+           '<p>AI generatif menghasilkan teks, gambar, atau ringkasan berdasarkan pola yang dipelajari. Jawaban yang lancar tetap dapat mengandung kekeliruan, konteks yang hilang, atau bias.</p><p>Jelaskan kebutuhan dengan konteks yang tidak sensitif, lalu tinjau hasilnya sebelum digunakan atau dibagikan.</p>'
+    UNION ALL SELECT 'dasar-kecerdasan-buatan', 2, 2, 'Verifikasi dan Privasi',
+           '<ul><li>Periksa klaim penting dengan sumber yang dapat dipercaya.</li><li>Jangan masukkan kata sandi, data pribadi, atau informasi rahasia ke layanan yang belum disetujui.</li><li>Perhatikan bias dan konteks saat menilai hasil.</li><li>Ikuti kebijakan organisasi dan bertanggung jawab atas keputusan akhir.</li></ul>'
+) AS seed ON seed.urutan_materi = materi.urutan
+WHERE kursus.slug = seed.slug
+ON DUPLICATE KEY UPDATE judul = VALUES(judul), isi = VALUES(isi);
+
 INSERT IGNORE INTO progres_submateri (user_id, submateri_id, pertama_dibuka)
 SELECT progres.user_id, submateri.id, progres.pertama_dibuka
 FROM progres_materi progres

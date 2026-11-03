@@ -58,6 +58,7 @@ $enrollment = $courseModel->getEnrollment($userId, (int) $course['id']);
 $activeCourse = $courseModel->getActiveEnrollment($userId);
 $error = '';
 $badges = $courseModel->getCourseBadges((int) $course['id'], $userId);
+$attemptTerakhir = $courseModel->getLatestAttempt($userId, (int) $quiz['id']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'mulai_kursus') {
     $token = $_POST['csrf_token'] ?? '';
@@ -67,7 +68,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'mulai_k
         $activeCourse = $courseModel->getActiveEnrollment($userId);
         $error = 'Selesaikan kursus yang sedang berjalan sebelum memilih kursus lain.';
     } else {
-        header('Location: CourseController.php?slug=' . urlencode($slug) . '&submateri=' . (int) $lessons[0]['submateri'][0]['id']);
+        $sublessonId = $courseModel->getResumeSublessonId($userId, (int) $course['id']);
+        if ($sublessonId !== null) {
+            header('Location: CourseController.php?slug=' . urlencode($slug) . '&submateri=' . $sublessonId);
+        } else {
+            header('Location: CourseController.php?slug=' . urlencode($slug) . '&modul=' . (int) $lessons[0]['id']);
+        }
         exit();
     }
 }
@@ -87,6 +93,7 @@ $data = [
     'quiz' => $quiz,
     'badges' => $badges,
     'certificate' => $certificate,
+    'latestAttempt' => $attemptTerakhir,
     'enrolled' => $enrollment !== null,
     'active' => $sedangAktif,
     'completed' => $sudahSelesai,

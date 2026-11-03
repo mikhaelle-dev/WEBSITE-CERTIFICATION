@@ -55,8 +55,8 @@ $todayLabel = $weekdayNames[(int) date('N')] . ', ' . $today;
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="../../asset/css/admin.css" rel="stylesheet">
-    <link href="../../asset/css/theme-soft.css" rel="stylesheet">
+    <link href="../../asset/css/admin.css?v=20261103-green2" rel="stylesheet">
+    <link href="../../asset/css/theme-soft.css?v=20261103-green2" rel="stylesheet">
     <link href="../../asset/css/admin-console.css?v=6" rel="stylesheet">
 </head>
 <body class="soft-app admin-body admin-console">
@@ -414,7 +414,7 @@ $todayLabel = $weekdayNames[(int) date('N')] . ', ' . $today;
                                             <i class="bi bi-arrow-counterclockwise me-1"></i>Pulihkan
                                         </button>
                                     </form>
-                                    <form method="POST" class="admin-trash-form">
+                                    <form method="POST" class="admin-trash-form" data-confirm="<?= e('Yakin ingin menghapus akun ' . $user['nama'] . ' secara permanen? Akun dan seluruh data terkait akan terhapus dan tidak dapat dipulihkan.') ?>">
                                         <input type="hidden" name="csrf_token" value="<?= e($data['csrf']) ?>">
                                         <input type="hidden" name="aksi" value="hapus_permanen">
                                         <input type="hidden" name="user_id" value="<?= (int) $user['id'] ?>">

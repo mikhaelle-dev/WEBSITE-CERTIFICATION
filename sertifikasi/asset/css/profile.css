@@ -64,10 +64,14 @@
 
 /* baris riwayat */
 .hist-row { display: grid; grid-template-columns: 2.4fr 1fr 1fr 1fr; gap: 1rem; align-items: center; background: #fff;
-            border: 1px solid #ddd; border-radius: 4px; padding: .9rem 1rem; margin-top: .9rem; }
+            border: 1px solid #ddd; border-radius: 8px; padding: .9rem 1rem; margin-top: .9rem; color: inherit; text-decoration: none;
+            transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
+.hist-row:hover { border-color: #b7d9ad; box-shadow: 0 7px 18px rgba(31, 73, 54, .08); color: inherit; transform: translateY(-1px); }
+.hist-row:focus-visible { outline: 3px solid rgba(67, 143, 109, .4); outline-offset: 3px; }
 .hist-main { display: flex; gap: .9rem; align-items: center; }
-.hist-thumb { width: 64px; height: 64px; flex: none; border-radius: 4px; display: flex; align-items: center; justify-content: center;
-              background: linear-gradient(135deg, #1e3a5f, #3a7ca5); color: #fff; font-size: 1.6rem; }
+.hist-main > div { min-width: 0; }
+.hist-thumb { width: 72px; height: 72px; flex: none; border-radius: 6px; object-fit: cover; background: #e4f1e8; }
+.hist-quiz-status { display: block; margin-top: .3rem; color: var(--muted); font-size: .75rem; }
 
 @media (max-width: 767px) {
     .hist-row { grid-template-columns: 1fr 1fr; }

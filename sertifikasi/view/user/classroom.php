@@ -21,8 +21,8 @@ $openedMap = array_fill_keys($openedMaterialIds, true);
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="../../asset/css/theme-soft.css" rel="stylesheet">
-    <link href="../../asset/css/dashboard.css" rel="stylesheet">
+    <link href="../../asset/css/theme-soft.css?v=20261103-green2" rel="stylesheet">
+    <link href="../../asset/css/dashboard.css?v=20261103-green2" rel="stylesheet">
 </head>
 <body class="soft-app">
 <?php $aktif = 'mylearning'; include __DIR__ . '/../../component/navbar.php'; ?>

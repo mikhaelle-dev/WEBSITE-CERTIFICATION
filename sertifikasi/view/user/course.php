@@ -14,9 +14,9 @@ $quiz = $data['quiz'];
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="../../asset/css/dashboard.css" rel="stylesheet">
-    <link href="../../asset/css/course.css?v=2" rel="stylesheet">
-    <link href="../../asset/css/theme-soft.css" rel="stylesheet">
+    <link href="../../asset/css/dashboard.css?v=20261103-course-flow" rel="stylesheet">
+    <link href="../../asset/css/course.css?v=20261103-course-flow" rel="stylesheet">
+    <link href="../../asset/css/theme-soft.css?v=20261103-course-flow" rel="stylesheet">
 </head>
 <body class="soft-app">
 <?php $aktif = 'mylearning'; include __DIR__ . '/../../component/navbar.php'; ?>
@@ -51,6 +51,7 @@ $quiz = $data['quiz'];
                     $jumlahSubmateri = count($item['submateri']);
                     $persentaseModul = $jumlahSubmateri > 0 ? (int) floor(($submateriSelesai / $jumlahSubmateri) * 100) : 0;
                     $sedangAktif = !$data['isQuiz'] && (int) $item['id'] === (int) $data['lesson']['id'];
+                    $overviewAktif = $data['isModuleOverview'] && (int) $item['id'] === (int) $data['lesson']['id'];
                     ?>
                     <details class="module-outline" <?= $sedangAktif ? 'open' : '' ?>>
                         <summary class="module-outline-summary">
@@ -66,10 +67,19 @@ $quiz = $data['quiz'];
                             </span>
                         </summary>
                         <div class="sublesson-list">
+                            <a class="module-overview-link <?= $overviewAktif ? 'active' : '' ?>"
+                               <?= $overviewAktif ? 'aria-current="page"' : '' ?>
+                               href="?slug=<?= urlencode($course['slug']) ?>&modul=<?= (int) $item['id'] ?>">
+                                <i class="bi bi-info-circle" aria-hidden="true"></i>
+                                <span>Overview modul</span>
+                            </a>
                             <?php foreach ($item['submateri'] as $sublesson): ?>
                                 <?php
                                 $sublessonOpened = in_array((int) $sublesson['id'], $data['submateriDibuka'], true);
-                                $sublessonActive = !$data['isQuiz'] && (int) $sublesson['id'] === (int) $data['sublesson']['id'];
+                                $sublessonActive = !$data['isQuiz']
+                                    && !$data['isModuleOverview']
+                                    && $data['sublesson'] !== null
+                                    && (int) $sublesson['id'] === (int) $data['sublesson']['id'];
                                 ?>
                                 <a class="sublesson-link <?= $sublessonActive ? 'active' : '' ?> <?= $sublessonOpened ? 'is-complete' : '' ?>"
                                    <?= $sublessonActive ? 'aria-current="page"' : '' ?>
@@ -131,10 +141,25 @@ $quiz = $data['quiz'];
                             <p>Kamu menjawab benar <?= (int) $data['hasilKuis']['jumlah_benar'] ?> dari <?= (int) $data['hasilKuis']['jumlah_soal'] ?> soal.</p>
                             <?php if (!$data['hasilKuis']['lulus']): ?>
                                 <p class="quiz-result-hint">Pelajari kembali materi, lalu coba lagi. Nilai minimum kelulusan adalah <?= (int) $quiz['nilai_minimum'] ?>.</p>
+                                <a class="btn btn-enroll px-4 mt-2" href="?slug=<?= urlencode($course['slug']) ?>&bagian=kuis&ulang=1">
+                                    Coba lagi <i class="bi bi-arrow-repeat"></i>
+                                </a>
+                            <?php elseif ($data['courseCompleted']): ?>
+                                <p class="quiz-result-hint">Kursus selesai. Materi dan hasil kuis tersimpan di riwayat belajarmu.</p>
+                                <a class="btn btn-enroll px-4 mt-2" href="ProfileController.php?tab=riwayat">
+                                    Lihat riwayat kursus <i class="bi bi-arrow-right"></i>
+                                </a>
+                            <?php else: ?>
+                                <p class="quiz-result-hint">Kuis lulus. Kunjungi riwayat kursus atau selesaikan materi yang masih tersisa.</p>
+                                <?php if ($data['nextSublessonId'] !== null): ?>
+                                    <a class="btn btn-enroll px-4 mt-2" href="?slug=<?= urlencode($course['slug']) ?>&submateri=<?= (int) $data['nextSublessonId'] ?>">
+                                        Lanjutkan materi <i class="bi bi-arrow-right"></i>
+                                    </a>
+                                <?php endif; ?>
+                                <a class="btn btn-outline-success px-4 mt-2" href="ProfileController.php?tab=riwayat">
+                                    Lihat riwayat kursus <i class="bi bi-arrow-right"></i>
+                                </a>
                             <?php endif; ?>
-                            <a class="btn btn-enroll px-4 mt-2" href="?slug=<?= urlencode($course['slug']) ?>&bagian=kuis&ulang=1">
-                                <?= $data['hasilKuis']['lulus'] ? 'Ulangi kuis' : 'Coba lagi' ?>
-                            </a>
                         </section>
                     <?php elseif ($data['attemptTerakhir']): ?>
                         <p class="small text-muted">Percobaan terakhir: nilai <?= (int) $data['attemptTerakhir']['nilai'] ?>.</p>
@@ -170,6 +195,20 @@ $quiz = $data['quiz'];
                             </div>
                         </form>
                     <?php endif; ?>
+                </article>
+            <?php elseif ($data['isModuleOverview']): ?>
+                <article class="course-content">
+                    <div class="lesson-counter">Overview modul <?= (int) $data['lesson']['urutan'] ?> dari <?= count($data['lessons']) ?></div>
+                    <h2><?= e($data['lesson']['judul']) ?></h2>
+                    <div class="lesson-body"><?= $data['lesson']['isi'] ?></div>
+                    <div class="lesson-navigation">
+                        <?php $firstSublesson = $data['lesson']['submateri'][0] ?? null; ?>
+                        <?php if ($firstSublesson !== null): ?>
+                            <a class="btn btn-enroll px-4" href="?slug=<?= urlencode($course['slug']) ?>&submateri=<?= (int) $firstSublesson['id'] ?>">
+                                Mulai modul <i class="bi bi-arrow-right"></i>
+                            </a>
+                        <?php endif; ?>
+                    </div>
                 </article>
             <?php else: ?>
                 <article class="course-content">

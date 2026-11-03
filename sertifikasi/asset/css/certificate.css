@@ -53,7 +53,7 @@ body {
     height: 100%;
     min-height: 644px;
     padding: 40px 58px 28px;
-    border: 1px solid #ded3f7;
+    border: 1px solid var(--soft-line);
 }
 
 .certificate-brand {
@@ -92,7 +92,7 @@ body {
 }
 
 .certificate-seal i { font-size: 36px; }
-.certificate-rule { height: 1px; margin-top: 19px; background: linear-gradient(90deg, #ded3f7, var(--soft-line) 58%, transparent); }
+.certificate-rule { height: 1px; margin-top: 19px; background: linear-gradient(90deg, var(--soft-line), var(--soft-line) 58%, transparent); }
 
 .certificate-copy {
     margin: auto 0;

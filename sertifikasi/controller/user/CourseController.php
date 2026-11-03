@@ -34,7 +34,7 @@ if (!isset($_SESSION['csrf_token'])) {
 }
 
 $slug = $_GET['slug'] ?? '';
-if (!is_string($slug) || $slug !== 'pengenalan-keamanan-siber') {
+if (!is_string($slug) || $slug === '') {
     http_response_code(404);
     exit('Kursus tidak ditemukan.');
 }
@@ -69,9 +69,23 @@ if (!$lessons || !$sublessons || $quiz === null || !$quiz['soal']) {
     exit('Submateri atau kuis kursus belum tersedia di database. Pastikan file database/10_submateri.sql sudah dijalankan.');
 }
 
+$courseCompleted = $enrollment['selesai_pada'] !== null;
+$pendingQuizResult = $_SESSION['hasil_kuis_terakhir'] ?? null;
+$showFinalQuizResult = $courseCompleted
+    && ($_GET['hasil'] ?? '') === 'terkirim'
+    && is_array($pendingQuizResult)
+    && ($pendingQuizResult['kuis_id'] ?? null) === (int) $quiz['id']
+    && ($pendingQuizResult['lulus'] ?? false) === true;
+
+if ($courseCompleted && !$showFinalQuizResult) {
+    header('Location: CourseOverviewController.php?slug=' . urlencode($slug));
+    exit();
+}
+
 $errors = [];
 $hasilKuis = null;
-$sedangMengerjakanKuis = ($_GET['bagian'] ?? '') === 'kuis';
+$sedangMengerjakanKuis = ($_GET['bagian'] ?? '') === 'kuis' || $showFinalQuizResult;
+$attemptTerakhir = $courseModel->getLatestAttempt($userId, (int) $quiz['id']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'kirim_kuis') {
     $sedangMengerjakanKuis = true;
@@ -79,6 +93,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'kirim_k
 
     if (!is_string($token) || !hash_equals($_SESSION['csrf_token'], $token)) {
         $errors[] = 'Sesi form tidak valid. Muat ulang halaman dan coba lagi.';
+    } elseif ($attemptTerakhir !== null && (int) $attemptTerakhir['lulus'] === 1) {
+        $errors[] = 'Kuis ini sudah lulus. Lanjutkan materi yang belum dipelajari.';
     } else {
         $jawaban = $_POST['jawaban'] ?? [];
         if (!is_array($jawaban)) {
@@ -144,43 +160,76 @@ if (($_GET['hasil'] ?? '') === 'terkirim') {
     }
 }
 
+if ($hasilKuis === null && $sedangMengerjakanKuis && $attemptTerakhir !== null && (int) $attemptTerakhir['lulus'] === 1) {
+    $hasilKuis = [
+        'nilai' => (int) $attemptTerakhir['nilai'],
+        'jumlah_benar' => (int) $attemptTerakhir['jumlah_benar'],
+        'jumlah_soal' => (int) $attemptTerakhir['jumlah_soal'],
+        'lulus' => true,
+    ];
+}
+
 $sublessonId = filter_input(INPUT_GET, 'submateri', FILTER_VALIDATE_INT);
 $legacyLessonId = filter_input(INPUT_GET, 'materi', FILTER_VALIDATE_INT);
-$sublesson = $sublessons[0];
-if ($sublessonId !== null && $sublessonId !== false) {
-    foreach ($sublessons as $candidate) {
-        if ((int) $candidate['id'] === $sublessonId) {
-            $sublesson = $candidate;
-            break;
-        }
-    }
-} elseif ($legacyLessonId !== null && $legacyLessonId !== false) {
-    foreach ($sublessons as $candidate) {
-        if ((int) $candidate['module_id'] === $legacyLessonId) {
-            $sublesson = $candidate;
-            break;
-        }
-    }
-}
+$requestedModuleId = filter_input(INPUT_GET, 'modul', FILTER_VALIDATE_INT);
 $lesson = null;
-foreach ($lessons as $candidate) {
-    if ((int) $candidate['id'] === (int) $sublesson['module_id']) {
-        $lesson = $candidate;
-        break;
+$sublesson = null;
+$isModuleOverview = false;
+$hasSublessonSelector = isset($_GET['submateri']) || isset($_GET['materi']);
+
+if (!$sedangMengerjakanKuis && !$hasSublessonSelector) {
+    $moduleId = $requestedModuleId !== null && $requestedModuleId !== false
+        ? $requestedModuleId
+        : (int) $lessons[0]['id'];
+    foreach ($lessons as $candidate) {
+        if ((int) $candidate['id'] === $moduleId) {
+            $lesson = $candidate;
+            break;
+        }
+    }
+
+    $lesson = $lesson ?? $lessons[0];
+    $isModuleOverview = true;
+} else {
+    $sublesson = $sublessons[0];
+    if ($sublessonId !== null && $sublessonId !== false) {
+        foreach ($sublessons as $candidate) {
+            if ((int) $candidate['id'] === $sublessonId) {
+                $sublesson = $candidate;
+                break;
+            }
+        }
+    } elseif ($legacyLessonId !== null && $legacyLessonId !== false) {
+        foreach ($sublessons as $candidate) {
+            if ((int) $candidate['module_id'] === $legacyLessonId) {
+                $sublesson = $candidate;
+                break;
+            }
+        }
+    }
+
+    foreach ($lessons as $candidate) {
+        if ((int) $candidate['id'] === (int) $sublesson['module_id']) {
+            $lesson = $candidate;
+            break;
+        }
     }
 }
 
-if (!$sedangMengerjakanKuis && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+if (!$sedangMengerjakanKuis && !$isModuleOverview && $_SERVER['REQUEST_METHOD'] !== 'POST') {
     $courseModel->markSublessonOpened($userId, (int) $sublesson['id']);
     $courseModel->updateEnrollmentCompletion($userId, (int) $course['id']);
 }
 $submateriDibuka = $courseModel->getOpenedSublessonIds($userId, (int) $course['id']);
-$attemptTerakhir = $courseModel->getLatestAttempt((int) $_SESSION['id_user'], (int) $quiz['id']);
 $sublessonIndex = 0;
-foreach ($sublessons as $index => $candidate) {
-    if ((int) $candidate['id'] === (int) $sublesson['id']) {
-        $sublessonIndex = $index;
-        break;
+$sublessonIds = array_column($sublessons, 'id');
+$sublessonsRemaining = array_values(array_diff($sublessonIds, $submateriDibuka));
+if ($sublesson !== null) {
+    foreach ($sublessons as $index => $candidate) {
+        if ((int) $candidate['id'] === (int) $sublesson['id']) {
+            $sublessonIndex = $index;
+            break;
+        }
     }
 }
 $data = [
@@ -192,12 +241,15 @@ $data = [
     'sublessons' => $sublessons,
     'sublesson' => $sublesson,
     'sublessonIndex' => $sublessonIndex,
+    'isModuleOverview' => $isModuleOverview,
     'submateriDibuka' => $submateriDibuka,
     'quiz' => $quiz,
     'isQuiz' => $sedangMengerjakanKuis,
     'errors' => $errors,
     'hasilKuis' => $hasilKuis,
     'attemptTerakhir' => $attemptTerakhir,
+    'courseCompleted' => $courseCompleted,
+    'nextSublessonId' => $sublessonsRemaining[0] ?? null,
     'csrf' => $_SESSION['csrf_token'],
 ];
 

@@ -6,7 +6,7 @@
     <title><?= $tab === 'feedback' ? 'Feedback' : 'Support' ?> | Sertifikasi Academy</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="../../asset/css/dashboard.css" rel="stylesheet">
+    <link href="../../asset/css/dashboard.css?v=20261103-green2" rel="stylesheet">
     <link href="../../asset/css/brutal.css" rel="stylesheet">
     <link href="../../asset/css/support.css" rel="stylesheet">
 </head>

@@ -22,8 +22,8 @@ unset($_SESSION['flash_error'], $_SESSION['old_nama'], $_SESSION['old_email']);
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="../asset/css/auth.css?v=4" rel="stylesheet">
-    <link href="../asset/css/theme-soft.css" rel="stylesheet">
+    <link href="../asset/css/auth.css?v=20261103-green2" rel="stylesheet">
+    <link href="../asset/css/theme-soft.css?v=20261103-green2" rel="stylesheet">
 </head>
 <body class="soft-app auth-page auth-register-page">
     <div class="login-bg-circle login-bg-circle-one" aria-hidden="true"></div>

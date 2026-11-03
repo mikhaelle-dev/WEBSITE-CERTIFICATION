@@ -12,9 +12,9 @@ $course = $data['course'];
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="../../asset/css/dashboard.css" rel="stylesheet">
-    <link href="../../asset/css/course.css?v=2" rel="stylesheet">
-    <link href="../../asset/css/theme-soft.css" rel="stylesheet">
+    <link href="../../asset/css/dashboard.css?v=20261103-course-flow" rel="stylesheet">
+    <link href="../../asset/css/course.css?v=20261103-course-flow" rel="stylesheet">
+    <link href="../../asset/css/theme-soft.css?v=20261103-course-flow" rel="stylesheet">
 </head>
 <body class="soft-app">
 <?php $aktif = 'mylearning'; include __DIR__ . '/../../component/navbar.php'; ?>
@@ -29,7 +29,7 @@ $course = $data['course'];
             <p><?= e($course['deskripsi']) ?></p>
             <div class="overview-meta">
                 <span><i class="bi bi-clock"></i> <?= e($course['durasi']) ?></span>
-                <span><i class="bi bi-journal-text"></i> <?= count($data['lessons']) ?> materi</span>
+                <span><i class="bi bi-journal-text"></i> <?= count($data['lessons']) ?> modul</span>
                 <span><i class="bi bi-patch-question"></i> 1 kuis</span>
             </div>
         </div>
@@ -43,13 +43,13 @@ $course = $data['course'];
     <div class="row g-4 mt-1">
         <section class="col-lg-8">
             <article class="course-content overview-section">
-                <h2>Overview</h2>
-                <p><?= e($course['deskripsi']) ?> Dalam kursus ini, kamu akan mempelajari kebiasaan praktis untuk melindungi akun, perangkat, dan data pribadi.</p>
-                <h3 class="h5 mt-4">Yang akan kamu pelajari</h3>
+                <h2>Gambaran kursus</h2>
+                <p><?= e($course['deskripsi']) ?></p>
+                <h3 class="h5 mt-4">Modul yang akan dipelajari</h3>
                 <ul class="overview-outcomes">
-                    <li>Mengenali prinsip dasar keamanan siber dan perlindungan informasi.</li>
-                    <li>Melindungi akun serta mengenali tanda-tanda phishing.</li>
-                    <li>Menerapkan kebiasaan aman pada perangkat dan data.</li>
+                    <?php foreach ($data['lessons'] as $lesson): ?>
+                        <li><?= e($lesson['judul']) ?></li>
+                    <?php endforeach; ?>
                 </ul>
             </article>
 
@@ -147,8 +147,11 @@ $course = $data['course'];
         <aside class="col-lg-4">
             <div class="overview-enroll-card">
                 <?php if ($data['completed']): ?>
-                    <div class="alert alert-success"><i class="bi bi-check-circle-fill"></i> Kursus ini sudah selesai.</div>
-                    <a class="btn btn-enroll w-100" href="CourseController.php?slug=<?= urlencode($course['slug']) ?>&submateri=<?= (int) $data['resumeSublessonId'] ?>">Lihat materi</a>
+                    <div class="alert alert-success"><i class="bi bi-check-circle-fill"></i> Kursus ini sudah selesai. Materi dan kuis tidak dapat dikerjakan ulang.</div>
+                    <?php if ($data['latestAttempt'] !== null): ?>
+                        <p class="text-muted">Nilai kuis terakhir: <strong><?= (int) $data['latestAttempt']['nilai'] ?>/100</strong></p>
+                    <?php endif; ?>
+                    <a class="btn btn-outline-success w-100" href="ProfileController.php?tab=riwayat">Kembali ke riwayat kursus</a>
                 <?php elseif ($data['active']): ?>
                     <p class="text-muted">Kursus ini sudah ada di Home. Lanjutkan dari progres terakhirmu.</p>
                     <a class="btn btn-enroll w-100" href="CourseController.php?slug=<?= urlencode($course['slug']) ?>&submateri=<?= (int) $data['resumeSublessonId'] ?>">Resume Course</a>

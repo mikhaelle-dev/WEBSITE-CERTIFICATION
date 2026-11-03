@@ -31,18 +31,16 @@ class InstructorClass extends Database
         }
 
         $columns = $this->db->query("SHOW COLUMNS FROM kelas")->fetchAll(PDO::FETCH_COLUMN);
-        $missingColumns = [];
-        foreach (['icon_url', 'badge_label', 'badge_aktif', 'badge_color'] as $column) {
+        $columnDefinitions = [
+            'icon_url' => 'VARCHAR(255) NULL DEFAULT NULL AFTER enroll_key',
+            'badge_label' => 'VARCHAR(60) NULL DEFAULT NULL AFTER icon_url',
+            'badge_aktif' => 'TINYINT(1) NOT NULL DEFAULT 0 AFTER badge_label',
+            'badge_color' => 'VARCHAR(30) NULL DEFAULT NULL AFTER badge_aktif',
+        ];
+        foreach ($columnDefinitions as $column => $definition) {
             if (!in_array($column, $columns, true)) {
-                $missingColumns[] = $column;
+                $this->db->exec("ALTER TABLE kelas ADD COLUMN {$column} {$definition}");
             }
-        }
-
-        if (!empty($missingColumns)) {
-            $this->db->exec("ALTER TABLE kelas ADD COLUMN icon_url VARCHAR(255) NULL DEFAULT NULL AFTER enroll_key");
-            $this->db->exec("ALTER TABLE kelas ADD COLUMN badge_label VARCHAR(60) NULL DEFAULT NULL AFTER icon_url");
-            $this->db->exec("ALTER TABLE kelas ADD COLUMN badge_aktif TINYINT(1) NOT NULL DEFAULT 0 AFTER badge_label");
-            $this->db->exec("ALTER TABLE kelas ADD COLUMN badge_color VARCHAR(30) NULL DEFAULT NULL AFTER badge_aktif");
         }
 
         $this->schemaChecked = true;
@@ -708,6 +706,23 @@ class InstructorClass extends Database
              JOIN user u ON u.id = k.instruktur_id
              WHERE ks.user_id = ? AND k.status <> "draft"
              ORDER BY ks.daftar_pada DESC',
+            [$userId]
+        )->fetchAll();
+    }
+
+    public function getAvailableClassesForStudent(int $userId): array
+    {
+        return $this->run(
+            "SELECT k.id, k.slug, k.judul, k.deskripsi, k.icon_url,
+                    u.nama AS instruktur_nama,
+                    (SELECT COUNT(*) FROM kelas_siswa peserta
+                     WHERE peserta.kelas_id = k.id AND peserta.status = 'aktif') AS total_siswa
+             FROM kelas k
+             JOIN user u ON u.id = k.instruktur_id
+             LEFT JOIN kelas_siswa terdaftar
+                ON terdaftar.kelas_id = k.id AND terdaftar.user_id = ?
+             WHERE k.status = 'aktif' AND terdaftar.id IS NULL
+             ORDER BY k.diperbarui_pada DESC, k.dibuat_pada DESC",
             [$userId]
         )->fetchAll();
     }

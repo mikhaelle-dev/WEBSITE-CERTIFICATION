@@ -64,7 +64,7 @@
     background: linear-gradient(135deg, var(--soft-purple-light), var(--soft-purple));
     color: #fff;
     font-size: 1.15rem;
-    box-shadow: 0 12px 22px rgba(139, 92, 246, 0.25);
+    box-shadow: 0 12px 22px rgba(31, 73, 54, 0.16);
 }
 
 .admin-user-name { color: var(--admin-ink); font-size: .88rem; font-weight: 700; }
@@ -75,12 +75,12 @@
     background: linear-gradient(135deg, var(--soft-purple-light), var(--soft-purple));
     color: #fff;
     font-weight: 700;
-    box-shadow: 0 12px 22px rgba(139, 92, 246, 0.22);
+    box-shadow: 0 12px 22px rgba(31, 73, 54, 0.16);
 }
 
 .btn-admin-primary:hover,
 .btn-admin-filter:hover {
-    border-color: rgba(99, 76, 168, 0.2);
+    border-color: rgba(31, 73, 54, 0.2);
     background: linear-gradient(135deg, var(--soft-purple), var(--soft-purple-dark));
     color: #fff;
 }
@@ -159,7 +159,7 @@
     gap: .45rem;
     padding: .45rem .7rem;
     border-radius: 999px;
-    background: #f3f1ff;
+    background: var(--soft-icon-violet-bg);
     color: var(--soft-purple-dark);
     font-size: .72rem;
     font-weight: 700;
@@ -269,7 +269,7 @@
 .admin-panel-body .form-control:focus,
 .admin-panel-body .form-select:focus,
 .admin-filter-bar .form-control:focus,
-.admin-filter-bar .form-select:focus { border-color: var(--soft-purple); box-shadow: 0 0 0 4px rgba(139, 92, 246, .14); }
+.admin-filter-bar .form-select:focus { border-color: var(--soft-purple); box-shadow: 0 0 0 4px rgba(67, 143, 109, .14); }
 
 .admin-form-hint { margin: .9rem 0 0; color: var(--admin-muted); font-size: .77rem; }
 
@@ -515,7 +515,7 @@
     border: 0;
     background: linear-gradient(135deg, var(--soft-purple-light), var(--soft-purple));
     color: #fff;
-    box-shadow: 0 10px 20px rgba(139, 92, 246, 0.18);
+    box-shadow: 0 10px 20px rgba(31, 73, 54, 0.14);
 }
 
 .admin-trash-count {

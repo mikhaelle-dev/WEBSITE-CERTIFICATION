@@ -1,50 +1,50 @@
 :root {
     color-scheme: light;
-    --soft-page: #f3f3f6;
+    --soft-page: #f7f7f1;
     --soft-surface: #ffffff;
-    --soft-surface-muted: #f8f7fb;
-    --soft-ink: #282433;
-    --soft-muted: #625e6e;
-    --soft-faint: #777282;
-    --soft-line: #e9e7ef;
-    --soft-purple: #8b5cf6;
-    --soft-purple-dark: #6934cb;
-    --soft-purple-light: #a78bfa;
-    --soft-yellow: #f3d84c;
-    --soft-gold: #806400;
-    --soft-peach: #f6b89f;
-    --soft-mint: #8bd6bc;
-    --soft-selection: #ded2ff;
-    --soft-selection-ink: #33204f;
-    --soft-focus: rgba(105, 52, 203, 0.48);
+    --soft-surface-muted: #f1f7f1;
+    --soft-ink: #202b27;
+    --soft-muted: #78847e;
+    --soft-faint: #7b8b81;
+    --soft-line: #e6ebe5;
+    --soft-purple: #438f6d;
+    --soft-purple-dark: #194a38;
+    --soft-purple-light: #82c69a;
+    --soft-yellow: #f1c75a;
+    --soft-gold: #8b6a1f;
+    --soft-peach: #f0b88d;
+    --soft-mint: #a3dcc0;
+    --soft-selection: #e4f1e8;
+    --soft-selection-ink: #174d3d;
+    --soft-focus: rgba(67, 143, 109, 0.38);
     --soft-topbar-surface: rgba(255, 255, 255, 0.96);
-    --soft-ink-dark: #211d2b;
-    --soft-avatar-surface: #e9defe;
-    --soft-avatar-ink: #4d258f;
-    --soft-danger: #a13b50;
-    --soft-purple-hover: #4f249f;
-    --soft-icon-violet-bg: #eee6ff;
-    --soft-icon-violet-ink: #6635c4;
-    --soft-icon-yellow-bg: #fff6cc;
-    --soft-icon-yellow-ink: #745d00;
-    --soft-icon-peach-bg: #ffede5;
-    --soft-icon-peach-ink: #8f4627;
-    --soft-icon-mint-bg: #e1f5ed;
-    --soft-icon-mint-ink: #21674e;
-    --soft-chart-purple: #8b5cf6;
-    --soft-chart-purple-fill-top: rgba(139, 92, 246, 0.25);
-    --soft-chart-purple-fill-bottom: rgba(139, 92, 246, 0.01);
-    --soft-chart-yellow: #d0ad00;
-    --soft-chart-yellow-fill-top: rgba(243, 216, 76, 0.26);
-    --soft-chart-yellow-fill-bottom: rgba(243, 216, 76, 0.01);
-    --soft-gauge-track: #eeeaf4;
-    --soft-progress-track: #efedf3;
-    --soft-empty-icon-bg: #f1ebff;
-    --soft-icon-warn: #745d00;
-    --soft-nav-hover: #f2effa;
-    --soft-button-ink: #0f0b16;
-    --soft-shadow-nav: 0 4px 18px rgba(44, 35, 66, 0.04);
-    --soft-shadow-button: 0 5px 12px rgba(60, 40, 120, 0.12);
+    --soft-ink-dark: #174d3d;
+    --soft-avatar-surface: #e4f1e8;
+    --soft-avatar-ink: #21634d;
+    --soft-danger: #b85056;
+    --soft-purple-hover: #123f32;
+    --soft-icon-violet-bg: #e4f1e8;
+    --soft-icon-violet-ink: #21634d;
+    --soft-icon-yellow-bg: #fff5d8;
+    --soft-icon-yellow-ink: #7e5d12;
+    --soft-icon-peach-bg: #fff0e5;
+    --soft-icon-peach-ink: #915629;
+    --soft-icon-mint-bg: #e4f1e8;
+    --soft-icon-mint-ink: #21634d;
+    --soft-chart-purple: #438f6d;
+    --soft-chart-purple-fill-top: rgba(67, 143, 109, 0.22);
+    --soft-chart-purple-fill-bottom: rgba(67, 143, 109, 0.01);
+    --soft-chart-yellow: #d9a924;
+    --soft-chart-yellow-fill-top: rgba(241, 199, 90, 0.22);
+    --soft-chart-yellow-fill-bottom: rgba(241, 199, 90, 0.01);
+    --soft-gauge-track: #edf2eb;
+    --soft-progress-track: #edf2eb;
+    --soft-empty-icon-bg: #f1f7f1;
+    --soft-icon-warn: #7e5d12;
+    --soft-nav-hover: #f0f5ef;
+    --soft-button-ink: #194a38;
+    --soft-shadow-nav: 0 4px 18px rgba(31, 73, 54, 0.04);
+    --soft-shadow-button: 0 5px 12px rgba(31, 73, 54, 0.12);
     --soft-radius-circle: 50%;
     --soft-radius-brand: 14px;
     --soft-radius-icon: 15px;
@@ -52,8 +52,8 @@
     --soft-radius-inherit: inherit;
     --soft-radius-card: 22px;
     --soft-radius-control: 999px;
-    --soft-shadow-card: 0 8px 28px rgba(60, 40, 120, 0.08);
-    --soft-shadow-hover: 0 14px 34px rgba(60, 40, 120, 0.13);
+    --soft-shadow-card: 0 8px 28px rgba(31, 73, 54, 0.08);
+    --soft-shadow-hover: 0 14px 34px rgba(31, 73, 54, 0.12);
     --soft-ease: 0.2s ease;
     --ink: var(--soft-ink);
     --muted: var(--soft-muted);
@@ -952,13 +952,13 @@ body.soft-app {
 .soft-app .form-select:focus,
 .soft-app textarea:focus {
     border-color: var(--soft-purple);
-    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.14);
+    box-shadow: 0 0 0 4px rgba(67, 143, 109, 0.14);
 }
 
 .soft-app .form-control:disabled,
 .soft-app .form-select:disabled,
 .soft-app textarea:disabled {
-    background: #f1eff5;
+    background: #f1f7f1;
     color: var(--soft-muted);
     cursor: not-allowed;
 }
@@ -1018,8 +1018,8 @@ body.soft-app {
 .soft-app .soft-button-primary {
     border: 1px solid transparent;
     background: linear-gradient(110deg, var(--soft-purple-light), var(--soft-purple));
-    color: #211531;
-    box-shadow: 0 5px 12px rgba(60, 40, 120, 0.12);
+    color: #fff;
+    box-shadow: 0 5px 12px rgba(31, 73, 54, 0.12);
 }
 
 .soft-app .btn-primary:not(:disabled):hover,
@@ -1031,7 +1031,7 @@ body.soft-app {
     border-color: transparent;
     background: linear-gradient(110deg, var(--soft-purple), var(--soft-purple-dark));
     color: #fff;
-    box-shadow: 0 7px 16px rgba(60, 40, 120, 0.2);
+    box-shadow: 0 7px 16px rgba(31, 73, 54, 0.2);
 }
 
 .soft-app .btn-outline-dark,
@@ -1193,7 +1193,7 @@ body.soft-app {
 .soft-app .mega-thumb,
 .soft-app .course-thumb,
 .soft-app .hist-thumb {
-    background: linear-gradient(140deg, #c4b5fd, #8b5cf6);
+    background: linear-gradient(140deg, var(--soft-purple-light), var(--soft-purple));
 }
 
 .soft-app .page-title {
@@ -1211,7 +1211,7 @@ body.soft-app {
 .soft-app .pf-banner {
     border: 0;
     border-radius: 22px;
-    background: linear-gradient(120deg, #a78bfa, #8b5cf6 70%, #7544df);
+    background: linear-gradient(120deg, var(--soft-purple-light), var(--soft-purple) 70%, var(--soft-purple-dark));
     box-shadow: var(--soft-shadow-card);
 }
 
@@ -1393,7 +1393,7 @@ body.soft-app {
 .soft-app .outline-number,
 .soft-app .sublesson-status,
 .soft-app .overview-curriculum-number {
-    border-color: #ded3f7;
+    border-color: var(--soft-line);
     color: var(--soft-purple-dark);
 }
 
@@ -1436,7 +1436,7 @@ body.soft-app {
 }
 
 .soft-app .overview-certificate-art {
-    background: linear-gradient(145deg, #c4b5fd, #8b5cf6 65%, #f3d84c);
+    background: linear-gradient(145deg, var(--soft-purple-light), var(--soft-purple) 65%, var(--soft-yellow));
 }
 
 .soft-app .overview-certificate-art-inner {
@@ -1504,7 +1504,7 @@ body.soft-app {
 .soft-app .admin-filter-bar .form-control:focus,
 .soft-app .admin-filter-bar .form-select:focus {
     border-color: var(--soft-purple);
-    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.14);
+    box-shadow: 0 0 0 4px rgba(67, 143, 109, 0.14);
 }
 
 .soft-app .admin-users-table thead th {
@@ -1597,7 +1597,7 @@ body.soft-app {
     overflow: hidden;
     border-radius: 28px;
     padding: clamp(2rem, 5vw, 4rem);
-    background: linear-gradient(145deg, #a78bfa, #8b5cf6 70%, #6934cb);
+    background: linear-gradient(145deg, var(--soft-purple-light), var(--soft-purple) 70%, var(--soft-purple-dark));
     color: #fff;
     box-shadow: var(--soft-shadow-card);
 }
@@ -1799,7 +1799,7 @@ body.soft-app {
 }
 
 .soft-app .disabled-stage {
-    background: rgba(243, 243, 246, 0.48);
+    background: rgba(241, 247, 241, 0.7);
 }
 
 .soft-app .disabled-dashboard-preview {
@@ -1814,7 +1814,7 @@ body.soft-app {
 .soft-app .preview-nav-item,
 .soft-app .preview-line {
     border-radius: var(--soft-radius-control);
-    background: #ded9e8;
+    background: #e6ebe5;
 }
 
 .soft-app .preview-avatar {
@@ -1877,7 +1877,7 @@ body.soft-app {
 }
 
 .soft-app .certificate-inner {
-    border: 1px solid #ded3f7;
+    border: 1px solid var(--soft-line);
     outline: 0;
 }
 
@@ -1908,7 +1908,7 @@ body.soft-app {
 
 .soft-app .certificate-rule,
 .soft-app .signature-line {
-    background: #ded3f7;
+    background: var(--soft-line);
 }
 
 .soft-app .certificate-seal-large,

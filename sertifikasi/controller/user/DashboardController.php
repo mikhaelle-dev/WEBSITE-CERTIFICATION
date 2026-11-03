@@ -70,8 +70,6 @@ $courseModel = new Course();
 $instructorClassModel = new InstructorClass();
 $userId = (int) $_SESSION['id_user'];
 $activeCourse = $courseModel->getActiveEnrollment($userId);
-$completedCourseSlugs = $courseModel->getCompletedCourseSlugs($userId);
-$activeCourseSlug = $activeCourse['slug'] ?? null;
 $kursusSaya = [];
 
 if ($activeCourse !== null) {
@@ -89,33 +87,26 @@ if ($activeCourse !== null) {
     ];
 }
 
-// Semua rekomendasi ditahan ke state kosong sampai data kursus nyata tersedia dari database.
 $kategori = isset($_GET['kategori']) && is_string($_GET['kategori']) ? $_GET['kategori'] : '';
 $q = isset($_GET['q']) && is_string($_GET['q']) ? trim($_GET['q']) : '';
-$rekomendasi = [];
-$rekomendasi = array_values(array_filter($rekomendasi, function ($course) use ($completedCourseSlugs, $activeCourseSlug, $kategori, $q) {
-    if (
-        isset($course['slug'])
-        && (in_array($course['slug'], $completedCourseSlugs, true) || $course['slug'] === $activeCourseSlug)
-    ) {
-        return false;
-    }
-    if ($kategori !== '' && ($course['kategori'] ?? '') !== $kategori) {
-        return false;
-    }
-    if ($q !== '' && stripos(($course['judul'] ?? '') . ' ' . ($course['kategori'] ?? '') . ' ' . ($course['level'] ?? ''), $q) === false) {
-        return false;
-    }
-    return true;
-}));
+$rekomendasi = $courseModel->getRecommendations($userId, $kategori, $q);
+$exploreCourses = $kategori === '' && $q === ''
+    ? array_slice($rekomendasi, 0, 3)
+    : array_slice($courseModel->getRecommendations($userId), 0, 3);
+$kategoriKursus = $courseModel->getCategories();
+$kelasSaya = $instructorClassModel->getStudentDashboardClasses($userId);
+$kelasTersedia = $instructorClassModel->getAvailableClassesForStudent($userId);
 
 $data = [
     'username'    => $_SESSION['username'],
     'foto_profil' => $_SESSION['foto_profil'] ?? null,
     'role'        => $_SESSION['role'],
     'kursusSaya'  => $kursusSaya,
-    'kelasSaya'   => $instructorClassModel->getStudentDashboardClasses($userId),
+    'kelasSaya'   => $kelasSaya,
+    'kelasTersedia' => $kelasTersedia,
     'rekomendasi' => $rekomendasi,
+    'exploreCourses' => $exploreCourses,
+    'kategoriKursus' => $kategoriKursus,
     'kategori'    => $kategori,
     'q'           => $q,
     'pencapaian'  => array_slice($courseModel->getAchievements($userId), 0, 3),

@@ -22,13 +22,13 @@ body { margin: 0; font-family: "Plus Jakarta Sans", sans-serif; color: var(--ink
 
 .form-label { font-size: .85rem; font-weight: 600; margin-bottom: .25rem; }
 .form-control { padding: .6rem .75rem; border-radius: 13px; }
-.form-control:focus { border-color: var(--soft-purple); box-shadow: 0 0 0 4px rgba(139, 92, 246, .14); }
+.form-control:focus { border-color: var(--soft-purple); box-shadow: 0 0 0 4px rgba(67, 143, 109, .14); }
 
 .pw-wrap { position: relative; }
 .pw-wrap .form-control { padding-right: 2.6rem; }
 .pw-toggle { position: absolute; right: .5rem; top: 50%; transform: translateY(-50%); background: none; border: 0; color: var(--muted); padding: .2rem .4rem; }
 
-.btn-login { background: linear-gradient(110deg, var(--soft-purple-light), var(--soft-purple)); color: #211531; font-weight: 650; border-radius: 999px; padding: .65rem; }
+.btn-login { background: linear-gradient(110deg, var(--soft-purple-light), var(--soft-purple)); color: #fff; font-weight: 650; border-radius: 999px; padding: .65rem; }
 .btn-login:hover { background: linear-gradient(110deg, var(--soft-purple), var(--soft-purple-dark)); color: #fff; }
 
 .auth-alt { margin-top: 2rem; padding: 1.2rem 1.4rem; background: var(--soft-surface-muted); border-radius: 14px; }
@@ -418,41 +418,6 @@ body { margin: 0; font-family: "Plus Jakarta Sans", sans-serif; color: var(--ink
     gap: 8px;
     margin: 9px 0 20px;
     font-size: 12px;
-}
-
-.login-remember {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #687a6e;
-    cursor: pointer;
-}
-
-.login-remember input {
-    display: grid;
-    width: 21px;
-    height: 21px;
-    flex: 0 0 21px;
-    place-items: center;
-    margin: 0;
-    appearance: none;
-    border: 1.5px solid #b8cbbd;
-    border-radius: 6px;
-    background: #fff;
-    cursor: pointer;
-}
-
-.login-remember input:checked {
-    border-color: var(--login-green);
-    background: var(--login-green);
-}
-
-.login-remember input:checked::after {
-    color: #fff;
-    content: "✓";
-    font-size: 14px;
-    font-weight: 700;
-    line-height: 1;
 }
 
 .login-form-options > a {

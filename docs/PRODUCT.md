@@ -1,4 +1,0 @@
-# Product
-
-## Platform
-web

@@ -64,3 +64,93 @@ WHERE soal.kuis_id = @kuis_keamanan_siber
 ON DUPLICATE KEY UPDATE
     teks = VALUES(teks),
     benar = VALUES(benar);
+
+INSERT INTO kuis_kursus (kursus_id, judul, nilai_minimum)
+SELECT id, 'Kuis Dasar Jaringan Komputer', 70
+FROM kursus WHERE slug = 'dasar-jaringan-komputer'
+ON DUPLICATE KEY UPDATE
+    judul = VALUES(judul),
+    nilai_minimum = VALUES(nilai_minimum);
+
+INSERT INTO soal_kuis (kuis_id, urutan, teks)
+SELECT kuis.id, seed.urutan, seed.teks
+FROM kuis_kursus kuis
+JOIN kursus ON kursus.id = kuis.kursus_id
+JOIN (
+    SELECT 1 AS urutan, 'Apa fungsi utama alamat IP pada jaringan?' AS teks
+    UNION ALL SELECT 2, 'Perangkat mana yang meneruskan data antarjaringan?'
+    UNION ALL SELECT 3, 'Apa langkah aman saat memakai Wi-Fi publik yang tidak dikenal?'
+) AS seed
+WHERE kursus.slug = 'dasar-jaringan-komputer'
+ON DUPLICATE KEY UPDATE teks = VALUES(teks);
+
+INSERT INTO opsi_kuis (soal_id, urutan, teks, benar)
+SELECT soal.id, seed.urutan_opsi, seed.teks, seed.benar
+FROM soal_kuis soal
+JOIN kuis_kursus kuis ON kuis.id = soal.kuis_id
+JOIN kursus ON kursus.id = kuis.kursus_id
+JOIN (
+    SELECT 1 AS urutan_soal, 1 AS urutan_opsi, 'Mengidentifikasi perangkat pada jaringan agar data dapat diarahkan.' AS teks, 1 AS benar
+    UNION ALL SELECT 1, 2, 'Mengganti nama semua berkas pada perangkat.', 0
+    UNION ALL SELECT 1, 3, 'Mengenkripsi setiap layar secara otomatis.', 0
+    UNION ALL SELECT 1, 4, 'Menentukan kapasitas penyimpanan perangkat.', 0
+
+    UNION ALL SELECT 2, 1, 'Router.', 1
+    UNION ALL SELECT 2, 2, 'Keyboard.', 0
+    UNION ALL SELECT 2, 3, 'Monitor.', 0
+    UNION ALL SELECT 2, 4, 'Printer lokal.', 0
+
+    UNION ALL SELECT 3, 1, 'Hindari aktivitas sensitif dan gunakan koneksi aman yang disetujui bila tersedia.', 1
+    UNION ALL SELECT 3, 2, 'Bagikan kata sandi akun agar koneksi lebih cepat.', 0
+    UNION ALL SELECT 3, 3, 'Matikan pembaruan keamanan perangkat.', 0
+    UNION ALL SELECT 3, 4, 'Pasang aplikasi dari tautan yang muncul di jaringan.', 0
+) AS seed ON seed.urutan_soal = soal.urutan
+WHERE kursus.slug = 'dasar-jaringan-komputer'
+ON DUPLICATE KEY UPDATE
+    teks = VALUES(teks),
+    benar = VALUES(benar);
+
+INSERT INTO kuis_kursus (kursus_id, judul, nilai_minimum)
+SELECT id, 'Kuis Dasar Kecerdasan Buatan', 70
+FROM kursus WHERE slug = 'dasar-kecerdasan-buatan'
+ON DUPLICATE KEY UPDATE
+    judul = VALUES(judul),
+    nilai_minimum = VALUES(nilai_minimum);
+
+INSERT INTO soal_kuis (kuis_id, urutan, teks)
+SELECT kuis.id, seed.urutan, seed.teks
+FROM kuis_kursus kuis
+JOIN kursus ON kursus.id = kuis.kursus_id
+JOIN (
+    SELECT 1 AS urutan, 'Bagaimana machine learning umumnya mempelajari pola?' AS teks
+    UNION ALL SELECT 2, 'Apa yang perlu dilakukan terhadap keluaran AI generatif?'
+    UNION ALL SELECT 3, 'Informasi apa yang sebaiknya tidak dimasukkan ke layanan AI yang belum disetujui?'
+) AS seed
+WHERE kursus.slug = 'dasar-kecerdasan-buatan'
+ON DUPLICATE KEY UPDATE teks = VALUES(teks);
+
+INSERT INTO opsi_kuis (soal_id, urutan, teks, benar)
+SELECT soal.id, seed.urutan_opsi, seed.teks, seed.benar
+FROM soal_kuis soal
+JOIN kuis_kursus kuis ON kuis.id = soal.kuis_id
+JOIN kursus ON kursus.id = kuis.kursus_id
+JOIN (
+    SELECT 1 AS urutan_soal, 1 AS urutan_opsi, 'Menggunakan contoh data untuk mengenali pola.' AS teks, 1 AS benar
+    UNION ALL SELECT 1, 2, 'Menghapus semua data dari perangkat.', 0
+    UNION ALL SELECT 1, 3, 'Mengubah alamat IP jaringan.', 0
+    UNION ALL SELECT 1, 4, 'Menggantikan setiap keputusan manusia tanpa peninjauan.', 0
+
+    UNION ALL SELECT 2, 1, 'Memeriksa fakta dan konteksnya dengan sumber tepercaya.', 1
+    UNION ALL SELECT 2, 2, 'Menganggap semua jawaban selalu benar.', 0
+    UNION ALL SELECT 2, 3, 'Menerbitkan keluaran tanpa membacanya.', 0
+    UNION ALL SELECT 2, 4, 'Membagikan keluaran sebagai data terverifikasi.', 0
+
+    UNION ALL SELECT 3, 1, 'Data pribadi atau rahasia.', 1
+    UNION ALL SELECT 3, 2, 'Pertanyaan umum tanpa informasi sensitif.', 0
+    UNION ALL SELECT 3, 3, 'Instruksi penggunaan yang bersifat publik.', 0
+    UNION ALL SELECT 3, 4, 'Teks contoh yang tidak berisi data nyata.', 0
+) AS seed ON seed.urutan_soal = soal.urutan
+WHERE kursus.slug = 'dasar-kecerdasan-buatan'
+ON DUPLICATE KEY UPDATE
+    teks = VALUES(teks),
+    benar = VALUES(benar);

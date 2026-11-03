@@ -15,9 +15,9 @@ $p   = $data['profil'];
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet">
-    <link href="../../asset/css/dashboard.css" rel="stylesheet">
-    <link href="../../asset/css/profile.css" rel="stylesheet">
-    <link href="../../asset/css/theme-soft.css" rel="stylesheet">
+    <link href="../../asset/css/dashboard.css?v=20261103-course-flow" rel="stylesheet">
+    <link href="../../asset/css/profile.css?v=20261103-course-flow" rel="stylesheet">
+    <link href="../../asset/css/theme-soft.css?v=20261103-course-flow" rel="stylesheet">
 </head>
 <body class="soft-app">
 
@@ -57,6 +57,9 @@ $p   = $data['profil'];
 </header>
 
 <main class="container pf-main">
+    <?php if ($tab === 'riwayat' && $data['pesan'] !== ''): ?>
+        <div class="alert alert-success py-2" role="status"><?= e($data['pesan']) ?></div>
+    <?php endif; ?>
     <?php if (!$data['mustChangePassword']): ?>
         <a class="btn btn-sm btn-outline-dark mb-3" href="DashboardController.php"><i class="bi bi-arrow-left me-1"></i>Kembali ke Home</a>
     <?php endif; ?>
@@ -276,22 +279,30 @@ $p   = $data['profil'];
         <?php endif; ?>
 
         <?php foreach ($data['riwayat'] as $r): ?>
-            <div class="hist-row">
+            <a class="hist-row" href="CourseOverviewController.php?slug=<?= urlencode($r['slug'] ?? '') ?>" aria-label="Lihat overview kursus <?= e($r['judul']) ?>">
                 <div class="hist-main">
-                    <div class="hist-thumb"><i class="bi bi-play-circle-fill"></i></div>
+                    <img class="hist-thumb" src="../../asset/img/courses/<?= e($r['cover_image'] ?? 'digital-learning.jpg') ?>" alt="" loading="lazy" decoding="async">
                     <div>
                         <small class="text-muted"><i class="bi bi-book"></i> Kursus &middot; <?= e($r['tipe']) ?></small>
                         <div class="fw-bold text-success"><?= e($r['judul']) ?></div>
-                        <a href="CourseOverviewController.php?slug=<?= urlencode($r['slug'] ?? '') ?>" class="small">Lihat kursus</a>
+                        <small class="hist-quiz-status">
+                            <i class="bi bi-patch-question" aria-hidden="true"></i>
+                            <?= e($r['judul_kuis'] ?? 'Kuis') ?>:
+                            <?= e($r['status_kuis'] ?? 'Belum dikerjakan') ?>
+                            <?php if ($r['nilai_kuis'] !== null): ?> · Nilai <?= (int) $r['nilai_kuis'] ?><?php endif; ?>
+                        </small>
                     </div>
                 </div>
                 <div class="hist-col"><small class="text-muted">Mulai</small><div class="fw-semibold"><?= e(tgl_indo($r['mulai_pada'] ?? $r['mulai'] ?? null)) ?></div></div>
-                <div class="hist-col"><small class="text-muted">Selesai</small><div class="fw-semibold"><?= e(tgl_indo($r['selesai_pada'] ?? $r['selesai'] ?? null)) ?></div></div>
+                <div class="hist-col">
+                    <small class="text-muted">Selesai</small>
+                    <div class="fw-semibold"><?= $r['selesai_pada'] !== null ? e(tgl_indo($r['selesai_pada'])) : '—' ?></div>
+                </div>
                 <div class="hist-col">
                     <small class="text-muted">Status</small>
                     <div><span class="badge <?= $r['status'] === 'Selesai' ? 'status-complete' : 'text-bg-warning' ?>"><?= e($r['status']) ?></span></div>
                 </div>
-            </div>
+            </a>
         <?php endforeach; ?>
     <?php endif; ?>
 
