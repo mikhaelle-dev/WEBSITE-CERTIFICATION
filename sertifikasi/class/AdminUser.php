@@ -283,13 +283,14 @@ class AdminUser extends Database
             throw new DomainException('Kamu tidak dapat memulihkan akun sendiri dari sampah.');
         }
 
-        return $this->withLockedUsers($actorId, function () use ($userId): string {
+        $photoPath = null;
+        $result = $this->withLockedUsers($actorId, function () use ($userId, &$photoPath): string {
             $target = $this->getLockedUser($userId);
             if ($target === null || $target['masuk_sampah_pada'] === null) {
                 throw new DomainException('Akun tidak ditemukan di sampah.');
             }
             if ((int) $target['sampah_kedaluwarsa'] === 1) {
-                $this->deleteTrashedUser($userId);
+                $photoPath = $this->deleteTrashedUser($userId);
                 return 'Waktu pemulihan akun sudah habis; akun dihapus permanen.';
             }
 
@@ -303,6 +304,11 @@ class AdminUser extends Database
             $stmt->execute([$userId]);
             return 'Akun berhasil dipulihkan.';
         });
+        if ($photoPath !== null) {
+            $this->deleteAccountPhotoFiles([$photoPath]);
+        }
+        $this->purgeQueuedAccountPhotos();
+        return $result;
     }
 
     public function permanentlyDeleteTrashedUser(int $actorId, int $userId): string
@@ -311,15 +317,19 @@ class AdminUser extends Database
             throw new DomainException('Kamu tidak dapat menghapus akun sendiri.');
         }
 
-        return $this->withLockedUsers($actorId, function () use ($userId): string {
+        $photoPath = $this->withLockedUsers($actorId, function () use ($userId): ?string {
             $target = $this->getLockedUser($userId);
             if ($target === null || $target['masuk_sampah_pada'] === null) {
                 throw new DomainException('Akun tidak ditemukan di sampah.');
             }
 
-            $this->deleteTrashedUser($userId);
-            return 'Akun dan seluruh data terkait berhasil dihapus permanen.';
+            return $this->deleteTrashedUser($userId);
         });
+        if ($photoPath !== null) {
+            $this->deleteAccountPhotoFiles([$photoPath]);
+        }
+        $this->purgeQueuedAccountPhotos();
+        return 'Akun dan seluruh data terkait berhasil dihapus permanen.';
     }
 
     public function purgeExpiredTrash(int $actorId): int
@@ -348,6 +358,16 @@ class AdminUser extends Database
                 throw new DomainException('Sesi admin tidak lagi aktif. Silakan login kembali.');
             }
 
+            $photoSql = sprintf(
+                'SELECT profil_user.foto_profil
+                 FROM user
+                 INNER JOIN profil_user ON profil_user.user_id = user.id
+                 WHERE user.masuk_sampah_pada IS NOT NULL
+                   AND user.masuk_sampah_pada <= CURRENT_TIMESTAMP - INTERVAL %d MINUTE',
+                self::ACCOUNT_TRASH_RETENTION_MINUTES
+            );
+            $photos = $this->db->query($photoSql)->fetchAll(PDO::FETCH_COLUMN);
+
             $deleteSql = sprintf(
                 'DELETE FROM user
                  WHERE masuk_sampah_pada IS NOT NULL
@@ -358,6 +378,10 @@ class AdminUser extends Database
             $stmt->execute();
             $purgedCount = $stmt->rowCount();
             $this->db->commit();
+            if ($purgedCount > 0) {
+                $this->deleteAccountPhotoFiles($photos);
+                $this->purgeQueuedAccountPhotos();
+            }
             return $purgedCount;
         } catch (Throwable $e) {
             if ($this->db->inTransaction()) {
@@ -367,10 +391,15 @@ class AdminUser extends Database
         }
     }
 
-    private function deleteTrashedUser(int $userId): void
+    private function deleteTrashedUser(int $userId): ?string
     {
+        $profile = $this->db->prepare('SELECT foto_profil FROM profil_user WHERE user_id = ?');
+        $profile->execute([$userId]);
+        $photoPath = $profile->fetchColumn();
+
         $stmt = $this->db->prepare('DELETE FROM user WHERE id = ? AND masuk_sampah_pada IS NOT NULL');
         $stmt->execute([$userId]);
+        return is_string($photoPath) ? $photoPath : null;
     }
 
     private function withLockedUsers(int $actorId, callable $callback)

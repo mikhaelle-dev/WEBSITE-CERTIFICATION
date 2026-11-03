@@ -42,7 +42,7 @@ class Database
         $this->purgeQueuedAccountPhotos();
     }
 
-    private function purgeQueuedAccountPhotos(): void
+    public function purgeQueuedAccountPhotos(): void
     {
         try {
             $stmt = $this->db->query(
@@ -81,6 +81,35 @@ class Database
             }
 
             $delete->execute([$relativePath]);
+        }
+    }
+
+    public function deleteAccountPhotoFiles(array $relativePaths): void
+    {
+        $isReferenced = $this->db->prepare(
+            'SELECT 1 FROM profil_user WHERE foto_profil = ? LIMIT 1'
+        );
+        $profileDirectory = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'uploads'
+            . DIRECTORY_SEPARATOR . 'profiles';
+
+        foreach (array_unique($relativePaths) as $relativePath) {
+            if (
+                !is_string($relativePath)
+                || !preg_match('~\Auploads/profiles/([a-f0-9]{32}\.(?:jpg|png|webp))\z~D', $relativePath, $matches)
+            ) {
+                error_log('Account photo cleanup skipped an invalid profile path.');
+                continue;
+            }
+
+            $isReferenced->execute([$relativePath]);
+            if ($isReferenced->fetchColumn()) {
+                continue;
+            }
+
+            $photoPath = $profileDirectory . DIRECTORY_SEPARATOR . $matches[1];
+            if ((is_file($photoPath) || is_link($photoPath)) && !unlink($photoPath)) {
+                error_log('Account photo cleanup failed for ' . $photoPath);
+            }
         }
     }
 }
