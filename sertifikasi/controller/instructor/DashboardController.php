@@ -451,6 +451,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $page = isset($_GET['page']) && is_string($_GET['page']) ? $_GET['page'] : '';
+if ($page === 'bank_materi') {
+    $page = 'materi';
+}
 if (!in_array($page, ['', 'kelas', 'materi'], true)) {
     $page = '';
 }

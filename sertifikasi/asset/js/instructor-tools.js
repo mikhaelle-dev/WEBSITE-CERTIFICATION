@@ -189,7 +189,6 @@ document.addEventListener('DOMContentLoaded', function () {
       var response = await fetch(url.toString(), { credentials: 'same-origin' });
       var payload = await readJson(response);
       document.getElementById('unanswered-count').textContent = payload.unanswered;
-      document.getElementById('unanswered-sidebar-count').textContent = payload.unanswered;
       if (!payload.threads.length) {
         forumList.innerHTML = '<p class="text-secondary p-3 mb-0">Tidak ada pertanyaan untuk filter ini.</p>';
         return;

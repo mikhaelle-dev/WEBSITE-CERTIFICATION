@@ -37,16 +37,12 @@ textarea {
 }
 
 .instructor-sidebar {
-<<<<<<< Updated upstream
-  position: fixed;
-  z-index: 1035;
-  inset: 0 auto 0 0;
-  width: min(300px, calc(100vw - 48px));
+  position: sticky;
+  top: 0;
+  flex: 0 0 250px;
+  width: 250px;
+  height: 100vh;
   overflow-y: auto;
-=======
-  flex: 0 0 clamp(15rem, 22vw, 17.5rem);
-  min-width: 0;
->>>>>>> Stashed changes
   padding: 26px 18px 18px;
   background: #f7faf6;
   border-right: 1px solid rgba(32, 54, 46, 0.08);
@@ -54,30 +50,6 @@ textarea {
   flex-direction: column;
   gap: 16px;
   overscroll-behavior: contain;
-  transform: translateX(-100%);
-  transition: transform 0.25s ease;
-}
-
-.instructor-sidebar-overlay {
-  display: none;
-  position: fixed;
-  z-index: 1030;
-  inset: 0;
-  border: 0;
-  background: rgba(19, 38, 29, 0.35);
-}
-
-.instructor-sidebar-open .instructor-sidebar {
-  transform: translateX(0);
-}
-
-.instructor-sidebar-open .instructor-sidebar-overlay {
-  display: block;
-}
-
-html.instructor-sidebar-scroll-locked,
-body.instructor-sidebar-scroll-locked {
-  overflow: hidden;
 }
 
 .brand-box {
@@ -137,8 +109,7 @@ body.instructor-sidebar-scroll-locked {
   gap: 10px;
 }
 
-.sidebar-item,
-.course-item {
+.sidebar-item {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -151,15 +122,13 @@ body.instructor-sidebar-scroll-locked {
   transition: background-color 0.18s ease, color 0.18s ease;
 }
 
-.sidebar-item:hover,
-.course-item:hover {
+.sidebar-item:hover {
   background: rgba(122, 180, 150, 0.08);
   text-decoration: none;
   color: #1e2d28;
 }
 
-.sidebar-item.active,
-.course-item.active {
+.sidebar-item.active {
   background: #dfeee5;
   color: #1f4b3c;
 }
@@ -181,55 +150,6 @@ body.instructor-sidebar-scroll-locked {
   cursor: not-allowed;
 }
 
-.sidebar-class-navigation {
-  display: flex;
-  align-items: stretch;
-  gap: 4px;
-}
-
-.sidebar-class-navigation > .sidebar-item {
-  flex: 1;
-  min-width: 0;
-}
-
-.sidebar-class-toggle {
-  display: inline-flex;
-  flex: 0 0 40px;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 0;
-  border-radius: 12px;
-  background: transparent;
-  color: #638171;
-  cursor: pointer;
-  transition: background-color 0.18s ease, color 0.18s ease;
-}
-
-.sidebar-class-toggle:hover {
-  background: rgba(122, 180, 150, 0.08);
-  color: #1e2d28;
-}
-
-.sidebar-class-toggle .sidebar-toggle-icon {
-  margin-left: 0;
-}
-
-.sidebar-class-list[hidden] {
-  display: none !important;
-}
-
-.sidebar-toggle-icon {
-  margin-left: auto;
-  color: #638171;
-  font-size: 0.75rem;
-  transition: transform 0.18s ease;
-}
-
-#sidebar-classes-toggle[aria-expanded="true"] .sidebar-toggle-icon {
-  transform: rotate(180deg);
-}
-
 .sidebar-item.is-disabled {
   opacity: 0.55;
   cursor: not-allowed;
@@ -243,52 +163,6 @@ body.instructor-sidebar-scroll-locked {
   align-items: center;
   justify-content: center;
   color: #376e5d;
-}
-
-.sidebar-badge {
-  margin-left: auto;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 7px;
-  border-radius: 999px;
-  background: rgba(62, 123, 94, 0.1);
-  color: #235646;
-  font-size: 0.76rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.sidebar-section {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.course-item {
-  padding-left: 10px;
-}
-
-.course-text {
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.course-status {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.course-status.green {
-  background: #50b77e;
-}
-
-.course-status.muted {
-  background: #c7d3ce;
 }
 
 .sidebar-footer {
@@ -351,6 +225,7 @@ body.instructor-sidebar-scroll-locked {
 .instructor-main {
   flex: 1;
   min-width: 0;
+  width: calc(100% - 250px);
   padding: 26px 28px 30px;
 }
 
@@ -360,23 +235,6 @@ body.instructor-sidebar-scroll-locked {
   justify-content: space-between;
   gap: 16px;
   padding: 8px 10px 18px;
-}
-
-.instructor-menu-toggle {
-  display: grid;
-  width: 42px;
-  height: 42px;
-  flex: 0 0 auto;
-  place-items: center;
-  border: 1px solid rgba(34, 63, 49, 0.14);
-  border-radius: 10px;
-  background: #fff;
-  color: #234d3d;
-  font-size: 1.4rem;
-}
-
-.instructor-menu-toggle:hover {
-  background: #dfeee5;
 }
 
 .instructor-breadcrumbs {
@@ -1384,20 +1242,6 @@ code {
 }
 
 @media (max-width: 1100px) {
-<<<<<<< Updated upstream
-=======
-  .instructor-layout {
-    flex-direction: column;
-  }
-
-  .instructor-sidebar {
-    flex-basis: auto;
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid rgba(22, 48, 34, 0.08);
-  }
-
->>>>>>> Stashed changes
   .stats-grid,
   .quick-stats,
   .summary-grid,
@@ -1412,7 +1256,15 @@ code {
 }
 
 @media (max-width: 760px) {
+  .instructor-sidebar {
+    flex-basis: 210px;
+    width: 210px;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
   .instructor-main {
+    width: calc(100% - 210px);
     padding: 18px 14px 24px;
   }
 

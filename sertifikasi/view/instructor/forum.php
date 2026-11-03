@@ -19,10 +19,10 @@
         <div class="sidebar-menu">
             <div class="sidebar-label">Menu utama</div>
             <a href="DashboardController.php?page=kelas" class="sidebar-item"><span class="sidebar-icon"><i class="bi bi-journal-bookmark"></i></span><span>Kelas Saya</span></a>
-            <a href="DashboardController.php?page=materi" class="sidebar-item"><span class="sidebar-icon"><i class="bi bi-collection"></i></span><span>Bank Materi</span></a>
-            <a href="CertificateController.php" class="sidebar-item"><span class="sidebar-icon"><i class="bi bi-patch-check"></i></span><span>Kelola Sertifikat</span></a>
-            <a href="ForumController.php" class="sidebar-item active"><span class="sidebar-icon"><i class="bi bi-chat-dots"></i></span><span>Forum Q&amp;A</span><span class="sidebar-badge" id="unanswered-sidebar-count"><?= (int) $data['unanswered'] ?></span></a>
-            <a href="ReportsController.php" class="sidebar-item"><span class="sidebar-icon"><i class="bi bi-bar-chart"></i></span><span>Laporan</span></a>
+            <a href="DashboardController.php?page=bank_materi" class="sidebar-item"><span class="sidebar-icon"><i class="bi bi-collection"></i></span><span>Bank Materi</span></a>
+            <a href="CertificateController.php?page=sertifikat" class="sidebar-item"><span class="sidebar-icon"><i class="bi bi-patch-check"></i></span><span>Kelola Sertifikat</span></a>
+            <a href="ForumController.php?page=forum" class="sidebar-item active"><span class="sidebar-icon"><i class="bi bi-chat-dots"></i></span><span>Forum Q&amp;A</span></a>
+            <a href="ReportsController.php?page=laporan" class="sidebar-item"><span class="sidebar-icon"><i class="bi bi-bar-chart"></i></span><span>Laporan</span></a>
         </div>
         <div class="sidebar-footer"><div class="mini-profile"><div class="mini-avatar"><?= e(strtoupper(substr($data['username'], 0, 1))) ?></div><div class="mini-meta"><strong><?= e($data['username']) ?></strong><small>Instruktur</small></div></div><a href="../../controller/AuthController.php?aksi=logout" class="logout-link">Keluar</a></div>
     </aside>

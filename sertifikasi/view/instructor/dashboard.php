@@ -33,7 +33,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
 </head>
 <body class="instructor-dashboard-page">
     <div class="instructor-layout">
-        <aside class="instructor-sidebar" id="instructorSidebar" inert>
+        <aside class="instructor-sidebar">
             <div class="brand-box">
                 <div class="brand-mark"><i class="bi bi-mortarboard"></i></div>
                 <div class="brand-copy">
@@ -45,67 +45,27 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
 
             <div class="sidebar-menu">
                 <div class="sidebar-label">Menu utama</div>
-                <div class="sidebar-class-navigation">
-                    <a href="DashboardController.php?page=kelas" class="sidebar-item <?= empty($selectedClass) && !$createMode ? 'active' : '' ?>" <?= empty($selectedClass) && !$createMode ? 'aria-current="page"' : '' ?>>
-                        <span class="sidebar-icon"><i class="bi bi-journal-bookmark"></i></span>
-                        <span>Kelas Saya</span>
-                        <span class="sidebar-badge"><?= count($classes) ?></span>
-                    </a>
-                    <?php if (!empty($classes)): ?>
-                        <button
-                            type="button"
-                            id="sidebar-classes-toggle"
-                            class="sidebar-class-toggle"
-                            aria-label="Tampilkan daftar kelas"
-                            aria-expanded="false"
-                            aria-controls="sidebar-class-list"
-                        >
-                            <span class="sidebar-toggle-icon" aria-hidden="true"><i class="bi bi-chevron-down"></i></span>
-                        </button>
-                    <?php endif; ?>
-                </div>
-                <a href="DashboardController.php?page=materi" class="sidebar-item">
+                <a href="DashboardController.php?page=kelas" class="sidebar-item <?= empty($selectedClass) && !$createMode ? 'active' : '' ?>">
+                    <span class="sidebar-icon"><i class="bi bi-journal-bookmark"></i></span>
+                    <span>Kelas Saya</span>
+                </a>
+                <a href="DashboardController.php?page=bank_materi" class="sidebar-item">
                     <span class="sidebar-icon"><i class="bi bi-collection"></i></span>
                     <span>Bank Materi</span>
                 </a>
-                <a href="CertificateController.php" class="sidebar-item">
+                <a href="CertificateController.php?page=sertifikat" class="sidebar-item">
                     <span class="sidebar-icon"><i class="bi bi-patch-check"></i></span>
                     <span>Kelola Sertifikat</span>
                 </a>
-                <a href="ForumController.php" class="sidebar-item">
+                <a href="ForumController.php?page=forum" class="sidebar-item">
                     <span class="sidebar-icon"><i class="bi bi-chat-dots"></i></span>
                     <span>Forum Q&amp;A</span>
                 </a>
-                <a href="ReportsController.php" class="sidebar-item">
+                <a href="ReportsController.php?page=laporan" class="sidebar-item">
                     <span class="sidebar-icon"><i class="bi bi-bar-chart"></i></span>
                     <span>Laporan</span>
                 </a>
-                <button type="button" class="sidebar-item <?= $createMode ? 'active' : '' ?>" data-bs-toggle="modal" data-bs-target="#classModal">
-                    <span class="sidebar-icon"><i class="bi bi-plus-circle"></i></span>
-                    <span>Buat Kelas</span>
-                </button>
             </div>
-
-            <?php if (!empty($classes)): ?>
-                <div class="sidebar-section sidebar-class-list" id="sidebar-class-list" hidden>
-                    <div class="sidebar-label">Kelas ini</div>
-                    <?php foreach ($classes as $item): ?>
-                        <?php
-                        $itemStatus = strtolower((string) ($item['status'] ?? 'draft'));
-                        $itemActive = !empty($selectedClass) && ((int) ($item['id'] ?? 0) === (int) ($selectedClass['id'] ?? 0));
-                        ?>
-                        <a href="DashboardController.php?class_id=<?= (int) ($item['id'] ?? 0) ?>" class="course-item <?= $itemActive ? 'active' : '' ?>">
-                            <span class="course-icon"><i class="bi bi-journal-text"></i></span>
-                            <span class="course-text"><?= e($item['judul'] ?? '-') ?></span>
-                            <?php if ($itemStatus === 'aktif'): ?>
-                                <span class="course-status green"></span>
-                            <?php else: ?>
-                                <span class="course-status muted"></span>
-                            <?php endif; ?>
-                        </a>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
 
             <div class="sidebar-footer">
                 <div class="mini-profile">
@@ -118,13 +78,8 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                 <a href="../../controller/AuthController.php?aksi=logout" class="logout-link">Keluar</a>
             </div>
         </aside>
-        <button class="instructor-sidebar-overlay" id="instructorSidebarOverlay" type="button" aria-label="Tutup navigasi"></button>
-
         <main class="instructor-main">
             <header class="instructor-topbar">
-                <button class="instructor-menu-toggle" id="instructorMenuToggle" type="button" aria-label="Buka navigasi" aria-controls="instructorSidebar" aria-expanded="false">
-                    <i class="bi bi-list" aria-hidden="true"></i>
-                </button>
                 <div class="instructor-breadcrumbs">
                     <span>Instruktur</span>
                     <span class="slash">/</span>
