@@ -10,17 +10,6 @@ require_once __DIR__ . '/../../class/Auth.php';
 require_once __DIR__ . '/../../class/Course.php';
 require_once __DIR__ . '/../../class/InstructorClass.php';
 
-// ---------------------------------------------------------------
-// MODE DEMO: set false kalau login.php sudah jadi.
-// Selama true, halaman bisa dibuka tanpa login (pakai user dummy).
-// ---------------------------------------------------------------
-$DEV_MODE = false;   // login sungguhan sudah jadi (set true hanya untuk demo tanpa database)
-
-if ($DEV_MODE && !isset($_SESSION['logged_in'])) {
-    $_SESSION['logged_in'] = true;
-    $_SESSION['username']  = 'mikhael';
-    $_SESSION['role']      = 'siswa';
-}
 
 if (!isset($_SESSION['logged_in'], $_SESSION['id_user'], $_SESSION['role'])
     || $_SESSION['logged_in'] !== true || $_SESSION['role'] !== 'siswa') {
@@ -77,10 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit();
 }
 
-// ---------------------------------------------------------------
-// DATA DUMMY -> nanti diganti query class Course / Enrollment
-// ---------------------------------------------------------------
-$dummy = require __DIR__ . '/../../config/dummy_data.php';
+$dummy = ['kategori' => [], 'kursus' => []];
 $courseModel = new Course();
 $instructorClassModel = new InstructorClass();
 $userId = (int) $_SESSION['id_user'];

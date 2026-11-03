@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/helpers.php';
 require_once __DIR__ . '/../../class/Auth.php';
@@ -59,15 +59,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!empty($_FILES['class_icon']['tmp_name']) && is_uploaded_file($_FILES['class_icon']['tmp_name'])) {
                 $uploadDir = __DIR__ . '/../../uploads/class-icons';
                 if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0777, true);
+                    if (!mkdir($uploadDir, 0755, true) && !is_dir($uploadDir)) {
+                        throw new RuntimeException('Folder upload ikon kelas tidak bisa dibuat.');
+                    }
                 }
-                $ext = strtolower(pathinfo((string) $_FILES['class_icon']['name'], PATHINFO_EXTENSION));
-                $safeExt = in_array($ext, ['png', 'jpg', 'jpeg', 'svg', 'webp'], true) ? $ext : 'png';
-                $fileName = 'class-' . $actorId . '-' . time() . '-' . bin2hex(random_bytes(4)) . '.' . $safeExt;
-                $target = $uploadDir . '/' . $fileName;
-                if (move_uploaded_file($_FILES['class_icon']['tmp_name'], $target)) {
-                    $iconUrl = '/uploads/class-icons/' . $fileName;
+
+                $tmpFile = $_FILES['class_icon']['tmp_name'];
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mime = $finfo !== false ? finfo_file($finfo, $tmpFile) : null;
+                if ($finfo !== false) { finfo_close($finfo); }
+                $size = (int) ($_FILES['class_icon']['size'] ?? 0);
+                $sizeOk = $size > 0 && $size <= 2 * 1024 * 1024;
+                $imageInfo = @getimagesize($tmpFile);
+                $allowedMime = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+                if ($mime === null || !isset($allowedMime[$mime]) || !$sizeOk || $imageInfo === false) {
+                    throw new InvalidArgumentException('Ikon kelas harus berupa file JPG, PNG, atau WebP maksimal 2 MB.');
                 }
+
+                $ext = $allowedMime[$mime];
+                $fileName = 'class-' . $actorId . '-' . time() . '-' . bin2hex(random_bytes(8)) . '.' . $ext;
+                $target = $uploadDir . DIRECTORY_SEPARATOR . $fileName;
+                if (!move_uploaded_file($tmpFile, $target)) {
+                    throw new RuntimeException('Gagal menyimpan ikon kelas.');
+                }
+                $iconUrl = '/uploads/class-icons/' . $fileName;
             }
 
             $data = [
@@ -107,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $model->updateModule($actorId, (int) $classId, (int) $moduleId, $moduleData);
                 $_SESSION['instructor_success'] = 'Modul berhasil diperbarui.';
             } else {
-                $model->createModule((int) $classId, $moduleData);
+                $model->createModule($actorId, (int) $classId, $moduleData);
                 $_SESSION['instructor_success'] = 'Modul berhasil dibuat.';
             }
         } elseif ($action === 'delete_module') {
@@ -139,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $model->updateMaterial($actorId, (int) $classId, (int) $materialId, $materialData);
                 $_SESSION['instructor_success'] = 'Materi berhasil diperbarui.';
             } else {
-                $model->createMaterial((int) $classId, (int) $moduleId, $materialData);
+                $model->createMaterial($actorId, (int) $classId, (int) $moduleId, $materialData);
                 $_SESSION['instructor_success'] = 'Materi berhasil dibuat.';
             }
         } elseif ($action === 'delete_material') {
@@ -166,7 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $model->updateQuiz($actorId, (int) $classId, (int) $quizId, $quizData);
                 $_SESSION['instructor_success'] = 'Kuis berhasil diperbarui.';
             } else {
-                $model->createQuiz((int) $classId, $quizData);
+                $model->createQuiz($actorId, (int) $classId, $quizData);
                 $_SESSION['instructor_success'] = 'Kuis berhasil dibuat.';
             }
         } elseif ($action === 'delete_quiz') {
@@ -209,7 +224,7 @@ try {
     if ($selectedId) {
         $selectedClass = $model->getClassById($actorId, (int) $selectedId);
     }
-    if ($selectedClass === null && !empty($classes)) {
+    if (!$createMode && $selectedClass === null && !empty($classes)) {
         $selectedClass = $model->getClassById($actorId, (int) $classes[0]['id']);
     }
     $students = $selectedClass !== null ? $model->getClassStudents($actorId, (int) $selectedClass['id']) : [];

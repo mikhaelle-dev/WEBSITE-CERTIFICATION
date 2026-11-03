@@ -528,10 +528,271 @@ class InstructorClass extends Database
              FROM kelas_siswa ks
              JOIN kelas k ON k.id = ks.kelas_id
              JOIN user u ON u.id = k.instruktur_id
-             WHERE ks.user_id = ?
+             WHERE ks.user_id = ? AND k.status <> "draft"
              ORDER BY ks.daftar_pada DESC',
             [$userId]
         )->fetchAll();
+    }
+
+    public function getStudentClassById(int $userId, int $classId): ?array
+    {
+        $row = $this->run(
+            'SELECT k.*, ks.progress, ks.status AS enrollment_status, ks.daftar_pada
+             FROM kelas_siswa ks
+             JOIN kelas k ON k.id = ks.kelas_id
+             WHERE ks.user_id = ? AND k.id = ? AND k.status <> "draft"
+             LIMIT 1',
+            [$userId, $classId]
+        )->fetch();
+
+        return $row ?: null;
+    }
+
+    public function getClassAnnouncements(int $classId): array
+    {
+        try {
+            $this->run('SELECT 1 FROM pengumuman_kelas LIMIT 1');
+        } catch (PDOException $e) {
+            return [];
+        }
+
+        return $this->run(
+            'SELECT pk.*, u.nama AS penulis_nama
+             FROM pengumuman_kelas pk
+             JOIN user u ON u.id = pk.penulis_id
+             WHERE pk.kelas_id = ?
+             ORDER BY pk.dibuat_pada DESC',
+            [$classId]
+        )->fetchAll();
+    }
+
+    public function createClassAnnouncement(int $instructorId, int $classId, string $content): void
+    {
+        if ($this->getClassById($instructorId, $classId) === null) {
+            throw new InvalidArgumentException('Kelas tidak ditemukan.');
+        }
+
+        $message = trim($content);
+        if ($message === '') {
+            throw new InvalidArgumentException('Isi pengumuman tidak boleh kosong.');
+        }
+
+        $this->run(
+            'INSERT INTO pengumuman_kelas (kelas_id, penulis_id, isi) VALUES (?, ?, ?)',
+            [$classId, $instructorId, $message]
+        );
+    }
+
+    public function deleteClassAnnouncement(int $instructorId, int $classId, int $announcementId): void
+    {
+        $this->run(
+            'DELETE pk FROM pengumuman_kelas pk
+             JOIN kelas k ON k.id = pk.kelas_id
+             WHERE pk.id = ? AND pk.kelas_id = ? AND k.instruktur_id = ?',
+            [$announcementId, $classId, $instructorId]
+        );
+    }
+
+    public function markMaterialOpened(int $userId, int $classId, int $materialId): void
+    {
+        $material = $this->run(
+            'SELECT mt.id
+             FROM materi_kelas mt
+             JOIN modul_kelas mk ON mk.id = mt.modul_id
+             WHERE mt.id = ? AND mk.kelas_id = ?',
+            [$materialId, $classId]
+        )->fetch();
+
+        if ($material === false) {
+            throw new InvalidArgumentException('Materi tidak ditemukan di kelas ini.');
+        }
+
+        $this->run(
+            'INSERT INTO progres_materi_kelas (user_id, materi_id, pertama_dibuka, selesai_dibuka)
+             VALUES (?, ?, NOW(), 1)
+             ON DUPLICATE KEY UPDATE selesai_dibuka = 1, pertama_dibuka = IFNULL(pertama_dibuka, NOW())',
+            [$userId, $materialId]
+        );
+
+        $this->updateClassProgressForUser($userId, $classId);
+    }
+
+    public function getClassQuizDetailed(int $classId): array
+    {
+        $quizzes = $this->run(
+            'SELECT q.*
+             FROM kuis_kelas q
+             WHERE q.kelas_id = ?
+             ORDER BY q.dibuat_pada DESC',
+            [$classId]
+        )->fetchAll();
+
+        foreach ($quizzes as &$quiz) {
+            $quiz['soal'] = $this->getQuizQuestions((int) $quiz['id']);
+        }
+        unset($quiz);
+
+        return $quizzes;
+    }
+
+    public function getStudentClassQuizResults(int $userId, int $classId): array
+    {
+        return $this->run(
+            'SELECT hk.*, q.judul AS kuis_judul
+             FROM hasil_kuis_kelas hk
+             JOIN kuis_kelas q ON q.id = hk.kuis_id
+             WHERE hk.user_id = ? AND q.kelas_id = ?
+             ORDER BY hk.dikerjakan_pada DESC',
+            [$userId, $classId]
+        )->fetchAll();
+    }
+
+    public function getOpenedMaterialIds(int $userId, int $classId): array
+    {
+        $rows = $this->run(
+            'SELECT DISTINCT pm.materi_id
+             FROM progres_materi_kelas pm
+             JOIN materi_kelas mt ON mt.id = pm.materi_id
+             JOIN modul_kelas mk ON mk.id = mt.modul_id
+             WHERE pm.user_id = ? AND mk.kelas_id = ?',
+            [$userId, $classId]
+        )->fetchAll();
+
+        return array_map(static fn ($row) => (int) $row['materi_id'], $rows);
+    }
+
+    public function getQuizQuestions(int $quizId): array
+    {
+        $questions = $this->run(
+            'SELECT * FROM soal_kuis_kelas WHERE kuis_id = ? ORDER BY urutan ASC, id ASC',
+            [$quizId]
+        )->fetchAll();
+
+        if (!$questions) {
+            return [];
+        }
+
+        $questionIds = array_map(static fn ($row) => (int) $row['id'], $questions);
+        $options = [];
+        if ($questionIds !== []) {
+            $placeholders = implode(',', array_fill(0, count($questionIds), '?'));
+            $options = $this->run(
+                'SELECT * FROM opsi_kuis_kelas WHERE soal_id IN (' . $placeholders . ') ORDER BY soal_id ASC, urutan ASC',
+                $questionIds
+            )->fetchAll();
+        }
+
+        $byQuestion = [];
+        foreach ($options as $option) {
+            $byQuestion[(int) $option['soal_id']][] = $option;
+        }
+
+        foreach ($questions as &$question) {
+            $question['opsi'] = $byQuestion[(int) $question['id']] ?? [];
+        }
+        unset($question);
+
+        return $questions;
+    }
+
+    public function saveClassQuizAttempt(int $userId, int $classId, int $quizId, array $answers): array
+    {
+        $quiz = $this->run(
+            'SELECT q.*
+             FROM kuis_kelas q
+             JOIN kelas_siswa ks ON ks.kelas_id = q.kelas_id
+             WHERE q.id = ? AND q.kelas_id = ? AND ks.user_id = ?
+             LIMIT 1',
+            [$quizId, $classId, $userId]
+        )->fetch();
+
+        if ($quiz === false) {
+            throw new InvalidArgumentException('Kuis ini tidak tersedia untuk murid yang terdaftar.');
+        }
+
+        $questions = $this->getQuizQuestions($quizId);
+        if (!$questions) {
+            throw new InvalidArgumentException('Kuis belum memiliki soal yang valid.');
+        }
+
+        $correct = 0;
+        foreach ($questions as $question) {
+            $selectedId = isset($answers[(int) $question['id']]) ? (int) $answers[(int) $question['id']] : 0;
+            $found = false;
+            foreach ($question['opsi'] as $option) {
+                if ((int) $option['id'] === $selectedId) {
+                    $found = true;
+                    if ((int) $option['benar'] === 1) {
+                        $correct++;
+                    }
+                    break;
+                }
+            }
+
+            if (!$found) {
+                throw new InvalidArgumentException('Semua soal harus dijawab dengan pilihan yang tersedia.');
+            }
+        }
+
+        $nilai = (int) round(($correct / count($questions)) * 100);
+        $lulus = $nilai >= (int) $quiz['nilai_minimum'];
+
+        $this->run(
+            'INSERT INTO hasil_kuis_kelas (user_id, kuis_id, nilai, jumlah_benar, jumlah_soal, lulus)
+             VALUES (?, ?, ?, ?, ?, ?)',
+            [$userId, $quizId, $nilai, $correct, count($questions), $lulus ? 1 : 0]
+        );
+
+        $this->updateClassProgressForUser($userId, $classId);
+
+        return [
+            'nilai' => $nilai,
+            'jumlah_benar' => $correct,
+            'jumlah_soal' => count($questions),
+            'lulus' => $lulus,
+        ];
+    }
+
+    public function updateClassProgressForUser(int $userId, int $classId): void
+    {
+        $totalMateri = (int) $this->run(
+            'SELECT COUNT(*)
+             FROM materi_kelas mt
+             JOIN modul_kelas mk ON mk.id = mt.modul_id
+             WHERE mk.kelas_id = ?',
+            [$classId]
+        )->fetchColumn();
+
+        $openedMateri = (int) $this->run(
+            'SELECT COUNT(*)
+             FROM progres_materi_kelas pm
+             JOIN materi_kelas mt ON mt.id = pm.materi_id
+             JOIN modul_kelas mk ON mk.id = mt.modul_id
+             WHERE pm.user_id = ? AND mk.kelas_id = ?',
+            [$userId, $classId]
+        )->fetchColumn();
+
+        $totalKuis = (int) $this->run(
+            'SELECT COUNT(*) FROM kuis_kelas WHERE kelas_id = ?',
+            [$classId]
+        )->fetchColumn();
+
+        $lulusKuis = (int) $this->run(
+            'SELECT COUNT(*)
+             FROM hasil_kuis_kelas hk
+             JOIN kuis_kelas q ON q.id = hk.kuis_id
+             WHERE hk.user_id = ? AND q.kelas_id = ? AND hk.lulus = 1',
+            [$userId, $classId]
+        )->fetchColumn();
+
+        $denominator = max(1, $totalMateri + $totalKuis);
+        $progress = (int) round((($openedMateri + $lulusKuis) / $denominator) * 100);
+        $progress = max(0, min(100, $progress));
+
+        $this->run(
+            'UPDATE kelas_siswa SET progress = ? WHERE user_id = ? AND kelas_id = ?',
+            [$progress, $userId, $classId]
+        );
     }
 
     // ------------------------------------------------------------------

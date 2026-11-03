@@ -18,6 +18,7 @@ Semua tabel tetap berada di database `db_sertifikasi`. File SQL dipisahkan berda
 14. `13_feedback.sql` — rating, saran, laporan bug, dan permintaan fitur dari pengguna.
 15. `13_password_reset_requests.sql` — permintaan reset password dan tanda pengguna wajib mengganti password setelah login.
 16. `14_classroom.sql` — skema kelas instruktur, modul, materi, kuis, enroll key, dan peserta kelas.
+17. `15_classroom_announcements.sql` — pengumuman kelas untuk stream classroom.
 
 Jalankan file satu per satu di HeidiSQL sesuai urutan di atas. File skema dan seed dapat dijalankan kembali tanpa menggandakan data contoh.
 

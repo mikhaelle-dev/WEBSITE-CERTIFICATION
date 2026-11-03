@@ -58,16 +58,18 @@ $studentError = $data['student_error'] ?? '';
                     <div class="row g-4 mt-1">
                         <?php foreach ($kelasSaya as $kelas): ?>
                             <div class="col-md-6">
-                                <article class="course-card">
-                                    <div class="course-body">
-                                        <div class="course-meta"><?= e($kelas['instruktur_nama']) ?></div>
-                                        <h4 class="course-title"><?= e($kelas['judul']) ?></h4>
-                                        <p class="text-muted mb-3"><?= e($kelas['deskripsi']) ?></p>
-                                        <div class="progress" role="progressbar" aria-valuenow="<?= (int) ($kelas['progress'] ?? 0) ?>" aria-valuemin="0" aria-valuemax="100">
-                                            <div class="progress-bar" data-progress="<?= (int) ($kelas['progress'] ?? 0) ?>"></div>
+                                <article class="course-card position-relative">
+                                    <a href="ClassroomController.php?class_id=<?= (int) ($kelas['id'] ?? 0) ?>&tab=stream" class="stretched-link text-decoration-none text-reset">
+                                        <div class="course-body">
+                                            <div class="course-meta"><?= e($kelas['instruktur_nama']) ?></div>
+                                            <h4 class="course-title"><?= e($kelas['judul']) ?></h4>
+                                            <p class="text-muted mb-3"><?= e($kelas['deskripsi']) ?></p>
+                                            <div class="progress" role="progressbar" aria-valuenow="<?= (int) ($kelas['progress'] ?? 0) ?>" aria-valuemin="0" aria-valuemax="100">
+                                                <div class="progress-bar" data-progress="<?= (int) ($kelas['progress'] ?? 0) ?>"></div>
+                                            </div>
+                                            <small class="text-muted"><?= (int) ($kelas['progress'] ?? 0) ?>% selesai</small>
                                         </div>
-                                        <small class="text-muted"><?= (int) ($kelas['progress'] ?? 0) ?>% selesai</small>
-                                    </div>
+                                    </a>
                                 </article>
                             </div>
                         <?php endforeach; ?>

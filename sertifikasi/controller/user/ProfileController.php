@@ -131,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $aksiSimpan === 'ubah_password') {
                     $dashboardPath = match ($_SESSION['role']) {
                         'admin' => '../admin/DashboardController.php',
                         'siswa' => 'DashboardController.php',
-                        default => '../../view/placeholder.php',
+                        default => '../../controller/instructor/DashboardController.php',
                     };
                     header('Location: ' . $dashboardPath . '?status=password_changed');
                     exit();
