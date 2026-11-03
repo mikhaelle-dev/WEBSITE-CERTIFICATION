@@ -1,4 +1,8 @@
-﻿body {
+﻿html {
+  overflow-y: scroll;
+}
+
+body {
   margin: 0;
   background: #e9efeb;
   color: #1f2e2b;
@@ -28,15 +32,21 @@ textarea {
 
 .instructor-layout {
   display: flex;
+  min-width: 0;
   min-height: 100vh;
 }
 
 .instructor-sidebar {
+<<<<<<< Updated upstream
   position: fixed;
   z-index: 1035;
   inset: 0 auto 0 0;
   width: min(300px, calc(100vw - 48px));
   overflow-y: auto;
+=======
+  flex: 0 0 clamp(15rem, 22vw, 17.5rem);
+  min-width: 0;
+>>>>>>> Stashed changes
   padding: 26px 18px 18px;
   background: #f7faf6;
   border-right: 1px solid rgba(32, 54, 46, 0.08);
@@ -138,7 +148,7 @@ body.instructor-sidebar-scroll-locked {
   color: #243b32;
   text-decoration: none;
   font-weight: 600;
-  transition: 0.18s ease;
+  transition: background-color 0.18s ease, color 0.18s ease;
 }
 
 .sidebar-item:hover,
@@ -159,6 +169,65 @@ body.instructor-sidebar-scroll-locked {
   background: transparent;
   text-align: left;
   cursor: pointer;
+}
+
+.sidebar-menu .sidebar-item.active {
+  background: #dfeee5;
+  color: #1f4b3c;
+}
+
+.sidebar-menu .sidebar-item:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.sidebar-class-navigation {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.sidebar-class-navigation > .sidebar-item {
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebar-class-toggle {
+  display: inline-flex;
+  flex: 0 0 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #638171;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.sidebar-class-toggle:hover {
+  background: rgba(122, 180, 150, 0.08);
+  color: #1e2d28;
+}
+
+.sidebar-class-toggle .sidebar-toggle-icon {
+  margin-left: 0;
+}
+
+.sidebar-class-list[hidden] {
+  display: none !important;
+}
+
+.sidebar-toggle-icon {
+  margin-left: auto;
+  color: #638171;
+  font-size: 0.75rem;
+  transition: transform 0.18s ease;
+}
+
+#sidebar-classes-toggle[aria-expanded="true"] .sidebar-toggle-icon {
+  transform: rotate(180deg);
 }
 
 .sidebar-item.is-disabled {
@@ -1315,6 +1384,20 @@ code {
 }
 
 @media (max-width: 1100px) {
+<<<<<<< Updated upstream
+=======
+  .instructor-layout {
+    flex-direction: column;
+  }
+
+  .instructor-sidebar {
+    flex-basis: auto;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(22, 48, 34, 0.08);
+  }
+
+>>>>>>> Stashed changes
   .stats-grid,
   .quick-stats,
   .summary-grid,

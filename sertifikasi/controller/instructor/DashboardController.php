@@ -450,9 +450,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit();
 }
 
-$search = isset($_GET['q']) && is_string($_GET['q']) ? trim($_GET['q']) : '';
-$createMode = (isset($_GET['mode']) && $_GET['mode'] === 'create');
-$tab = isset($_GET['tab']) && is_string($_GET['tab']) ? $_GET['tab'] : 'stream';
+$page = isset($_GET['page']) && is_string($_GET['page']) ? $_GET['page'] : '';
+if (!in_array($page, ['', 'kelas', 'materi'], true)) {
+    $page = '';
+}
+$search = $page === '' && isset($_GET['q']) && is_string($_GET['q']) ? trim($_GET['q']) : '';
+$createMode = $page === '' && isset($_GET['mode']) && $_GET['mode'] === 'create';
+$tab = $page === 'materi'
+    ? 'modul'
+    : ($page === 'kelas' ? 'stream' : (isset($_GET['tab']) && is_string($_GET['tab']) ? $_GET['tab'] : 'stream'));
 $classes = [];
 $stats = ['total_kelas' => 0, 'kelas_aktif' => 0, 'kelas_draft' => 0, 'kelas_ditutup' => 0, 'total_siswa' => 0, 'rata_progress' => 0];
 $monthlyRegistrations = [];
@@ -476,11 +482,11 @@ try {
     } catch (Throwable $e) {
         error_log('Instructor unanswered question count is unavailable: ' . $e->getMessage());
     }
-    $selectedId = isset($_GET['class_id']) ? filter_var($_GET['class_id'], FILTER_VALIDATE_INT) : false;
+    $selectedId = $page === '' && isset($_GET['class_id']) ? filter_var($_GET['class_id'], FILTER_VALIDATE_INT) : false;
     if ($selectedId) {
         $selectedClass = $model->getClassById($actorId, (int) $selectedId);
     }
-    if (!$selectedId && $tab === 'modul' && !empty($classes)) {
+    if (!$selectedId && ($tab === 'modul' || $page === 'materi') && !empty($classes)) {
         $selectedClass = $model->getClassById($actorId, (int) $classes[0]['id']);
     }
     $students = $selectedClass !== null ? $model->getClassStudents($actorId, (int) $selectedClass['id']) : [];

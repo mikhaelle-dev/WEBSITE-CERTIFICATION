@@ -45,12 +45,26 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
 
             <div class="sidebar-menu">
                 <div class="sidebar-label">Menu utama</div>
-                <a href="DashboardController.php" class="sidebar-item <?= empty($selectedClass) && !$createMode ? 'active' : '' ?>">
-                    <span class="sidebar-icon"><i class="bi bi-journal-bookmark"></i></span>
-                    <span>Kelas Saya</span>
-                    <span class="sidebar-badge"><?= count($classes) ?></span>
-                </a>
-                <a href="<?= !empty($classes) ? 'DashboardController.php?class_id=' . (int) $classes[0]['id'] . '&tab=modul' : '#' ?>" class="sidebar-item <?= !empty($classes) ? '' : 'is-disabled' ?>" <?= empty($classes) ? 'aria-disabled="true"' : '' ?>>
+                <div class="sidebar-class-navigation">
+                    <a href="DashboardController.php?page=kelas" class="sidebar-item <?= empty($selectedClass) && !$createMode ? 'active' : '' ?>" <?= empty($selectedClass) && !$createMode ? 'aria-current="page"' : '' ?>>
+                        <span class="sidebar-icon"><i class="bi bi-journal-bookmark"></i></span>
+                        <span>Kelas Saya</span>
+                        <span class="sidebar-badge"><?= count($classes) ?></span>
+                    </a>
+                    <?php if (!empty($classes)): ?>
+                        <button
+                            type="button"
+                            id="sidebar-classes-toggle"
+                            class="sidebar-class-toggle"
+                            aria-label="Tampilkan daftar kelas"
+                            aria-expanded="false"
+                            aria-controls="sidebar-class-list"
+                        >
+                            <span class="sidebar-toggle-icon" aria-hidden="true"><i class="bi bi-chevron-down"></i></span>
+                        </button>
+                    <?php endif; ?>
+                </div>
+                <a href="DashboardController.php?page=materi" class="sidebar-item">
                     <span class="sidebar-icon"><i class="bi bi-collection"></i></span>
                     <span>Bank Materi</span>
                 </a>
@@ -62,7 +76,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                     <span class="sidebar-icon"><i class="bi bi-chat-dots"></i></span>
                     <span>Forum Q&amp;A</span>
                 </a>
-                <a href="#" class="sidebar-item is-disabled" aria-disabled="true" title="Fitur belum tersedia">
+                <a href="ReportsController.php" class="sidebar-item">
                     <span class="sidebar-icon"><i class="bi bi-bar-chart"></i></span>
                     <span>Laporan</span>
                 </a>
@@ -73,7 +87,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
             </div>
 
             <?php if (!empty($classes)): ?>
-                <div class="sidebar-section">
+                <div class="sidebar-section sidebar-class-list" id="sidebar-class-list" hidden>
                     <div class="sidebar-label">Kelas ini</div>
                     <?php foreach ($classes as $item): ?>
                         <?php
@@ -196,7 +210,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
 
                             <div class="form-actions">
                                 <button type="submit" class="primary-button">Buat kelas</button>
-                                <a href="DashboardController.php" class="secondary-button">Batal</a>
+                                <a href="DashboardController.php?page=kelas" class="secondary-button">Batal</a>
                             </div>
                         </form>
                     </section>
@@ -208,7 +222,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                             <p><?= e($selectedClass['deskripsi'] ?? 'Kelas ini belum memiliki deskripsi.') ?></p>
                             <div class="page-top-actions">
                                 <span class="status-chip <?= e($selectedClassStatus) ?>"><?= e($selectedStatusLabel) ?></span>
-                                <a class="back-link" href="DashboardController.php">← Semua kelas</a>
+                                <a class="back-link" href="DashboardController.php?page=kelas">← Semua kelas</a>
                             </div>
                         </div>
 
@@ -708,7 +722,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
         </div>
     </div>
 
-    <div class="modal fade" id="manageClassModal" tabindex="-1" aria-labelledby="manage-class-title" aria-hidden="true">
+    <div class="modal fade" id="manageClassModal" tabindex="-1" aria-labelledby="manage-class-title" aria-hidden="true" data-bs-backdrop="true" data-bs-keyboard="true">
         <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content instructor-modal manage-class-modal">
                 <div class="modal-header">

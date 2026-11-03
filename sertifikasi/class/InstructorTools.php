@@ -423,4 +423,127 @@ class InstructorTools extends Database
             [$assignmentId, $studentId, $filePath, $fileName]
         );
     }
+
+    public function getClassReport(int $instructorId, int $classId, string $startDate, string $endDate): array
+    {
+        $class = $this->run(
+            'SELECT id, judul FROM kelas WHERE id = ? AND instruktur_id = ? LIMIT 1',
+            [$classId, $instructorId]
+        )->fetch();
+        if (!$class) {
+            throw new InvalidArgumentException('Kelas tidak ditemukan.');
+        }
+
+        $students = $this->run(
+            'SELECT ks.user_id AS student_id, u.nama, u.email, ks.progress, ks.status AS enrollment_status,
+                    ks.daftar_pada, ks.selesai_pada,
+                    uc.id AS certificate_id, uc.certificate_no, uc.status AS certificate_status
+             FROM kelas_siswa ks
+             JOIN user u ON u.id = ks.user_id
+             LEFT JOIN user_certificates uc ON uc.student_id = ks.user_id AND uc.class_id = ks.kelas_id
+             WHERE ks.kelas_id = ? AND ks.daftar_pada >= ? AND ks.daftar_pada < DATE_ADD(?, INTERVAL 1 DAY)
+             ORDER BY u.nama ASC',
+            [$classId, $startDate, $endDate]
+        )->fetchAll();
+
+        $quizzes = $this->run(
+            'SELECT id, judul, nilai_minimum FROM kuis_kelas WHERE kelas_id = ?',
+            [$classId]
+        )->fetchAll();
+        $quizIds = [];
+        $quizMinimum = [];
+        foreach ($quizzes as $quiz) {
+            $quizIds[(int) $quiz['id']] = true;
+            $quizMinimum[(int) $quiz['id']] = (int) $quiz['nilai_minimum'];
+        }
+
+        $latestResults = [];
+        if ($quizIds && $students) {
+            $results = $this->run(
+                'SELECT hk.user_id, hk.kuis_id, hk.nilai, hk.lulus, hk.dikerjakan_pada
+                 FROM hasil_kuis_kelas hk
+                 JOIN kuis_kelas q ON q.id = hk.kuis_id AND q.kelas_id = ?
+                 WHERE hk.dikerjakan_pada >= ? AND hk.dikerjakan_pada < DATE_ADD(?, INTERVAL 1 DAY)
+                 ORDER BY hk.dikerjakan_pada DESC, hk.id DESC',
+                [$classId, $startDate, $endDate]
+            )->fetchAll();
+            foreach ($results as $result) {
+                $studentId = (int) $result['user_id'];
+                $quizId = (int) $result['kuis_id'];
+                if (!isset($latestResults[$studentId][$quizId])) {
+                    $latestResults[$studentId][$quizId] = $result;
+                }
+            }
+        }
+
+        $issuedCount = (int) $this->run(
+            "SELECT COUNT(*)
+             FROM user_certificates uc
+             JOIN kelas k ON k.id = uc.class_id AND k.instruktur_id = ?
+             WHERE uc.class_id = ? AND uc.status = 'issued'
+               AND uc.issued_at >= ? AND uc.issued_at < DATE_ADD(?, INTERVAL 1 DAY)",
+            [$instructorId, $classId, $startDate, $endDate]
+        )->fetchColumn();
+        $passingCount = 0;
+        $scoredStudents = 0;
+        $scoreTotal = 0;
+        $progressTotal = 0;
+        foreach ($students as &$student) {
+            $studentId = (int) $student['student_id'];
+            $studentResults = $latestResults[$studentId] ?? [];
+            $score = null;
+            if ($studentResults) {
+                $score = (int) round(array_sum(array_map(
+                    static function (array $result): int {
+                        return (int) $result['nilai'];
+                    },
+                    array_values($studentResults)
+                )) / count($studentResults));
+                $scoreTotal += $score;
+                $scoredStudents++;
+            }
+
+            $allQuizzesPassed = true;
+            foreach ($quizIds as $quizId => $_present) {
+                if (!isset($studentResults[$quizId]) || empty($studentResults[$quizId]['lulus'])
+                    || (int) $studentResults[$quizId]['nilai'] < $quizMinimum[$quizId]) {
+                    $allQuizzesPassed = false;
+                    break;
+                }
+            }
+            $isPassed = (int) $student['progress'] >= 100 && $allQuizzesPassed;
+            $student['final_score'] = $score;
+            $student['passed'] = $isPassed;
+            $student['latest_quiz_results'] = array_values($studentResults);
+            $student['certificate_issued'] = ($student['certificate_status'] ?? '') === 'issued';
+            $progressTotal += (int) $student['progress'];
+            if ($isPassed) {
+                $passingCount++;
+            }
+        }
+        unset($student);
+
+        $completion = [];
+        foreach ($students as $student) {
+            $completion[] = [
+                'name' => (string) $student['nama'],
+                'progress' => (int) $student['progress'],
+            ];
+        }
+
+        return [
+            'class' => $class,
+            'students' => $students,
+            'quizzes' => $quizzes,
+            'metrics' => [
+                'average_score' => $scoredStudents > 0 ? (int) round($scoreTotal / $scoredStudents) : null,
+                'pass_percentage' => count($students) > 0 ? (int) round(($passingCount / count($students)) * 100) : 0,
+                'issued_certificates' => $issuedCount,
+                'average_progress' => count($students) > 0 ? (int) round($progressTotal / count($students)) : 0,
+                'student_count' => count($students),
+                'passed_count' => $passingCount,
+            ],
+            'completion' => $completion,
+        ];
+    }
 }

@@ -131,6 +131,45 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  var completionCanvas = document.getElementById('completion-chart');
+  if (completionCanvas && window.Chart) {
+    try {
+      var completionLabels = JSON.parse(completionCanvas.dataset.labels || '[]');
+      var completionValues = JSON.parse(completionCanvas.dataset.values || '[]');
+      new window.Chart(completionCanvas, {
+        type: 'bar',
+        data: {
+          labels: completionLabels,
+          datasets: [{
+            label: 'Progres materi (%)',
+            data: completionValues,
+            backgroundColor: 'rgba(55, 137, 99, 0.72)',
+            borderColor: '#378963',
+            borderWidth: 1,
+            borderRadius: 5
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              max: 100,
+              ticks: { callback: function (value) { return value + '%'; } }
+            }
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Grafik progres peserta tidak dapat ditampilkan.', error);
+    }
+  }
+
   var forumList = document.getElementById('forum-thread-list');
   var forumDetail = document.getElementById('forum-detail-content');
   var forumEmpty = document.getElementById('forum-empty-detail');

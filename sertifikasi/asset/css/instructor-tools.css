@@ -161,6 +161,7 @@
   background: transparent;
   color: #234136;
   text-align: left;
+  transition: background-color 0.18s ease;
 }
 
 .forum-thread-card:hover,

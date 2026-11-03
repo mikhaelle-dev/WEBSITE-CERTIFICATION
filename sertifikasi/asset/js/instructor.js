@@ -56,6 +56,17 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  var classesToggle = document.getElementById('sidebar-classes-toggle');
+  var classList = document.getElementById('sidebar-class-list');
+  if (classesToggle && classList) {
+    classesToggle.addEventListener('click', function () {
+      var isExpanded = classesToggle.getAttribute('aria-expanded') === 'true';
+      classesToggle.setAttribute('aria-expanded', String(!isExpanded));
+      classesToggle.setAttribute('aria-label', isExpanded ? 'Tampilkan daftar kelas' : 'Sembunyikan daftar kelas');
+      classList.hidden = isExpanded;
+    });
+  }
+
   var classForm = document.getElementById('class-form');
   var classModalElement = document.getElementById('classModal');
   if (classForm && classModalElement && window.bootstrap) {
@@ -66,6 +77,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var classIdField = classForm.querySelector('[name="class_id"]');
     var iconUrlField = classForm.querySelector('[name="icon_url"]');
     var coverHelp = document.getElementById('current-class-cover');
+    var activeClassEditId = '';
 
     function showFeedback(message, type) {
       feedback.className = 'alert alert-' + type;
@@ -146,6 +158,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       var trigger = event.relatedTarget;
       var editId = trigger && trigger.classList.contains('js-edit-class') ? trigger.dataset.classId : '';
+      activeClassEditId = editId;
       if (!editId) {
         document.getElementById('class-modal-title').textContent = 'Buat kelas baru';
         return;
@@ -165,6 +178,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!response.ok || !payload.success) {
           throw new Error(payload.message || 'Gagal memuat data kelas.');
         }
+        if (activeClassEditId !== editId || !classModalElement.classList.contains('show')) {
+          return;
+        }
 
         classIdField.value = payload.class.id;
         classForm.querySelector('[name="judul"]').value = payload.class.judul;
@@ -177,12 +193,20 @@ document.addEventListener('DOMContentLoaded', function () {
           : 'JPG, PNG, atau WebP, maksimal 2 MB. Opsional.';
         clearFeedback();
       } catch (error) {
-        showFeedback(error.message, 'danger');
+        if (activeClassEditId === editId && classModalElement.classList.contains('show')) {
+          showFeedback(error.message, 'danger');
+        }
       }
     });
 
     classModalElement.addEventListener('hidden.bs.modal', function () {
+      activeClassEditId = '';
       classForm.reset();
+      classIdField.value = '';
+      iconUrlField.value = '';
+      setSubmitting(false);
+      document.getElementById('class-modal-title').textContent = 'Buat kelas baru';
+      coverHelp.textContent = 'JPG, PNG, atau WebP, maksimal 2 MB. Opsional.';
       clearFeedback();
     });
 
@@ -350,26 +374,57 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  async function refreshManageDetails() {
+  async function refreshManageDetails(expectedRequestId) {
     if (!currentManageClassId) return;
+    var requestedClassId = currentManageClassId;
     var url = new URL('DashboardController.php', window.location.href);
     url.searchParams.set('ajax', 'class_detail');
-    url.searchParams.set('id', currentManageClassId);
+    url.searchParams.set('id', requestedClassId);
     var payload = await fetchJson(url.toString(), { credentials: 'same-origin' });
+    if (currentManageClassId !== requestedClassId || !manageModal.classList.contains('show')
+      || (expectedRequestId !== undefined && expectedRequestId !== manageRequestId)) {
+      return;
+    }
     document.getElementById('manage-class-title').textContent = 'Kelola: ' + payload.class.judul;
     renderManageDetails(payload);
   }
 
   if (manageModal) {
+    var manageRequestId = 0;
     manageModal.addEventListener('show.bs.modal', async function (event) {
       var trigger = event.relatedTarget;
       currentManageClassId = trigger && trigger.classList.contains('js-manage-class') ? trigger.dataset.classId : '';
+      var requestId = ++manageRequestId;
       showManageFeedback('Memuat data kelas...', 'info');
       try {
-        await refreshManageDetails();
+        await refreshManageDetails(requestId);
+        if (requestId !== manageRequestId || !manageModal.classList.contains('show')) return;
         manageFeedback.classList.add('d-none');
       } catch (error) {
-        showManageFeedback(error.message, 'danger');
+        if (requestId === manageRequestId && manageModal.classList.contains('show')) {
+          showManageFeedback(error.message, 'danger');
+        }
+      }
+    });
+
+    manageModal.addEventListener('hidden.bs.modal', function () {
+      manageRequestId++;
+      currentManageClassId = '';
+      manageModal.querySelectorAll('form').forEach(function (form) {
+        form.reset();
+      });
+      manageModal.querySelectorAll('.manage-form-card button[type="submit"]').forEach(function (button) {
+        button.disabled = false;
+      });
+      manageModal.querySelector('[data-module-select]').innerHTML = '<option value="">Pilih modul</option>';
+      document.getElementById('manage-module-list').innerHTML = '<p class="text-secondary">Pilih kelas untuk melihat modul dan materi.</p>';
+      document.getElementById('manage-quiz-list').innerHTML = '<p class="text-secondary">Pilih kelas untuk melihat kuis dan tugas.</p>';
+      document.getElementById('manage-student-list').innerHTML = '<p class="p-3 text-secondary mb-0">Pilih kelas untuk melihat daftar siswa.</p>';
+      manageFeedback.className = 'alert d-none';
+      manageFeedback.textContent = '';
+      var firstTabButton = manageModal.querySelector('[data-bs-toggle="tab"]');
+      if (firstTabButton && window.bootstrap) {
+        window.bootstrap.Tab.getOrCreateInstance(firstTabButton).show();
       }
     });
 
@@ -384,7 +439,7 @@ document.addEventListener('DOMContentLoaded', function () {
           formData.set('aksi', form.dataset.action);
           var payload = await postDashboardForm(formData);
           form.reset();
-          await refreshManageDetails();
+          await refreshManageDetails(manageRequestId);
           showManageFeedback(payload.message, 'success');
         } catch (error) {
           showManageFeedback(error.message, 'danger');
@@ -405,7 +460,7 @@ document.addEventListener('DOMContentLoaded', function () {
         quizData.set('aksi', 'save_quiz_with_question');
         await postDashboardForm(quizData);
         quizForm.reset();
-        await refreshManageDetails();
+        await refreshManageDetails(manageRequestId);
         showManageFeedback('Kuis dan pertanyaan berhasil dibuat.', 'success');
       } catch (error) {
         showManageFeedback(error.message, 'danger');
