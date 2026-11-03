@@ -1,5 +1,40 @@
 // Desain dashboard instruktur dibuat agar ringkas dan aman: semua interaksi dipindah ke JS eksternal agar tetap kompatibel dengan CSP tanpa inline handler.
 document.addEventListener('DOMContentLoaded', function () {
+  var instructorSidebar = document.getElementById('instructorSidebar');
+  var instructorMenuToggle = document.getElementById('instructorMenuToggle');
+  var instructorSidebarOverlay = document.getElementById('instructorSidebarOverlay');
+  if (instructorSidebar && instructorMenuToggle && instructorSidebarOverlay) {
+    function setInstructorSidebarOpen(open) {
+      document.querySelector('.instructor-layout').classList.toggle('instructor-sidebar-open', open);
+      document.documentElement.classList.toggle('instructor-sidebar-scroll-locked', open);
+      document.body.classList.toggle('instructor-sidebar-scroll-locked', open);
+      instructorSidebar.inert = !open;
+      instructorMenuToggle.setAttribute('aria-expanded', String(open));
+      instructorMenuToggle.setAttribute('aria-label', open ? 'Tutup navigasi' : 'Buka navigasi');
+    }
+
+    setInstructorSidebarOpen(false);
+    instructorMenuToggle.addEventListener('click', function () {
+      setInstructorSidebarOpen(!document.querySelector('.instructor-layout').classList.contains('instructor-sidebar-open'));
+    });
+    instructorSidebarOverlay.addEventListener('click', function () {
+      setInstructorSidebarOpen(false);
+      instructorMenuToggle.focus();
+    });
+    instructorSidebar.addEventListener('click', function (event) {
+      if (event.target.closest('a, button') && !event.target.closest('[aria-disabled="true"]')) {
+        setInstructorSidebarOpen(false);
+        instructorMenuToggle.focus();
+      }
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && document.querySelector('.instructor-layout').classList.contains('instructor-sidebar-open')) {
+        setInstructorSidebarOpen(false);
+        instructorMenuToggle.focus();
+      }
+    });
+  }
+
   document.querySelectorAll('.js-progress-bar').forEach(function (bar) {
     var value = Number(bar.dataset.progress || 0);
     if (Number.isNaN(value)) value = 0;

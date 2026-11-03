@@ -4,16 +4,16 @@
     const sidebarOverlay = document.getElementById('adminSidebarOverlay');
 
     if (adminShell && menuToggle && sidebarOverlay) {
-        const mobileLayout = window.matchMedia('(max-width: 760px)');
         const setSidebarOpen = (open) => {
             adminShell.classList.toggle('admin-sidebar-open', open);
             document.documentElement.classList.toggle('admin-sidebar-scroll-locked', open);
             document.body.classList.toggle('admin-sidebar-scroll-locked', open);
             menuToggle.setAttribute('aria-expanded', String(open));
             menuToggle.setAttribute('aria-label', open ? 'Tutup navigasi' : 'Buka navigasi');
+            document.getElementById('adminSidebar').inert = !open;
         };
 
-        setSidebarOpen(!mobileLayout.matches);
+        setSidebarOpen(false);
         menuToggle.addEventListener('click', () => {
             setSidebarOpen(!adminShell.classList.contains('admin-sidebar-open'));
         });
@@ -29,7 +29,6 @@
                 }
             }
         });
-        mobileLayout.addEventListener('change', (event) => setSidebarOpen(!event.matches));
     }
 
     const panel = document.querySelector('.admin-users-panel');

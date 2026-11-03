@@ -17,7 +17,7 @@ $selectedClassStatus = strtolower((string) ($selectedClass['status'] ?? 'draft')
 $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedClassStatus === 'ditutup' ? 'Ditutup' : 'Draft');
 ?>
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="instructor-dashboard">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,7 +33,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
 </head>
 <body class="instructor-dashboard-page">
     <div class="instructor-layout">
-        <aside class="instructor-sidebar">
+        <aside class="instructor-sidebar" id="instructorSidebar" inert>
             <div class="brand-box">
                 <div class="brand-mark"><i class="bi bi-mortarboard"></i></div>
                 <div class="brand-copy">
@@ -104,9 +104,13 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                 <a href="../../controller/AuthController.php?aksi=logout" class="logout-link">Keluar</a>
             </div>
         </aside>
+        <button class="instructor-sidebar-overlay" id="instructorSidebarOverlay" type="button" aria-label="Tutup navigasi"></button>
 
         <main class="instructor-main">
             <header class="instructor-topbar">
+                <button class="instructor-menu-toggle" id="instructorMenuToggle" type="button" aria-label="Buka navigasi" aria-controls="instructorSidebar" aria-expanded="false">
+                    <i class="bi bi-list" aria-hidden="true"></i>
+                </button>
                 <div class="instructor-breadcrumbs">
                     <span>Instruktur</span>
                     <span class="slash">/</span>
@@ -641,7 +645,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
     </div>
 
     <div class="modal fade" id="classModal" tabindex="-1" aria-labelledby="class-modal-title" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered class-modal-dialog">
             <div class="modal-content instructor-modal">
                 <form id="class-form" action="DashboardController.php" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="aksi" value="save_class">

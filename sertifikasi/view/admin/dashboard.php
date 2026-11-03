@@ -61,7 +61,7 @@ $todayLabel = $weekdayNames[(int) date('N')] . ', ' . $today;
 </head>
 <body class="soft-app admin-body admin-console">
 <div class="admin-console-shell">
-    <aside class="admin-console-sidebar" id="adminSidebar">
+    <aside class="admin-console-sidebar" id="adminSidebar" inert>
         <a class="admin-console-brand" href="DashboardController.php" aria-label="Sertifikasi Academy Admin">
             <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
                 <rect x="7" y="5" width="42" height="48" rx="5" stroke="currentColor" stroke-width="3.5"/>
