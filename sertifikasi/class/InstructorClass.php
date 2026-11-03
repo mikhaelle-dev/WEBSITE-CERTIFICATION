@@ -4,7 +4,8 @@ require_once __DIR__ . '/Database.php';
 class InstructorClass extends Database
 {
     private const CLASS_STATUSES = ['draft', 'aktif', 'ditutup'];
-    private const MATERIAL_TYPES = ['teks', 'video', 'latihan'];
+    private const CLASS_CATEGORIES = ['Umum', 'Teknologi', 'Bisnis', 'Desain', 'Data', 'Lainnya'];
+    private const MATERIAL_TYPES = ['teks', 'video', 'dokumen', 'latihan'];
 
     private bool $schemaChecked = false;
 
@@ -108,6 +109,37 @@ class InstructorClass extends Database
         ];
     }
 
+    public function getMonthlyRegistrations(int $instructorId): array
+    {
+        $monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        $firstMonth = (new DateTimeImmutable('first day of this month'))->modify('-5 months');
+        $rows = $this->run(
+            "SELECT DATE_FORMAT(ks.daftar_pada, '%Y-%m') AS bulan, COUNT(*) AS total
+             FROM kelas_siswa ks
+             JOIN kelas k ON k.id = ks.kelas_id
+             WHERE k.instruktur_id = ? AND ks.daftar_pada >= ?
+             GROUP BY DATE_FORMAT(ks.daftar_pada, '%Y-%m')",
+            [$instructorId, $firstMonth->format('Y-m-d 00:00:00')]
+        )->fetchAll();
+
+        $totalsByMonth = [];
+        foreach ($rows as $row) {
+            $totalsByMonth[(string) $row['bulan']] = (int) $row['total'];
+        }
+
+        $months = [];
+        for ($offset = 0; $offset < 6; $offset++) {
+            $month = $firstMonth->modify('+' . $offset . ' months');
+            $key = $month->format('Y-m');
+            $months[] = [
+                'label' => $monthNames[(int) $month->format('n') - 1],
+                'total' => $totalsByMonth[$key] ?? 0,
+            ];
+        }
+
+        return $months;
+    }
+
     public function getClasses(int $instructorId, string $search = ''): array
     {
         $sql = 'SELECT k.*,
@@ -150,12 +182,18 @@ class InstructorClass extends Database
         }
 
         $iconUrl = trim((string) ($data['icon_url'] ?? ($current['icon_url'] ?? '')));
+        $category = trim((string) ($data['kategori'] ?? ($current['kategori'] ?? 'Umum')));
         $badgeLabel = trim((string) ($data['badge_label'] ?? ($current['badge_label'] ?? '')));
         $badgeColor = trim((string) ($data['badge_color'] ?? ($current['badge_color'] ?? '')));
+
+        if (!in_array($category, self::CLASS_CATEGORIES, true)) {
+            throw new InvalidArgumentException('Kategori kelas tidak valid.');
+        }
 
         return [
             'judul'       => $this->requireText($data, 'judul', 'Judul dan deskripsi kelas wajib diisi.'),
             'deskripsi'   => $this->requireText($data, 'deskripsi', 'Judul dan deskripsi kelas wajib diisi.'),
+            'kategori'    => $category,
             'status'      => $status,
             'icon_url'    => $iconUrl !== '' ? $iconUrl : null,
             'badge_label' => $badgeLabel !== '' ? $badgeLabel : null,
@@ -177,10 +215,10 @@ class InstructorClass extends Database
         }
 
         $this->run(
-            'INSERT INTO kelas (instruktur_id, slug, judul, deskripsi, status, enroll_key, icon_url, badge_label, badge_aktif, badge_color)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'INSERT INTO kelas (instruktur_id, slug, judul, deskripsi, kategori, status, enroll_key, icon_url, badge_label, badge_aktif, badge_color)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [
-                $instructorId, $this->uniqueSlug($f['judul']), $f['judul'], $f['deskripsi'], $f['status'],
+                $instructorId, $this->uniqueSlug($f['judul']), $f['judul'], $f['deskripsi'], $f['kategori'], $f['status'],
                 $key, $f['icon_url'], $f['badge_label'], $f['badge_aktif'], $f['badge_color'],
             ]
         );
@@ -206,10 +244,10 @@ class InstructorClass extends Database
 
         $this->run(
             'UPDATE kelas
-             SET slug = ?, judul = ?, deskripsi = ?, status = ?, enroll_key = ?, icon_url = ?, badge_label = ?, badge_aktif = ?, badge_color = ?
+             SET slug = ?, judul = ?, deskripsi = ?, kategori = ?, status = ?, enroll_key = ?, icon_url = ?, badge_label = ?, badge_aktif = ?, badge_color = ?
              WHERE id = ? AND instruktur_id = ?',
             [
-                $this->uniqueSlug($f['judul'], $classId), $f['judul'], $f['deskripsi'], $f['status'], $key,
+                $this->uniqueSlug($f['judul'], $classId), $f['judul'], $f['deskripsi'], $f['kategori'], $f['status'], $key,
                 $f['icon_url'], $f['badge_label'], $f['badge_aktif'], $f['badge_color'],
                 $classId, $instructorId,
             ]
@@ -471,6 +509,44 @@ class InstructorClass extends Database
         );
 
         return (int) $this->db->lastInsertId();
+    }
+
+    public function createQuizWithQuestion(int $instructorId, int $classId, array $quizData, array $questionData): int
+    {
+        if ($this->getClassById($instructorId, $classId) === null) {
+            throw new InvalidArgumentException('Kelas tidak ditemukan.');
+        }
+        $quiz = $this->quizFields($quizData);
+        $questionText = $this->requireText($questionData, 'teks', 'Teks soal wajib diisi.');
+        $options = $this->normalizeQuestionOptions($questionData);
+        $answerIndex = (int) ($questionData['jawaban_benar'] ?? -1);
+
+        $this->db->beginTransaction();
+        try {
+            $this->run(
+                'INSERT INTO kuis_kelas (kelas_id, judul, nilai_minimum, waktu_durasi) VALUES (?, ?, ?, ?)',
+                [$classId, $quiz['judul'], $quiz['nilai_minimum'], $quiz['waktu_durasi']]
+            );
+            $quizId = (int) $this->db->lastInsertId();
+            $this->run(
+                'INSERT INTO soal_kuis_kelas (kuis_id, urutan, teks) VALUES (?, ?, ?)',
+                [$quizId, 1, $questionText]
+            );
+            $questionId = (int) $this->db->lastInsertId();
+            foreach ($options as $index => $option) {
+                $this->run(
+                    'INSERT INTO opsi_kuis_kelas (soal_id, urutan, teks, benar) VALUES (?, ?, ?, ?)',
+                    [$questionId, $index + 1, $option, $index === $answerIndex ? 1 : 0]
+                );
+            }
+            $this->db->commit();
+            return $quizId;
+        } catch (Throwable $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            throw $e;
+        }
     }
 
     public function updateQuiz(int $instructorId, int $classId, int $quizId, array $data): void
@@ -983,8 +1059,14 @@ class InstructorClass extends Database
         $progress = max(0, min(100, $progress));
 
         $this->run(
-            'UPDATE kelas_siswa SET progress = ? WHERE user_id = ? AND kelas_id = ?',
-            [$progress, $userId, $classId]
+            'UPDATE kelas_siswa
+             SET progress = ?,
+                 selesai_pada = CASE
+                     WHEN ? = 100 THEN COALESCE(selesai_pada, CURRENT_TIMESTAMP)
+                     ELSE NULL
+                 END
+             WHERE user_id = ? AND kelas_id = ?',
+            [$progress, $progress, $userId, $classId]
         );
     }
 

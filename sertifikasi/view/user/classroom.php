@@ -4,6 +4,8 @@ $tab = $data['tab'] ?? 'stream';
 $announcements = $data['announcements'] ?? [];
 $modules = $data['modules'] ?? [];
 $quizzes = $data['quizzes'] ?? [];
+$assignments = $data['assignments'] ?? [];
+$forumThreads = $data['forumThreads'] ?? [];
 $openedMaterialIds = $data['openedMaterialIds'] ?? [];
 $resultsByQuiz = $data['resultsByQuiz'] ?? [];
 $success = $data['success'] ?? '';
@@ -60,6 +62,40 @@ $openedMap = array_fill_keys($openedMaterialIds, true);
     <?php if ($tab === 'stream'): ?>
         <div class="row g-4">
             <div class="col-lg-8">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h3 class="h5 mb-3">Tanyakan kepada instruktur</h3>
+                        <?php if (($class['status'] ?? '') === 'aktif'): ?>
+                            <form method="POST" action="ClassroomController.php?class_id=<?= (int) ($class['id'] ?? 0) ?>&tab=stream">
+                                <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token'] ?? '') ?>">
+                                <input type="hidden" name="aksi" value="ask_question">
+                                <input type="hidden" name="tab" value="stream">
+                                <label class="form-label w-100">Judul pertanyaan<input class="form-control mt-1" name="question_title" maxlength="180" required></label>
+                                <label class="form-label w-100">Pertanyaan<textarea class="form-control mt-1" name="question_text" rows="3" required></textarea></label>
+                                <button type="submit" class="btn btn-success">Kirim pertanyaan</button>
+                            </form>
+                        <?php else: ?>
+                            <p class="text-secondary mb-0">Forum pertanyaan tidak menerima pertanyaan baru untuk kelas ini.</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <?php if (!empty($forumThreads)): ?>
+                    <div class="card border-0 shadow-sm mb-4"><div class="card-body p-4">
+                        <h3 class="h5 mb-3">Pertanyaan saya</h3>
+                        <?php foreach ($forumThreads as $thread): ?>
+                            <article class="border rounded p-3 mb-3 bg-light">
+                                <div class="d-flex justify-content-between gap-2"><strong><?= e($thread['title']) ?></strong><span class="badge <?= $thread['status'] === 'answered' ? 'text-bg-success' : 'text-bg-secondary' ?>"><?= $thread['status'] === 'answered' ? 'Sudah dijawab' : 'Menunggu jawaban' ?></span></div>
+                                <p class="mb-2 mt-2"><?= nl2br(e($thread['question'])) ?></p>
+                                <?php foreach ($thread['replies'] as $reply): ?>
+                                    <div class="border-start border-success border-3 ps-3 mt-3"><strong><?= e($reply['author_name']) ?> · Instruktur</strong><p class="mb-0 mt-1"><?= nl2br(e($reply['message'])) ?></p>
+                                        <?php if (!empty($reply['code_snippet'])): ?><pre class="mt-2 mb-0"><code><?= e($reply['code_snippet']) ?></code></pre><?php endif; ?>
+                                        <?php if (!empty($reply['attachment_path'])): ?><a href="<?= e($reply['attachment_path']) ?>" target="_blank" rel="noopener"><?= e($reply['attachment_name']) ?></a><?php endif; ?>
+                                    </div>
+                                <?php endforeach; ?>
+                            </article>
+                        <?php endforeach; ?>
+                    </div></div>
+                <?php endif; ?>
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-4">
                         <h3 class="h5 mb-3">Pengumuman kelas</h3>
@@ -135,7 +171,17 @@ $openedMap = array_fill_keys($openedMaterialIds, true);
                                                 </div>
                                             </div>
                                             <div class="mt-3">
-                                                <p class="mb-3 text-secondary"><?= nl2br(e($material['isi'] ?? '')) ?></p>
+                                                <?php if (in_array(($material['tipe'] ?? ''), ['video', 'dokumen'], true) && preg_match('~\A\.\./\.\./uploads/class-materials/[A-Za-z0-9._-]+\z~', (string) ($material['isi'] ?? ''))): ?>
+                                                    <?php if (($material['tipe'] ?? '') === 'video'): ?>
+                                                        <video class="w-100 rounded mb-3" controls preload="metadata">
+                                                            <source src="<?= e($material['isi']) ?>">
+                                                        </video>
+                                                    <?php else: ?>
+                                                        <a class="btn btn-outline-success btn-sm mb-3" href="<?= e($material['isi']) ?>" target="_blank" rel="noopener">Buka / unduh materi</a>
+                                                    <?php endif; ?>
+                                                <?php else: ?>
+                                                    <p class="mb-3 text-secondary"><?= nl2br(e($material['isi'] ?? '')) ?></p>
+                                                <?php endif; ?>
                                                 <form method="POST" action="ClassroomController.php?class_id=<?= (int) ($class['id'] ?? 0) ?>&tab=materi">
                                                     <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token'] ?? '') ?>">
                                                     <input type="hidden" name="aksi" value="mark_material">
@@ -155,6 +201,30 @@ $openedMap = array_fill_keys($openedMaterialIds, true);
     <?php else: ?>
         <div class="card border-0 shadow-sm">
             <div class="card-body p-4">
+                <h2 class="h5 mb-3">Tugas kelas</h2>
+                <?php if (empty($assignments)): ?>
+                    <div class="text-muted border rounded p-3 bg-light mb-4">Belum ada tugas unggah file.</div>
+                <?php else: ?>
+                    <?php foreach ($assignments as $assignment): ?>
+                        <article class="border rounded p-3 mb-3 bg-light">
+                            <h3 class="h6 mb-1"><?= e($assignment['title']) ?></h3>
+                            <p class="text-secondary mb-2"><?= nl2br(e($assignment['description'])) ?></p>
+                            <?php if (!empty($assignment['due_at'])): ?><p class="small text-muted">Tenggat: <?= e(date('d M Y H:i', strtotime($assignment['due_at']))) ?></p><?php endif; ?>
+                            <?php if (!empty($assignment['submission_path'])): ?>
+                                <p class="small mb-2">File terakhir: <a href="<?= e($assignment['submission_path']) ?>" target="_blank" rel="noopener"><?= e($assignment['submission_name']) ?></a></p>
+                            <?php endif; ?>
+                            <form method="POST" action="ClassroomController.php?class_id=<?= (int) ($class['id'] ?? 0) ?>&tab=kuis" enctype="multipart/form-data" class="d-flex flex-wrap gap-2 align-items-end">
+                                <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token'] ?? '') ?>">
+                                <input type="hidden" name="aksi" value="submit_assignment">
+                                <input type="hidden" name="tab" value="kuis">
+                                <input type="hidden" name="assignment_id" value="<?= (int) $assignment['id'] ?>">
+                                <label class="form-label mb-0"><span class="visually-hidden">File tugas</span><input type="file" class="form-control form-control-sm" name="assignment_file" accept=".pdf,.docx,.pptx,.zip,.txt,application/pdf,application/zip,text/plain" required></label>
+                                <button type="submit" class="btn btn-success btn-sm">Kumpulkan file</button>
+                            </form>
+                        </article>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+
                 <?php if (empty($quizzes)): ?>
                     <div class="text-muted border rounded p-4 bg-light">Belum ada kuis di kelas ini.</div>
                 <?php else: ?>

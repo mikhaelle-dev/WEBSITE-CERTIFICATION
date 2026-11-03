@@ -121,6 +121,18 @@ textarea {
   color: #1f4b3c;
 }
 
+.sidebar-menu .sidebar-item {
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sidebar-item.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .sidebar-icon,
 .course-icon {
   width: 18px;
@@ -594,6 +606,95 @@ textarea {
   margin-top: 12px;
 }
 
+.analytics-card {
+  margin: 0 0 24px;
+  padding: 20px;
+  border: 1px solid rgba(30, 42, 36, 0.08);
+  border-radius: 18px;
+  background: rgba(255,255,255,0.6);
+}
+
+.analytics-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.analytics-card-heading h2 {
+  margin: 0;
+  color: #1e2d2a;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.analytics-card-heading p {
+  margin: 5px 0 0;
+  color: #60796f;
+  font-size: 0.86rem;
+}
+
+.analytics-period {
+  color: #3a6854;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.registration-chart-wrap {
+  position: relative;
+  height: 245px;
+}
+
+.instructor-modal {
+  border: 0;
+  border-radius: 18px;
+  box-shadow: 0 24px 70px rgba(24, 49, 37, 0.2);
+}
+
+.instructor-modal .modal-header {
+  align-items: flex-start;
+  border-bottom-color: rgba(30, 42, 36, 0.08);
+}
+
+.instructor-modal .eyebrow {
+  margin-bottom: 4px;
+}
+
+.instructor-modal .modal-title {
+  color: #1f2d2a;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.instructor-modal .modal-footer {
+  border-top-color: rgba(30, 42, 36, 0.08);
+}
+
+.status-legend {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.class-status-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  color: #304d41;
+  font-weight: 500;
+}
+
+.class-status-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.class-status-options input {
+  width: auto;
+  min-height: 0;
+}
+
 .classes-panel {
   border-top: 1px solid rgba(30, 42, 36, 0.08);
   padding-top: 18px;
@@ -616,7 +717,7 @@ textarea {
 
 .filter-row {
   display: grid;
-  grid-template-columns: minmax(220px, 1.6fr) minmax(150px, 0.8fr) auto;
+  grid-template-columns: minmax(220px, 1fr) auto;
   gap: 12px;
   margin-bottom: 18px;
 }
@@ -672,7 +773,12 @@ textarea {
   border-radius: 18px;
 }
 
-.classes-table,
+.classes-table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+}
+
 .student-table {
   width: 100%;
   min-width: 760px;
@@ -1204,5 +1310,9 @@ code {
     width: 100%;
     overflow-x: auto;
     flex-wrap: nowrap;
+  }
+
+  .analytics-card-heading {
+    flex-direction: column;
   }
 }
