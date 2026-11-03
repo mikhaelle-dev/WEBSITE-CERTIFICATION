@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/helpers.php';
 require_once __DIR__ . '/../../class/Auth.php';
 require_once __DIR__ . '/../../class/InstructorClass.php';
+require_once __DIR__ . '/../../class/InstructorTools.php';
 
 if (!isset($_SESSION['logged_in'], $_SESSION['id_user'], $_SESSION['role'])
     || $_SESSION['logged_in'] !== true
@@ -33,6 +34,7 @@ if (!isset($_SESSION['csrf_token'])) {
 }
 
 $classModel = new InstructorClass();
+$tools = new InstructorTools();
 $classId = isset($_GET['class_id']) ? filter_var($_GET['class_id'], FILTER_VALIDATE_INT) : false;
 if (!$classId) {
     http_response_code(404);
@@ -74,6 +76,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $result = $classModel->saveClassQuizAttempt($userId, (int) $classId, (int) $quizId, $answers);
             $_SESSION['classroom_success'] = 'Kamu menyelesaikan kuis dengan nilai ' . (int) $result['nilai'] . '%.';
+        } elseif ($action === 'submit_assignment') {
+            $assignmentId = filter_var($_POST['assignment_id'] ?? null, FILTER_VALIDATE_INT);
+            if (!$assignmentId || !isset($_FILES['assignment_file']) || (int) $_FILES['assignment_file']['error'] !== UPLOAD_ERR_OK) {
+                throw new InvalidArgumentException('Pilih file tugas yang valid.');
+            }
+            $tmpFile = $_FILES['assignment_file']['tmp_name'];
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mime = $finfo !== false ? finfo_file($finfo, $tmpFile) : null;
+            if ($finfo !== false) { finfo_close($finfo); }
+            $allowed = [
+                'application/pdf' => 'pdf',
+                'text/plain' => 'txt',
+                'application/zip' => 'zip',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation' => 'pptx',
+            ];
+            $size = (int) ($_FILES['assignment_file']['size'] ?? 0);
+            if ($mime === null || !isset($allowed[$mime]) || $size < 1 || $size > 10 * 1024 * 1024) {
+                throw new InvalidArgumentException('Tugas harus berupa PDF, DOCX, PPTX, ZIP, atau TXT maksimal 10 MB.');
+            }
+            $uploadDir = __DIR__ . '/../../uploads/class-assignments';
+            if (!is_dir($uploadDir) && !mkdir($uploadDir, 0755, true) && !is_dir($uploadDir)) {
+                throw new RuntimeException('Folder pengumpulan tugas tidak bisa dibuat.');
+            }
+            $fileName = 'submission-' . $userId . '-' . bin2hex(random_bytes(12)) . '.' . $allowed[$mime];
+            if (!move_uploaded_file($tmpFile, $uploadDir . DIRECTORY_SEPARATOR . $fileName)) {
+                throw new RuntimeException('Gagal menyimpan file tugas.');
+            }
+            $tools->submitClassAssignment(
+                $userId,
+                (int) $classId,
+                (int) $assignmentId,
+                '../../uploads/class-assignments/' . $fileName,
+                basename((string) ($_FILES['assignment_file']['name'] ?? $fileName))
+            );
+            $_SESSION['classroom_success'] = 'File tugas berhasil dikumpulkan.';
+        } elseif ($action === 'ask_question') {
+            $tools->createForumThread(
+                $userId,
+                (int) $classId,
+                (string) ($_POST['question_title'] ?? ''),
+                (string) ($_POST['question_text'] ?? '')
+            );
+            $_SESSION['classroom_success'] = 'Pertanyaan berhasil dikirim ke instruktur.';
         }
     } catch (Throwable $e) {
         $_SESSION['classroom_error'] = $e->getMessage();
@@ -100,6 +146,8 @@ $modules = $classModel->getClassModules((int) $classId);
 $quizzes = $classModel->getClassQuizDetailed((int) $classId);
 $openedMaterialIds = $classModel->getOpenedMaterialIds($userId, (int) $classId);
 $results = $classModel->getStudentClassQuizResults($userId, (int) $classId);
+$assignments = $tools->getStudentClassAssignments($userId, (int) $classId);
+$forumThreads = $tools->getStudentForumThreads($userId, (int) $classId);
 $resultsByQuiz = [];
 foreach ($results as $result) {
     $resultsByQuiz[(int) $result['kuis_id']] = $result;
@@ -113,6 +161,8 @@ $data = [
     'announcements' => $announcements,
     'modules' => $modules,
     'quizzes' => $quizzes,
+    'assignments' => $assignments,
+    'forumThreads' => $forumThreads,
     'openedMaterialIds' => $openedMaterialIds,
     'resultsByQuiz' => $resultsByQuiz,
     'success' => $_SESSION['classroom_success'] ?? '',

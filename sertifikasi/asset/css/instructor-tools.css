@@ -1,0 +1,462 @@
+.certificate-tools-grid,
+.manage-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 22px;
+}
+
+.manage-form-card {
+  padding: 20px;
+  border: 1px solid rgba(30, 42, 36, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.manage-form-card h2,
+.manage-form-card h3 {
+  margin: 0 0 16px;
+  color: #1f3b30;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.manage-class-modal {
+  min-height: min(80vh, 780px);
+}
+
+.manage-tabs .nav-link {
+  color: #426a55;
+  font-weight: 700;
+}
+
+.manage-tabs .nav-link.active {
+  border-color: #c8dfd0 #c8dfd0 #fff;
+  color: #235a41;
+}
+
+.manage-list-card {
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(30, 42, 36, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.54);
+}
+
+.manage-list-card h4 {
+  margin: 0 0 6px;
+  color: #274b39;
+  font-size: 0.98rem;
+  font-weight: 800;
+}
+
+.manage-list-card p {
+  margin: 0 0 6px;
+  color: #65796e;
+  font-size: 0.86rem;
+}
+
+.manage-list-card ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+.manage-content-preview {
+  margin: 3px 0 8px;
+  color: #66776e;
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.manage-quiz-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 12px;
+}
+
+.mini-progress {
+  width: 120px;
+  height: 7px;
+  margin-bottom: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #dce7df;
+}
+
+.mini-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #5c9b73, #8bc59b);
+}
+
+.certificate-table {
+  min-width: 760px;
+}
+
+.template-preview {
+  display: block;
+  max-width: 180px;
+  max-height: 100px;
+  margin: -4px 0 14px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.signature-preview {
+  display: block;
+  max-width: 150px;
+  max-height: 70px;
+  margin: -4px 0 14px;
+  object-fit: contain;
+}
+
+.unanswered-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #e0f2e8;
+  color: #235a41;
+  font-size: 0.85rem;
+}
+
+.forum-split {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.82fr) minmax(0, 1.6fr);
+  min-height: 620px;
+  overflow: hidden;
+  border: 1px solid rgba(30, 42, 36, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.forum-inbox {
+  min-width: 0;
+  border-right: 1px solid rgba(30, 42, 36, 0.1);
+  background: rgba(255, 255, 255, 0.36);
+}
+
+.forum-filters {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid rgba(30, 42, 36, 0.1);
+}
+
+.forum-thread-list {
+  max-height: 540px;
+  overflow-y: auto;
+}
+
+.forum-thread-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  border-bottom: 1px solid rgba(30, 42, 36, 0.08);
+  background: transparent;
+  color: #234136;
+  text-align: left;
+}
+
+.forum-thread-card:hover,
+.forum-thread-card.active {
+  background: #e5f1e9;
+}
+
+.forum-thread-title {
+  overflow: hidden;
+  font-size: 0.92rem;
+  text-overflow: ellipsis;
+}
+
+.forum-thread-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #70837a;
+  font-size: 0.72rem;
+}
+
+.forum-thread-status {
+  white-space: nowrap;
+  color: #6b776f;
+}
+
+.forum-thread-status.unanswered {
+  color: #a45b28;
+  font-weight: 700;
+}
+
+.forum-discussion {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.forum-empty-detail {
+  display: grid;
+  flex: 1;
+  align-content: center;
+  justify-items: center;
+  padding: 32px;
+  color: #73847b;
+  text-align: center;
+}
+
+.forum-empty-detail i {
+  margin-bottom: 12px;
+  color: #5b9874;
+  font-size: 2rem;
+}
+
+.forum-empty-detail h2 {
+  color: #29473a;
+  font-size: 1.1rem;
+}
+
+.discussion-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid rgba(30, 42, 36, 0.1);
+}
+
+.discussion-header h2 {
+  margin: 0;
+  color: #1e332b;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.discussion-header p {
+  margin: 4px 0 0;
+  color: #73847b;
+  font-size: 0.8rem;
+}
+
+.forum-messages {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding: 18px;
+}
+
+.forum-message {
+  max-width: 88%;
+  padding: 13px 15px;
+  border-radius: 14px;
+  color: #2a4036;
+  overflow-wrap: anywhere;
+}
+
+.forum-message p {
+  margin: 7px 0 0;
+  white-space: pre-wrap;
+}
+
+.forum-message pre {
+  max-width: 100%;
+  margin: 10px 0 0;
+  padding: 10px;
+  overflow-x: auto;
+  border-radius: 8px;
+  background: #21382e;
+  color: #e4f2e9;
+}
+
+.forum-message a {
+  display: inline-block;
+  margin-top: 8px;
+  color: #246748;
+}
+
+.forum-message time {
+  display: block;
+  margin-top: 7px;
+  color: #71847a;
+  font-size: 0.7rem;
+}
+
+.student-message {
+  align-self: flex-start;
+  background: #e8eee9;
+}
+
+.instructor-message {
+  align-self: flex-end;
+  background: #dcefe3;
+}
+
+.forum-reply-form {
+  display: grid;
+  gap: 12px;
+  padding: 16px 18px;
+  border-top: 1px solid rgba(30, 42, 36, 0.1);
+}
+
+.forum-reply-form textarea,
+.forum-reply-form input[type="file"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(30, 64, 52, 0.16);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.forum-code-attach summary {
+  color: #286044;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.instructor-certificate-print {
+  min-height: 100vh;
+  padding: 20px;
+  background: #e9efeb;
+}
+
+.print-toolbar {
+  display: flex;
+  justify-content: space-between;
+  max-width: 1100px;
+  margin: 0 auto 16px;
+}
+
+.print-toolbar a,
+.print-toolbar button {
+  padding: 9px 14px;
+  border: 1px solid #b9cbbf;
+  border-radius: 8px;
+  background: white;
+  color: #285544;
+  text-decoration: none;
+}
+
+.instructor-certificate-sheet {
+  position: relative;
+  display: grid;
+  width: min(1100px, 100%);
+  min-height: 720px;
+  margin: auto;
+  place-items: center;
+  border: 12px solid #47785d;
+  background-color: #fff;
+  overflow: hidden;
+  box-shadow: 0 14px 40px rgba(30, 55, 42, 0.16);
+  text-align: center;
+}
+
+.certificate-background-image {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.instructor-certificate-sheet .certificate-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: 0;
+  padding: 60px 40px;
+}
+
+.instructor-certificate-sheet h1 {
+  margin: 14px 0 28px;
+  color: #26543c;
+  font-size: clamp(2rem, 5vw, 3.8rem);
+}
+
+.instructor-certificate-sheet h2 {
+  margin: 20px 0;
+  color: #1e3428;
+  font-size: clamp(1.7rem, 4vw, 3rem);
+}
+
+.instructor-certificate-sheet h3 {
+  margin: 12px 0 24px;
+  color: #3c7254;
+  font-size: clamp(1.3rem, 3vw, 2rem);
+}
+
+.certificate-number,
+.certificate-verification {
+  margin-top: 24px;
+  color: #637a6b;
+}
+
+.print-signature {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  margin: 52px auto 0;
+}
+
+.print-signature img {
+  max-width: 180px;
+  max-height: 80px;
+  object-fit: contain;
+}
+
+@media (max-width: 900px) {
+  .forum-split,
+  .certificate-tools-grid,
+  .manage-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .forum-inbox {
+    border-right: 0;
+    border-bottom: 1px solid rgba(30, 42, 36, 0.1);
+  }
+
+  .forum-thread-list {
+    max-height: 280px;
+  }
+}
+
+@media (max-width: 600px) {
+  .manage-quiz-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 8mm;
+  }
+
+  body.instructor-certificate-print {
+    padding: 0;
+    background: white;
+  }
+
+  .print-toolbar {
+    display: none;
+  }
+
+  .instructor-certificate-sheet {
+    width: 100%;
+    min-height: 180mm;
+    box-shadow: none;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .instructor-certificate-sheet .certificate-inner {
+    min-height: 0;
+  }
+}

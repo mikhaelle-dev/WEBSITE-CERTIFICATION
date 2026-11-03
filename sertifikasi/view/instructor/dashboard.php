@@ -1,6 +1,8 @@
 ﻿<?php
 $stats = $data['stats'] ?? ['total_kelas' => 0, 'kelas_aktif' => 0, 'kelas_draft' => 0, 'kelas_ditutup' => 0, 'total_siswa' => 0, 'rata_progress' => 0];
 $classes = $data['classes'] ?? [];
+$monthlyRegistrations = $data['monthlyRegistrations'] ?? [];
+$unansweredCount = $data['unansweredCount'] ?? null;
 $selectedClass = $data['selectedClass'] ?? null;
 $success = $data['success'] ?? '';
 $error = $data['error'] ?? '';
@@ -27,6 +29,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../../asset/css/theme-soft.css?v=20261103-green2" rel="stylesheet">
     <link href="../../asset/css/instructor.css" rel="stylesheet">
+    <link href="../../asset/css/instructor-tools.css" rel="stylesheet">
 </head>
 <body class="instructor-dashboard-page">
     <div class="instructor-layout">
@@ -47,10 +50,26 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                     <span>Kelas Saya</span>
                     <span class="sidebar-badge"><?= count($classes) ?></span>
                 </a>
-                <a href="DashboardController.php?mode=create" class="sidebar-item <?= $createMode ? 'active' : '' ?>">
+                <a href="<?= !empty($classes) ? 'DashboardController.php?class_id=' . (int) $classes[0]['id'] . '&tab=modul' : '#' ?>" class="sidebar-item <?= !empty($classes) ? '' : 'is-disabled' ?>" <?= empty($classes) ? 'aria-disabled="true"' : '' ?>>
+                    <span class="sidebar-icon"><i class="bi bi-collection"></i></span>
+                    <span>Bank Materi</span>
+                </a>
+                <a href="CertificateController.php" class="sidebar-item">
+                    <span class="sidebar-icon"><i class="bi bi-patch-check"></i></span>
+                    <span>Kelola Sertifikat</span>
+                </a>
+                <a href="ForumController.php" class="sidebar-item">
+                    <span class="sidebar-icon"><i class="bi bi-chat-dots"></i></span>
+                    <span>Forum Q&amp;A</span>
+                </a>
+                <a href="#" class="sidebar-item is-disabled" aria-disabled="true" title="Fitur belum tersedia">
+                    <span class="sidebar-icon"><i class="bi bi-bar-chart"></i></span>
+                    <span>Laporan</span>
+                </a>
+                <button type="button" class="sidebar-item <?= $createMode ? 'active' : '' ?>" data-bs-toggle="modal" data-bs-target="#classModal">
                     <span class="sidebar-icon"><i class="bi bi-plus-circle"></i></span>
                     <span>Buat Kelas</span>
-                </a>
+                </button>
             </div>
 
             <?php if (!empty($classes)): ?>
@@ -377,7 +396,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                     <div class="student-table-wrap">
                                         <table class="student-table">
                                             <thead>
-                                                <tr>
+                                                <tr data-class-row="<?= (int) ($class['id'] ?? 0) ?>">
                                                     <th>Siswa</th>
                                                     <th>Progress</th>
                                                     <th>Terakhir aktif</th>
@@ -484,9 +503,9 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                         <div class="eyebrow">PANEL INSTRUKTUR</div>
                         <div class="panel-title-row">
                             <h1>Kelas saya</h1>
-                            <span class="panel-date">Selasa, 3 November 2026</span>
+                            <span class="panel-date"><?= e(tgl_indo(date('Y-m-d'))) ?></span>
                         </div>
-                        <p>Buat kelas, kelola materi, dan pantau progress peserta dari satu tempat.</p>
+                        <p>Pantau pertumbuhan peserta dan kelola kelas Anda dari satu tempat.</p>
                     </div>
 
                     <section class="stats-grid" aria-label="Ringkasan kelas">
@@ -509,43 +528,56 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                         </article>
 
                         <article class="stat-card">
-                            <div class="stat-label">Progress rata-rata</div>
-                            <div class="stat-body">
-                                <div class="stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
-                                <div class="stat-value"><?= (int) ($stats['rata_progress'] ?? 0) ?>%</div>
-                            </div>
-                            <div class="stat-foot">Rata-rata semua peserta</div>
-                        </article>
-
-                        <article class="stat-card">
                             <div class="stat-label">Kelas aktif</div>
                             <div class="stat-body">
                                 <div class="stat-icon"><i class="bi bi-play-circle"></i></div>
                                 <div class="stat-value"><?= (int) ($stats['kelas_aktif'] ?? 0) ?></div>
                             </div>
-                            <div class="stat-foot"><?= (int) ($stats['kelas_aktif'] ?? 0) ?> aktif / draft / ditutup</div>
+                            <div class="stat-foot">Kelas dengan status publish</div>
                         </article>
+
+                        <article class="stat-card">
+                            <div class="stat-label">Pertanyaan unread</div>
+                            <div class="stat-body">
+                                <div class="stat-icon"><i class="bi bi-chat-dots"></i></div>
+                                <div class="stat-value"><?= $unansweredCount === null ? '—' : (int) $unansweredCount ?></div>
+                            </div>
+                            <div class="stat-foot"><?= $unansweredCount === null ? 'Jalankan migrasi forum untuk mengaktifkan' : 'Pertanyaan yang menunggu jawaban' ?></div>
+                        </article>
+                    </section>
+
+                    <section class="analytics-card" aria-labelledby="registration-chart-title">
+                        <div class="analytics-card-heading">
+                            <div>
+                                <h2 id="registration-chart-title">Pendaftaran siswa</h2>
+                                <p>Jumlah peserta baru selama enam bulan terakhir.</p>
+                            </div>
+                            <span class="analytics-period">6 bulan terakhir</span>
+                        </div>
+                        <div class="registration-chart-wrap">
+                            <canvas
+                                id="registration-chart"
+                                role="img"
+                                aria-label="Grafik jumlah siswa yang mendaftar per bulan"
+                                data-labels="<?= e((string) json_encode(array_column($monthlyRegistrations, 'label'), JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP)) ?>"
+                                data-values="<?= e((string) json_encode(array_column($monthlyRegistrations, 'total'), JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP)) ?>"
+                            ></canvas>
+                        </div>
                     </section>
 
                     <section class="classes-panel">
                         <div class="classes-toolbar">
                             <h2>Daftar kelas</h2>
-                            <a href="DashboardController.php?mode=create" class="primary-button">+ Buat kelas</a>
+                            <button type="button" class="primary-button" data-bs-toggle="modal" data-bs-target="#classModal">+ Buat Kelas Baru</button>
                         </div>
 
-                        <div class="filter-row">
+                        <form method="get" action="DashboardController.php" class="filter-row">
                             <div class="search-field">
                                 <i class="bi bi-search"></i>
-                                <input type="search" value="<?= e($search) ?>" placeholder="Cari judul, kelas, atau kode enroll...">
+                                <input type="search" name="q" value="<?= e($search) ?>" placeholder="Cari judul, kelas, atau kode enroll..." aria-label="Cari kelas">
                             </div>
-                            <select class="filter-select" aria-label="Filter kelas">
-                                <option>Semua status</option>
-                                <option>Aktif</option>
-                                <option>Draft</option>
-                                <option>Ditutup</option>
-                            </select>
-                            <button class="filter-button" type="button">Filter</button>
-                        </div>
+                            <button class="filter-button" type="submit">Cari kelas</button>
+                        </form>
 
                         <?php if (empty($classes)): ?>
                             <div class="empty-state">Belum ada kelas yang dibuat. Klik tombol buat kelas untuk mulai.</div>
@@ -555,10 +587,10 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                     <thead>
                                         <tr>
                                             <th>Kelas</th>
+                                            <th>Kategori</th>
+                                            <th>Jumlah siswa</th>
                                             <th>Status</th>
-                                            <th>Kode enroll</th>
-                                            <th>Siswa</th>
-                                            <th>Progress</th>
+                                            <th>Tanggal dibuat</th>
                                             <th>Aksi</th>
                                         </tr>
                                     </thead>
@@ -566,9 +598,8 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                         <?php foreach ($classes as $class): ?>
                                             <?php
                                             $classStatus = strtolower((string) ($class['status'] ?? 'draft'));
-                                            $progress = (int) ($class['avg_progress'] ?? 0);
                                             $label = match ($classStatus) {
-                                                'aktif' => 'Aktif',
+                                                'aktif' => 'Publish',
                                                 'ditutup' => 'Ditutup',
                                                 default => 'Draft',
                                             };
@@ -588,18 +619,14 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                                         <small><?= e($class['deskripsi'] ?? 'Belum ada deskripsi kelas.') ?></small>
                                                     </div>
                                                 </td>
-                                                <td><span class="status-badge <?= e($statusClass) ?>"><?= e($label) ?></span></td>
-                                                <td><code><?= e($class['enroll_key'] ?? '-') ?></code></td>
+                                                <td><?= e($class['kategori'] ?? 'Umum') ?></td>
                                                 <td><?= (int) ($class['total_siswa'] ?? 0) ?></td>
-                                                <td>
-                                                    <div class="progress-mini" aria-label="Progress kelas">
-                                                        <span class="js-progress-bar" data-progress="<?= min(max($progress, 0), 100) ?>"></span>
-                                                    </div>
-                                                    <small><?= $progress ?>%</small>
-                                                </td>
+                                                <td><span class="status-badge <?= e($statusClass) ?>"><?= e($label) ?></span></td>
+                                                <td><?= e(tgl_indo((string) ($class['dibuat_pada'] ?? ''))) ?></td>
                                                 <td class="actions-cell">
-                                                    <a href="DashboardController.php?class_id=<?= (int) ($class['id'] ?? 0) ?>" class="action-btn">Kelola</a>
-                                                    <button type="button" class="action-btn danger" data-confirm="Hapus kelas ini?">Hapus</button>
+                                                    <button type="button" class="action-btn js-manage-class" data-class-id="<?= (int) ($class['id'] ?? 0) ?>" data-bs-toggle="modal" data-bs-target="#manageClassModal">Kelola</button>
+                                                    <button type="button" class="action-btn js-edit-class" data-class-id="<?= (int) ($class['id'] ?? 0) ?>" data-bs-toggle="modal" data-bs-target="#classModal">Edit</button>
+                                                    <button type="button" class="action-btn danger js-delete-class" data-class-id="<?= (int) ($class['id'] ?? 0) ?>" data-class-title="<?= e($class['judul'] ?? '') ?>">Hapus</button>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -613,6 +640,146 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
         </main>
     </div>
 
+    <div class="modal fade" id="classModal" tabindex="-1" aria-labelledby="class-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content instructor-modal">
+                <form id="class-form" action="DashboardController.php" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="aksi" value="save_class">
+                    <input type="hidden" name="ajax" value="1">
+                    <input type="hidden" name="class_id" value="">
+                    <input type="hidden" name="icon_url" value="">
+                    <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token'] ?? '') ?>">
+
+                    <div class="modal-header">
+                        <div>
+                            <span class="eyebrow">MANAJEMEN KELAS</span>
+                            <h2 class="modal-title" id="class-modal-title">Buat kelas baru</h2>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="class-form-feedback" class="alert alert-danger d-none" role="alert"></div>
+                        <label class="form-field mb-3">
+                            <span>Judul kelas</span>
+                            <input class="form-control" type="text" name="judul" maxlength="150" placeholder="Contoh: Dasar UI/UX" required>
+                        </label>
+                        <label class="form-field mb-3">
+                            <span>Kategori kelas</span>
+                            <select class="form-select" name="kategori" required>
+                                <option value="Umum">Umum</option>
+                                <option value="Teknologi">Teknologi</option>
+                                <option value="Bisnis">Bisnis</option>
+                                <option value="Desain">Desain</option>
+                                <option value="Data">Data</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                        </label>
+                        <label class="form-field mb-3">
+                            <span>Deskripsi singkat</span>
+                            <textarea class="form-control" name="deskripsi" rows="4" placeholder="Jelaskan topik dan tujuan kelas." required></textarea>
+                        </label>
+                        <label class="form-field mb-3">
+                            <span>Thumbnail / cover kelas</span>
+                            <input class="form-control" type="file" name="class_icon" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                            <small id="current-class-cover" class="text-secondary">JPG, PNG, atau WebP, maksimal 2 MB. Opsional.</small>
+                        </label>
+                        <fieldset class="form-field">
+                            <legend class="status-legend">Status kelas</legend>
+                            <div class="class-status-options">
+                                <label><input type="radio" name="status" value="draft" required> Draft</label>
+                                <label><input type="radio" name="status" value="aktif"> Publish</label>
+                                <label><input type="radio" name="status" value="ditutup"> Ditutup</label>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="secondary-button" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="primary-button" id="class-submit">
+                            <span class="js-submit-label">Simpan</span>
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="manageClassModal" tabindex="-1" aria-labelledby="manage-class-title" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content instructor-modal manage-class-modal">
+                <div class="modal-header">
+                    <div>
+                        <span class="eyebrow">PENGELOLAAN KELAS</span>
+                        <h2 class="modal-title" id="manage-class-title">Kelola kelas</h2>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="manage-class-feedback" class="alert d-none" role="alert"></div>
+                    <ul class="nav nav-tabs manage-tabs" role="tablist">
+                        <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#manage-materials" type="button" role="tab">Materi</button></li>
+                        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#manage-quizzes" type="button" role="tab">Kuis &amp; Tugas</button></li>
+                        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#manage-students" type="button" role="tab">Daftar Siswa</button></li>
+                    </ul>
+                    <div class="tab-content pt-4">
+                        <section class="tab-pane fade show active" id="manage-materials" role="tabpanel">
+                            <div class="manage-grid">
+                                <form class="manage-form-card js-manage-form" data-action="save_module">
+                                    <h3>Tambah modul</h3>
+                                    <input type="hidden" name="module_id" value="">
+                                    <label class="form-field mb-3"><span>Nama modul</span><input class="form-control" name="module_judul" maxlength="150" required></label>
+                                    <label class="form-field mb-3"><span>Deskripsi</span><textarea class="form-control" name="module_deskripsi" rows="3"></textarea></label>
+                                    <button class="primary-button" type="submit">Simpan modul</button>
+                                </form>
+                                <form class="manage-form-card js-manage-form" data-action="save_material" enctype="multipart/form-data">
+                                    <h3>Tambah video / dokumen</h3>
+                                    <label class="form-field mb-3"><span>Modul</span><select class="form-select" name="module_id" data-module-select required><option value="">Pilih modul</option></select></label>
+                                    <label class="form-field mb-3"><span>Judul materi</span><input class="form-control" name="material_judul" maxlength="150" required></label>
+                                    <label class="form-field mb-3"><span>Jenis</span><select class="form-select" name="material_tipe"><option value="video">Video</option><option value="dokumen">Dokumen</option><option value="teks">Teks / tautan</option></select></label>
+                                    <label class="form-field mb-3"><span>Isi atau tautan (untuk teks)</span><textarea class="form-control" name="material_isi" rows="2"></textarea></label>
+                                    <label class="form-field mb-3"><span>File (PDF, DOCX, PPTX, MP4, WebM; maks. 25 MB)</span><input class="form-control" type="file" name="material_file" accept=".pdf,.docx,.pptx,.mp4,.webm,application/pdf,video/mp4,video/webm"></label>
+                                    <button class="primary-button" type="submit">Simpan materi</button>
+                                </form>
+                            </div>
+                            <div id="manage-module-list" class="manage-list mt-4"><p class="text-secondary">Memuat daftar materi...</p></div>
+                        </section>
+                        <section class="tab-pane fade" id="manage-quizzes" role="tabpanel">
+                            <div class="manage-grid">
+                                <form class="manage-form-card" id="manage-quiz-form">
+                                    <h3>Buat kuis pilihan ganda</h3>
+                                    <label class="form-field mb-3"><span>Judul kuis</span><input class="form-control" name="quiz_judul" maxlength="150" required></label>
+                                    <label class="form-field mb-3"><span>Pertanyaan pertama</span><textarea class="form-control" name="question_text" rows="2" required></textarea></label>
+                                    <div class="manage-quiz-options">
+                                        <?php for ($optionIndex = 0; $optionIndex < 4; $optionIndex++): ?>
+                                            <label class="form-field mb-3"><span>Opsi <?= $optionIndex + 1 ?></span><input class="form-control" name="option_<?= $optionIndex ?>" required></label>
+                                        <?php endfor; ?>
+                                    </div>
+                                    <label class="form-field mb-3"><span>Jawaban benar</span><select class="form-select" name="jawaban_benar"><option value="0">Opsi 1</option><option value="1">Opsi 2</option><option value="2">Opsi 3</option><option value="3">Opsi 4</option></select></label>
+                                    <button class="primary-button" type="submit">Simpan kuis &amp; soal</button>
+                                </form>
+                                <form class="manage-form-card js-manage-form" data-action="save_assignment">
+                                    <h3>Buat tugas unggah file</h3>
+                                    <label class="form-field mb-3"><span>Judul tugas</span><input class="form-control" name="assignment_title" maxlength="180" required></label>
+                                    <label class="form-field mb-3"><span>Instruksi pengumpulan</span><textarea class="form-control" name="assignment_description" rows="4" required></textarea></label>
+                                    <label class="form-field mb-3"><span>Tenggat (opsional)</span><input class="form-control" type="datetime-local" name="assignment_due_at"></label>
+                                    <p class="small text-secondary">Tugas dapat dikumpulkan siswa sebagai file melalui halaman kelas.</p>
+                                    <button class="primary-button" type="submit">Simpan tugas</button>
+                                </form>
+                            </div>
+                            <div id="manage-quiz-list" class="manage-list mt-4"><p class="text-secondary">Memuat kuis dan tugas...</p></div>
+                        </section>
+                        <section class="tab-pane fade" id="manage-students" role="tabpanel">
+                            <div id="manage-student-list" class="student-table-wrap"><p class="p-3 text-secondary">Memuat daftar siswa...</p></div>
+                        </section>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="button" class="secondary-button" data-bs-dismiss="modal">Tutup</button></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <script src="../../asset/js/instructor.js"></script>
 </body>
 </html>

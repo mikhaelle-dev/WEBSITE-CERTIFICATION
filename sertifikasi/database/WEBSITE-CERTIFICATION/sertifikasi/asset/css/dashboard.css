@@ -1,0 +1,104 @@
+:root {
+    --green: #3c8a2e;
+    --green-light: #6cc04a;
+    --ink: #1b1b1b;
+    --muted: #6b7280;
+    --bg-side: #f4f4f4;
+}
+
+body { background: #fff; color: var(--ink); font-family: "Segoe UI", system-ui, sans-serif; }
+
+/* NAVBAR */
+.topnav { background: #fff; border-bottom: 1px solid #e5e5e5; padding: .6rem 0; }
+.brand { line-height: 1.05; color: var(--ink); font-size: 1rem; }
+.brand-small { font-size: .8rem; }
+.btn-explore { border: 1px solid var(--ink); border-radius: 4px; font-weight: 600; background: #fff; }
+.btn-explore:hover { background: var(--ink); color: #fff; }
+
+.search-box { position: relative; max-width: 520px; }
+.search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+.search-box input { padding-left: 36px; background: #f4f4f4; border-radius: 4px; }
+
+.nav-link { color: var(--ink); font-weight: 600; padding: 1rem .5rem; }
+.nav-active { color: var(--green); border-bottom: 3px solid var(--green); }
+
+.avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--green); color: #fff;
+          display: inline-flex; align-items: center; justify-content: center; font-weight: 700; object-fit: cover; }
+.tiny { font-size: .72rem; }
+
+/* HEADINGS */
+.page-title { font-weight: 300; font-size: 2.2rem; margin-bottom: 1.5rem; }
+.page-title i { margin-right: .4rem; }
+.section-title { font-weight: 700; font-size: 1.15rem; margin: 1.8rem 0 1rem; }
+
+/* PROMO BANNER */
+.promo { display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+         background: linear-gradient(120deg, #06203f 0%, #0b4a6f 60%, #0f7f8a 100%);
+         color: #fff; border-radius: 10px; padding: 2rem 2.4rem; overflow: hidden; }
+.promo h2 { font-weight: 600; margin: .6rem 0; }
+.promo p { max-width: 520px; opacity: .9; }
+.promo-tag { background: var(--green-light); color: #0b2a0b; font-size: .72rem; font-weight: 700;
+             padding: .2rem .6rem; border-radius: 3px; letter-spacing: .04em; }
+.promo-icon { font-size: 6rem; opacity: .25; }
+.btn-promo { background: #fff; color: #06203f; font-weight: 700; border-radius: 30px; padding: .45rem 1.4rem; }
+.btn-promo:hover { background: var(--green-light); }
+
+/* COURSE CARD */
+.course-card { background: var(--bg-side); border-radius: 4px; overflow: hidden; height: 100%;
+               transition: box-shadow .15s, transform .15s; }
+.course-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,.12); transform: translateY(-2px); }
+.course-thumb { position: relative; height: 130px; display: flex; align-items: center; justify-content: center;
+                background: linear-gradient(135deg, #1e3a5f, #3a7ca5); }
+.course-thumb .play { font-size: 3rem; color: #fff; opacity: .9; }
+.level-badge { position: absolute; top: 10px; left: 10px; background: var(--green-light); color: #0b2a0b;
+               font-size: .7rem; font-weight: 700; padding: .15rem .5rem; border-radius: 3px; }
+.course-body { padding: 1rem; }
+.course-meta { font-size: .8rem; color: var(--muted); }
+.course-title { font-size: 1.05rem; font-weight: 700; margin: .3rem 0 .6rem; }
+.btn-enroll { background: var(--green); color: #fff; border-radius: 4px; }
+.btn-enroll:hover { background: #2f6e24; color: #fff; }
+.progress { height: 6px; margin-bottom: .3rem; }
+.progress-bar { background: var(--green-light); }
+
+/* PANEL KANAN */
+.side-panel { background: var(--bg-side); padding: 1.4rem; min-height: 100%; border-radius: 4px; }
+.empty-ach { text-align: center; color: var(--muted); padding: 1.5rem .5rem; }
+.empty-ach i { font-size: 2.4rem; display: block; margin-bottom: .6rem; color: var(--green); }
+.ach-item { display: flex; gap: .8rem; align-items: center; margin-bottom: 1rem; color: inherit; text-decoration: none; }
+.ach-item:hover { color: var(--green); }
+.ach-item div { min-width: 0; }
+.ach-item small { display: block; }
+.ach-item i { font-size: 1.8rem; color: var(--green); }
+
+@media (max-width: 991px) {
+    .promo-icon { display: none; }
+    .nav-link { padding: .5rem 0; }
+}
+
+/* ===== NAVBAR: mega menu Explore ===== */
+.mega { width: min(760px, 92vw); border: 0; box-shadow: 0 10px 30px rgba(0,0,0,.18); border-radius: 6px; overflow: hidden; margin-top: .6rem; }
+.mega-left  { background: var(--bg-side); padding: 1.2rem; }
+.mega-right { padding: 1.2rem 1.4rem; }
+.mega-head  { font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: .6rem; }
+.mega-link  { display: flex; justify-content: space-between; align-items: center; padding: .55rem .4rem; color: var(--ink);
+              text-decoration: none; border-bottom: 1px solid #ddd; font-size: .95rem; }
+.mega-link:hover { background: #e9f3e6; color: var(--green); }
+.mega-course { display: flex; gap: .9rem; align-items: center; padding: .7rem; border: 1px solid #e3e3e3; border-radius: 4px;
+               margin-bottom: .6rem; color: var(--ink); text-decoration: none; }
+.mega-course:hover { background: #f6faf4; }
+.mega-thumb { width: 64px; height: 64px; flex: none; border-radius: 4px; display: flex; align-items: center; justify-content: center;
+              background: linear-gradient(135deg, #1e3a5f, #3a7ca5); color: #fff; font-size: 1.6rem; }
+
+/* ===== NAVBAR: tombol user + drawer ===== */
+.user-btn { display: flex; align-items: center; background: none; border: 0; padding: .2rem .4rem; border-radius: 6px; }
+.user-btn:hover { background: #f1f1f1; }
+.avatar-lg { width: 48px; height: 48px; font-size: 1.2rem; }
+.drawer { width: 340px !important; }
+.drawer-head { display: flex; align-items: center; gap: .8rem; padding: 1.2rem; background: #eef3ee; }
+.drawer-sec { padding: 1rem 1.2rem .4rem; border-bottom: 1px solid #e5e5e5; }
+.drawer-title { font-weight: 700; margin-bottom: .4rem; }
+.drawer-title i { margin-right: .4rem; }
+.drawer-link { display: flex; justify-content: space-between; align-items: center; padding: .5rem 0; color: var(--ink);
+               text-decoration: none; font-size: .92rem; }
+.drawer-link i { color: var(--green); }
+.drawer-link:hover { color: var(--green); }

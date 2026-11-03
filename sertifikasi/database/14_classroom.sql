@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS kelas (
     slug            VARCHAR(120) NOT NULL UNIQUE,
     judul           VARCHAR(150) NOT NULL,
     deskripsi       TEXT NOT NULL,
+    kategori        VARCHAR(80) NOT NULL DEFAULT 'Umum',
     status          ENUM('draft', 'aktif', 'ditutup') NOT NULL DEFAULT 'draft',
     enroll_key      VARCHAR(50) NOT NULL UNIQUE,
     icon_url        VARCHAR(255) NULL DEFAULT NULL,
@@ -55,7 +56,7 @@ CREATE TABLE IF NOT EXISTS materi_kelas (
     urutan      SMALLINT UNSIGNED NOT NULL,
     judul       VARCHAR(150) NOT NULL,
     isi         LONGTEXT NOT NULL,
-    tipe        ENUM('teks', 'video', 'latihan') NOT NULL DEFAULT 'teks',
+    tipe        ENUM('teks', 'video', 'dokumen', 'latihan') NOT NULL DEFAULT 'teks',
     UNIQUE KEY uq_materi_kelas_urutan (modul_id, urutan),
     CONSTRAINT fk_materi_kelas_modul
         FOREIGN KEY (modul_id) REFERENCES modul_kelas(id) ON DELETE CASCADE
