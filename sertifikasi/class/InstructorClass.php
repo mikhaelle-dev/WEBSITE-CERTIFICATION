@@ -30,6 +30,21 @@ class InstructorClass extends Database
             throw $e;
         }
 
+        $columns = $this->db->query("SHOW COLUMNS FROM kelas")->fetchAll(PDO::FETCH_COLUMN);
+        $missingColumns = [];
+        foreach (['icon_url', 'badge_label', 'badge_aktif', 'badge_color'] as $column) {
+            if (!in_array($column, $columns, true)) {
+                $missingColumns[] = $column;
+            }
+        }
+
+        if (!empty($missingColumns)) {
+            $this->db->exec("ALTER TABLE kelas ADD COLUMN icon_url VARCHAR(255) NULL DEFAULT NULL AFTER enroll_key");
+            $this->db->exec("ALTER TABLE kelas ADD COLUMN badge_label VARCHAR(60) NULL DEFAULT NULL AFTER icon_url");
+            $this->db->exec("ALTER TABLE kelas ADD COLUMN badge_aktif TINYINT(1) NOT NULL DEFAULT 0 AFTER badge_label");
+            $this->db->exec("ALTER TABLE kelas ADD COLUMN badge_color VARCHAR(30) NULL DEFAULT NULL AFTER badge_aktif");
+        }
+
         $this->schemaChecked = true;
     }
 
@@ -481,6 +496,169 @@ class InstructorClass extends Database
         }
 
         $this->run('DELETE FROM kuis_kelas WHERE id = ? AND kelas_id = ?', [$quizId, $classId]);
+    }
+
+    public function createQuizQuestion(int $instructorId, int $classId, int $quizId, array $data): int
+    {
+        $quiz = $this->getQuizById($instructorId, $classId, $quizId);
+        if ($quiz === null) {
+            throw new InvalidArgumentException('Kuis tidak ditemukan.');
+        }
+
+        $teks = $this->requireText($data, 'teks', 'Teks soal wajib diisi.');
+        $options = $this->normalizeQuestionOptions($data);
+        $urutan = isset($data['urutan']) ? max(1, (int) $data['urutan']) : $this->nextOrder('soal_kuis_kelas', 'kuis_id', $quizId);
+
+        $this->db->beginTransaction();
+        try {
+            $this->run(
+                'INSERT INTO soal_kuis_kelas (kuis_id, urutan, teks) VALUES (?, ?, ?)',
+                [$quizId, $urutan, $teks]
+            );
+            $questionId = (int) $this->db->lastInsertId();
+
+            foreach ($options as $index => $optionText) {
+                $this->run(
+                    'INSERT INTO opsi_kuis_kelas (soal_id, urutan, teks, benar) VALUES (?, ?, ?, ?)',
+                    [$questionId, $index + 1, $optionText, ((string) ($data['jawaban_benar'] ?? '') === (string) $index) ? 1 : 0]
+                );
+            }
+
+            $this->db->commit();
+            return $questionId;
+        } catch (Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+    }
+
+    public function updateQuizQuestion(int $instructorId, int $classId, int $quizId, int $questionId, array $data): void
+    {
+        $question = $this->run(
+            'SELECT sq.*
+             FROM soal_kuis_kelas sq
+             JOIN kuis_kelas q ON q.id = sq.kuis_id
+             JOIN kelas k ON k.id = q.kelas_id
+             WHERE sq.id = ? AND q.id = ? AND q.kelas_id = ? AND k.instruktur_id = ?
+             LIMIT 1',
+            [$questionId, $quizId, $classId, $instructorId]
+        )->fetch();
+
+        if ($question === false) {
+            throw new InvalidArgumentException('Soal kuis tidak ditemukan.');
+        }
+
+        $teks = $this->requireText($data, 'teks', 'Teks soal wajib diisi.');
+        $options = $this->normalizeQuestionOptions($data);
+
+        $this->db->beginTransaction();
+        try {
+            $this->run('UPDATE soal_kuis_kelas SET teks = ? WHERE id = ?', [$teks, $questionId]);
+            $this->run('DELETE FROM opsi_kuis_kelas WHERE soal_id = ?', [$questionId]);
+
+            foreach ($options as $index => $optionText) {
+                $this->run(
+                    'INSERT INTO opsi_kuis_kelas (soal_id, urutan, teks, benar) VALUES (?, ?, ?, ?)',
+                    [$questionId, $index + 1, $optionText, ((string) ($data['jawaban_benar'] ?? '') === (string) $index) ? 1 : 0]
+                );
+            }
+
+            $this->db->commit();
+        } catch (Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+    }
+
+    public function deleteQuizQuestion(int $instructorId, int $classId, int $questionId): void
+    {
+        $question = $this->run(
+            'SELECT sq.id
+             FROM soal_kuis_kelas sq
+             JOIN kuis_kelas q ON q.id = sq.kuis_id
+             JOIN kelas k ON k.id = q.kelas_id
+             WHERE sq.id = ? AND q.kelas_id = ? AND k.instruktur_id = ?
+             LIMIT 1',
+            [$questionId, $classId, $instructorId]
+        )->fetch();
+
+        if ($question === false) {
+            throw new InvalidArgumentException('Soal kuis tidak ditemukan.');
+        }
+
+        $this->run('DELETE FROM soal_kuis_kelas WHERE id = ?', [$questionId]);
+    }
+
+    public function getClassGrades(int $classId): array
+    {
+        $rows = $this->run(
+            'SELECT ks.user_id, u.nama, u.email, ks.progress,
+                    hk.kuis_id, q.judul AS kuis_judul, hk.nilai, hk.lulus
+             FROM kelas_siswa ks
+             JOIN user u ON u.id = ks.user_id
+             LEFT JOIN hasil_kuis_kelas hk ON hk.user_id = ks.user_id
+             LEFT JOIN kuis_kelas q ON q.id = hk.kuis_id
+             WHERE ks.kelas_id = ?
+             ORDER BY u.nama ASC, hk.dikerjakan_pada DESC',
+            [$classId]
+        )->fetchAll();
+
+        $grouped = [];
+        foreach ($rows as $row) {
+            $userId = (int) $row['user_id'];
+            if (!isset($grouped[$userId])) {
+                $grouped[$userId] = [
+                    'user_id' => $userId,
+                    'nama' => $row['nama'],
+                    'email' => $row['email'],
+                    'progress' => (int) ($row['progress'] ?? 0),
+                    'quizzes' => [],
+                ];
+            }
+
+            if (!empty($row['kuis_id'])) {
+                $grouped[$userId]['quizzes'][(int) $row['kuis_id']] = [
+                    'kuis_id' => (int) $row['kuis_id'],
+                    'judul' => $row['kuis_judul'],
+                    'nilai' => $row['nilai'] !== null ? (int) $row['nilai'] : null,
+                    'lulus' => !empty($row['lulus']) ? 1 : 0,
+                ];
+            }
+        }
+
+        return array_values($grouped);
+    }
+
+    public function removeStudentFromClass(int $instructorId, int $classId, int $studentId): void
+    {
+        $class = $this->getClassById($instructorId, $classId);
+        if ($class === null) {
+            throw new InvalidArgumentException('Kelas tidak ditemukan.');
+        }
+
+        $this->run('DELETE FROM kelas_siswa WHERE kelas_id = ? AND user_id = ?', [$classId, $studentId]);
+    }
+
+    private function normalizeQuestionOptions(array $data): array
+    {
+        $options = [];
+        for ($i = 0; $i < 6; $i++) {
+            $label = trim((string) ($data['option_' . $i] ?? ''));
+            if ($label === '') {
+                continue;
+            }
+            $options[] = $label;
+        }
+
+        if (count($options) < 2) {
+            throw new InvalidArgumentException('Setiap soal pilihan ganda minimal harus memiliki 2 opsi jawaban.');
+        }
+
+        if (!isset($data['jawaban_benar']) || !isset($options[(int) $data['jawaban_benar']])) {
+            throw new InvalidArgumentException('Pilih satu jawaban benar untuk soal ini.');
+        }
+
+        return $options;
     }
 
     // ------------------------------------------------------------------

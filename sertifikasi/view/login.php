@@ -128,10 +128,6 @@ unset($_SESSION['flash_error'], $_SESSION['flash_success'], $_SESSION['old_email
                         </div>
 
                         <div class="login-form-options">
-                            <label class="login-remember">
-                                <input type="checkbox" name="remember_me" value="1">
-                                <span>Ingat saya</span>
-                            </label>
                             <a href="forgot-password.php">Lupa password?</a>
                         </div>
 

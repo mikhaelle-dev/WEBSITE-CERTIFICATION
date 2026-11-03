@@ -194,6 +194,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $model->deleteQuiz($actorId, (int) $classId, (int) $quizId);
             $_SESSION['instructor_success'] = 'Kuis berhasil dihapus.';
+        } elseif ($action === 'save_announcement') {
+            if (!$classId) {
+                throw new DomainException('Kelas tidak valid.');
+            }
+            $message = trim((string) ($_POST['announcement_text'] ?? ''));
+            $model->createClassAnnouncement($actorId, (int) $classId, $message);
+            $_SESSION['instructor_success'] = 'Pengumuman kelas berhasil diposting.';
+        } elseif ($action === 'delete_announcement') {
+            if (!$classId) {
+                throw new DomainException('Kelas tidak valid.');
+            }
+            $announcementId = isset($_POST['announcement_id']) ? filter_var($_POST['announcement_id'], FILTER_VALIDATE_INT) : false;
+            if (!$announcementId) {
+                throw new DomainException('Pengumuman tidak valid.');
+            }
+            $model->deleteClassAnnouncement($actorId, (int) $classId, (int) $announcementId);
+            $_SESSION['instructor_success'] = 'Pengumuman berhasil dihapus.';
+        } elseif ($action === 'remove_student') {
+            if (!$classId) {
+                throw new DomainException('Kelas tidak valid.');
+            }
+            $studentId = isset($_POST['student_id']) ? filter_var($_POST['student_id'], FILTER_VALIDATE_INT) : false;
+            if (!$studentId) {
+                throw new DomainException('Siswa tidak valid.');
+            }
+            $model->removeStudentFromClass($actorId, (int) $classId, (int) $studentId);
+            $_SESSION['instructor_success'] = 'Siswa berhasil dikeluarkan dari kelas.';
+        } elseif ($action === 'save_question') {
+            if (!$classId) {
+                throw new DomainException('Kelas tidak valid.');
+            }
+            $quizId = isset($_POST['quiz_id']) ? filter_var($_POST['quiz_id'], FILTER_VALIDATE_INT) : false;
+            if (!$quizId) {
+                throw new DomainException('Kuis tidak valid.');
+            }
+            $questionId = isset($_POST['question_id']) ? filter_var($_POST['question_id'], FILTER_VALIDATE_INT) : false;
+            $questionData = [
+                'teks' => (string) ($_POST['question_text'] ?? ''),
+                'option_0' => (string) ($_POST['option_0'] ?? ''),
+                'option_1' => (string) ($_POST['option_1'] ?? ''),
+                'option_2' => (string) ($_POST['option_2'] ?? ''),
+                'option_3' => (string) ($_POST['option_3'] ?? ''),
+                'option_4' => (string) ($_POST['option_4'] ?? ''),
+                'option_5' => (string) ($_POST['option_5'] ?? ''),
+                'jawaban_benar' => isset($_POST['jawaban_benar']) ? (int) $_POST['jawaban_benar'] : 0,
+            ];
+
+            if ($questionId) {
+                $model->updateQuizQuestion($actorId, (int) $classId, (int) $quizId, (int) $questionId, $questionData);
+                $_SESSION['instructor_success'] = 'Soal kuis berhasil diperbarui.';
+            } else {
+                $model->createQuizQuestion($actorId, (int) $classId, (int) $quizId, $questionData);
+                $_SESSION['instructor_success'] = 'Soal kuis berhasil ditambahkan.';
+            }
+        } elseif ($action === 'delete_question') {
+            if (!$classId) {
+                throw new DomainException('Kelas tidak valid.');
+            }
+            $questionId = isset($_POST['question_id']) ? filter_var($_POST['question_id'], FILTER_VALIDATE_INT) : false;
+            if (!$questionId) {
+                throw new DomainException('Soal tidak valid.');
+            }
+            $model->deleteQuizQuestion($actorId, (int) $classId, (int) $questionId);
+            $_SESSION['instructor_success'] = 'Soal kuis berhasil dihapus.';
         } else {
             throw new DomainException('Aksi tidak valid.');
         }
@@ -201,18 +265,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['instructor_error'] = $e->getMessage();
     }
 
-    header('Location: DashboardController.php');
+    $redirectTarget = 'DashboardController.php';
+    if ($classId) {
+        $redirectTarget .= '?class_id=' . (int) $classId;
+    }
+    header('Location: ' . $redirectTarget);
     exit();
 }
 
 $search = isset($_GET['q']) && is_string($_GET['q']) ? trim($_GET['q']) : '';
 $createMode = (isset($_GET['mode']) && $_GET['mode'] === 'create');
+$tab = isset($_GET['tab']) && is_string($_GET['tab']) ? $_GET['tab'] : 'stream';
 $classes = [];
 $stats = ['total_kelas' => 0, 'kelas_aktif' => 0, 'kelas_draft' => 0, 'kelas_ditutup' => 0, 'total_siswa' => 0, 'rata_progress' => 0];
 $selectedClass = null;
 $students = [];
 $modules = [];
 $quizzes = [];
+$announcements = [];
+$grades = [];
 $editModule = null;
 $editMaterial = null;
 $editQuiz = null;
@@ -230,6 +301,12 @@ try {
     $students = $selectedClass !== null ? $model->getClassStudents($actorId, (int) $selectedClass['id']) : [];
     $modules = $selectedClass !== null ? $model->getClassModules((int) $selectedClass['id']) : [];
     $quizzes = $selectedClass !== null ? $model->getClassQuizzes((int) $selectedClass['id']) : [];
+    foreach ($quizzes as &$quiz) {
+        $quiz['soal'] = $model->getQuizQuestions((int) $quiz['id']);
+    }
+    unset($quiz);
+    $announcements = $selectedClass !== null ? $model->getClassAnnouncements((int) $selectedClass['id']) : [];
+    $grades = $selectedClass !== null ? $model->getClassGrades((int) $selectedClass['id']) : [];
 
     $editModuleId = isset($_GET['module_id']) ? filter_var($_GET['module_id'], FILTER_VALIDATE_INT) : false;
     $editModule = $editModuleId && $selectedClass !== null ? $model->getModuleById($actorId, (int) $selectedClass['id'], (int) $editModuleId) : null;
@@ -245,10 +322,16 @@ try {
     $students = [];
     $modules = [];
     $quizzes = [];
+    $announcements = [];
+    $grades = [];
     $editModule = null;
     $editMaterial = null;
     $editQuiz = null;
 }
+
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
 
 $data = [
     'username' => $_SESSION['username'],
@@ -260,6 +343,9 @@ $data = [
     'students' => $students,
     'modules' => $modules,
     'quizzes' => $quizzes,
+    'announcements' => $announcements,
+    'grades' => $grades,
+    'tab' => $tab,
     'editModule' => $editModule,
     'editMaterial' => $editMaterial,
     'editQuiz' => $editQuiz,

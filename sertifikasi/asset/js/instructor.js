@@ -1,3 +1,4 @@
+// Desain dashboard instruktur dibuat agar ringkas dan aman: semua interaksi dipindah ke JS eksternal agar tetap kompatibel dengan CSP tanpa inline handler.
 document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('.js-progress-bar').forEach(function (bar) {
     var value = Number(bar.dataset.progress || 0);

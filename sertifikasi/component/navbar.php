@@ -1,15 +1,14 @@
 <?php
 /**
- * Navbar siswa (dipakai dashboard & profil).
- * Butuh: $data['username'] dan (opsional) $aktif = 'mylearning' | 'profil'
- * Pastikan config/helpers.php sudah di-require oleh controller.
+ * Navbar siswa/instruktur/admin.
+ * Data demo dibuang agar menu selalu beralih ke data nyata dari database.
+ * Jika belum ada data, tampilkan state kosong agar UI tetap stabil dan tidak terikat ke contoh.
  */
-$_menu       = require __DIR__ . '/../config/dummy_data.php';   // nanti: query kategori & kursus populer
-$menuKursus  = array_slice($_menu['kursus'], 0, 3);
-$menuKategori = $_menu['kategori'];
-$aktif       = $aktif ?? 'mylearning';
-$inisial     = strtoupper(substr($data['username'], 0, 1));
-$role        = $data['role'] ?? 'siswa';
+$menuKursus = [];
+$menuKategori = [];
+$aktif = $aktif ?? 'mylearning';
+$inisial = strtoupper(substr($data['username'], 0, 1));
+$role = $data['role'] ?? 'siswa';
 $dashboardPath = $role === 'admin'
     ? '../admin/DashboardController.php'
     : ($role === 'instruktur' ? '../../controller/instructor/DashboardController.php' : 'DashboardController.php');
@@ -37,26 +36,34 @@ $logoutPath = '../AuthController.php?aksi=logout';
                     <div class="row g-0">
                         <div class="col-md-4 mega-left">
                             <div class="mega-head">Bidang</div>
-                            <?php foreach ($menuKategori as $kat): ?>
-                                <a class="mega-link" href="DashboardController.php?kategori=<?= urlencode($kat) ?>#rekomendasi">
-                                    <?= e($kat) ?> <i class="bi bi-chevron-right"></i>
-                                </a>
-                            <?php endforeach; ?>
+                            <?php if ($menuKategori !== []): ?>
+                                <?php foreach ($menuKategori as $kat): ?>
+                                    <a class="mega-link" href="DashboardController.php?kategori=<?= urlencode($kat) ?>#rekomendasi">
+                                        <?= e($kat) ?> <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="p-3 text-muted small">Belum ada kategori tersedia.</div>
+                            <?php endif; ?>
                             <a class="btn btn-enroll w-100 mt-3" href="DashboardController.php#rekomendasi">Lihat semua kursus</a>
                         </div>
                         <div class="col-md-8 mega-right">
                             <div class="mega-head">Ambil kursus gratis</div>
                             <p class="small text-muted">Pelajari topik jaringan, keamanan siber, dan pemrograman, lalu dapatkan sertifikat setelah lolos asesmen.</p>
-                            <?php foreach ($menuKursus as $mk): ?>
-                                <a class="mega-course" href="DashboardController.php?kategori=<?= urlencode($mk['kategori']) ?>#rekomendasi">
-                                    <div class="mega-thumb"><i class="bi bi-play-circle-fill"></i></div>
-                                    <div>
-                                        <small class="text-muted"><?= e($mk['tipe']) ?> &middot; <?= e($mk['level']) ?></small>
-                                        <div class="fw-bold"><?= e($mk['judul']) ?></div>
-                                        <small class="text-muted"><i class="bi bi-people"></i> <?= number_format($mk['peserta'], 0, ',', '.') ?> sudah mendaftar</small>
-                                    </div>
-                                </a>
-                            <?php endforeach; ?>
+                            <?php if ($menuKursus !== []): ?>
+                                <?php foreach ($menuKursus as $mk): ?>
+                                    <a class="mega-course" href="DashboardController.php?kategori=<?= urlencode($mk['kategori']) ?>#rekomendasi">
+                                        <div class="mega-thumb"><i class="bi bi-play-circle-fill"></i></div>
+                                        <div>
+                                            <small class="text-muted"><?= e($mk['tipe']) ?> &middot; <?= e($mk['level']) ?></small>
+                                            <div class="fw-bold"><?= e($mk['judul']) ?></div>
+                                            <small class="text-muted"><i class="bi bi-people"></i> <?= number_format($mk['peserta'], 0, ',', '.') ?> sudah mendaftar</small>
+                                        </div>
+                                    </a>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="p-3 text-muted small">Belum ada kursus yang bisa ditampilkan saat ini.</div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>

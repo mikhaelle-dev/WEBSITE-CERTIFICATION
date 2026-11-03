@@ -1,21 +1,14 @@
 <?php
 /**
  * Profil Siswa: 3 tab (profil, sertifikat & lencana, riwayat belajar)
- * Controller: cek sesi -> proses form -> siapkan data -> include view
+ * Controller: cek sesi -> proses form -> siapkan data -> include view.
+ * Mode demo dibuang agar semua alur benar-benar bergantung pada akun nyata dari database.
  */
 require_once __DIR__ . '/../../config/session.php';
 
 require_once __DIR__ . '/../../config/helpers.php';
 require_once __DIR__ . '/../../class/Auth.php';
 require_once __DIR__ . '/../../class/Course.php';
-
-$DEV_MODE = false;   // login sungguhan sudah jadi (set true hanya untuk demo tanpa database)
-
-if ($DEV_MODE && !isset($_SESSION['logged_in'])) {
-    $_SESSION['logged_in'] = true;
-    $_SESSION['username']  = 'mikhael';
-    $_SESSION['role']      = 'siswa';
-}
 
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true
     || !isset($_SESSION['id_user'])

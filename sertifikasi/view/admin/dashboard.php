@@ -88,10 +88,10 @@ $todayLabel = $weekdayNames[(int) date('N')] . ', ' . $today;
         </nav>
 
         <div class="admin-console-sidebar-bottom">
-            <a class="admin-console-help" href="../user/ProfileController.php?tab=profil">
+            <div class="admin-console-help admin-console-help-static">
                 <i class="bi bi-shield-check" aria-hidden="true"></i>
                 <span><strong>Area Administrator</strong><small>Kelola akun dengan aman.</small></span>
-            </a>
+            </div>
             <small class="admin-console-version">Sertifikasi Academy · Admin Panel</small>
         </div>
     </aside>
@@ -106,11 +106,10 @@ $todayLabel = $weekdayNames[(int) date('N')] . ', ' . $today;
                 <div class="admin-console-breadcrumb"><span>Administrator</span><i class="bi bi-chevron-right" aria-hidden="true"></i><strong><?= e(ucfirst($pageTitle)) ?></strong></div>
             </div>
             <div class="admin-console-topbar-actions">
-                <a class="admin-console-profile" href="../user/ProfileController.php?tab=profil">
+                <div class="admin-console-profile admin-console-profile-static">
                     <span class="admin-console-avatar"><?= e(strtoupper(substr($data['username'] !== '' ? $data['username'] : 'A', 0, 1))) ?></span>
                     <span><strong><?= e($data['username']) ?></strong><small>Administrator</small></span>
-                    <i class="bi bi-chevron-down" aria-hidden="true"></i>
-                </a>
+                </div>
                 <a class="admin-console-logout" href="../AuthController.php?aksi=logout"><i class="bi bi-box-arrow-right" aria-hidden="true"></i><span>Keluar</span></a>
             </div>
         </header>

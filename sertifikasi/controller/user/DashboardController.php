@@ -66,7 +66,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit();
 }
 
-$dummy = ['kategori' => [], 'kursus' => []];
 $courseModel = new Course();
 $instructorClassModel = new InstructorClass();
 $userId = (int) $_SESSION['id_user'];
@@ -90,13 +89,10 @@ if ($activeCourse !== null) {
     ];
 }
 
-// Filter bidang dari menu Explore (whitelist, bukan langsung dipakai)
-$kategori    = isset($_GET['kategori']) && is_string($_GET['kategori']) ? $_GET['kategori'] : '';
-$q           = isset($_GET['q']) && is_string($_GET['q']) ? trim($_GET['q']) : '';
-if ($kategori !== '' && !in_array($kategori, $dummy['kategori'], true)) {
-    $kategori = '';
-}
-$rekomendasi = $dummy['kursus'];
+// Semua rekomendasi ditahan ke state kosong sampai data kursus nyata tersedia dari database.
+$kategori = isset($_GET['kategori']) && is_string($_GET['kategori']) ? $_GET['kategori'] : '';
+$q = isset($_GET['q']) && is_string($_GET['q']) ? trim($_GET['q']) : '';
+$rekomendasi = [];
 $rekomendasi = array_values(array_filter($rekomendasi, function ($course) use ($completedCourseSlugs, $activeCourseSlug, $kategori, $q) {
     if (
         isset($course['slug'])
@@ -104,10 +100,10 @@ $rekomendasi = array_values(array_filter($rekomendasi, function ($course) use ($
     ) {
         return false;
     }
-    if ($kategori !== '' && $course['kategori'] !== $kategori) {
+    if ($kategori !== '' && ($course['kategori'] ?? '') !== $kategori) {
         return false;
     }
-    if ($q !== '' && stripos($course['judul'] . ' ' . $course['kategori'] . ' ' . $course['level'], $q) === false) {
+    if ($q !== '' && stripos(($course['judul'] ?? '') . ' ' . ($course['kategori'] ?? '') . ' ' . ($course['level'] ?? ''), $q) === false) {
         return false;
     }
     return true;
