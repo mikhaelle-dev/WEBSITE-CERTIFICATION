@@ -21,6 +21,37 @@
   font-weight: 800;
 }
 
+.manage-overview-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 20px;
+}
+
+.manage-overview-wide {
+  grid-column: 1 / -1;
+}
+
+.manage-overview-modules h3 {
+  margin: 0 0 8px;
+  color: #1f3b30;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.manage-overview-modules > p {
+  margin: 0 0 12px;
+  color: #65796e;
+}
+
+.manage-overview-modules ol {
+  margin: 0;
+  padding-left: 22px;
+}
+
+.manage-overview-modules li + li {
+  margin-top: 6px;
+}
+
 .manage-class-modal {
   min-height: min(80vh, 780px);
 }
@@ -430,6 +461,10 @@
 
 @media (max-width: 600px) {
   .manage-quiz-options {
+    grid-template-columns: 1fr;
+  }
+
+  .manage-overview-fields {
     grid-template-columns: 1fr;
   }
 }

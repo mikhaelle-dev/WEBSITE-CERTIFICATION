@@ -8,7 +8,9 @@ $menuKursus = $data['exploreCourses'] ?? [];
 $menuKategori = $data['kategoriKursus'] ?? [];
 $menuKelas = $data['kelasTersedia'] ?? [];
 $aktif = $aktif ?? 'mylearning';
-$inisial = strtoupper(substr($data['username'], 0, 1));
+$username = trim((string) ($data['username'] ?? 'Pengguna'));
+$username = $username !== '' ? $username : 'Pengguna';
+$inisial = strtoupper(substr($username, 0, 1));
 $role = $data['role'] ?? 'siswa';
 $dashboardPath = $role === 'admin'
     ? '../admin/DashboardController.php'
@@ -108,7 +110,7 @@ $logoutPath = '../AuthController.php?aksi=logout';
                             <span class="avatar"><?= e($inisial) ?></span>
                         <?php endif; ?>
                         <span class="ms-2 lh-1 text-start">
-                            <span class="d-block fw-bold small"><?= e(strtoupper($data['username'])) ?></span>
+                            <span class="d-block fw-bold small"><?= e(strtoupper($username)) ?></span>
                             <span class="d-block text-muted tiny"><?= e(ucfirst($role)) ?></span>
                         </span>
                     </button>
@@ -126,7 +128,7 @@ $logoutPath = '../AuthController.php?aksi=logout';
         <?php else: ?>
             <span class="avatar avatar-lg"><?= e($inisial) ?></span>
         <?php endif; ?>
-        <div class="flex-grow-1 fw-semibold" id="userDrawerLabel"><?= e(strtoupper($data['username'])) ?></div>
+        <div class="flex-grow-1 fw-semibold" id="userDrawerLabel"><?= e(strtoupper($username)) ?></div>
     </div>
 
     <div class="offcanvas-body p-0">

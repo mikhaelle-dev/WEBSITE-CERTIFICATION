@@ -54,10 +54,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'join_class') {
         $key = trim((string) ($_POST['enroll_key'] ?? ''));
         $classModel = new InstructorClass();
-        $result = $classModel->enrollStudentByKey((int) $_SESSION['id_user'], $key);
+        $returnClassId = filter_var($_POST['return_class_id'] ?? null, FILTER_VALIDATE_INT);
+        $result = $key !== ''
+            ? $classModel->enrollStudentByKey((int) $_SESSION['id_user'], $key)
+            : ($returnClassId
+                ? $classModel->enrollStudentInPublicClass((int) $_SESSION['id_user'], (int) $returnClassId)
+                : null);
         if ($result === null) {
-            $_SESSION['student_error'] = 'Enroll key tidak valid atau kelas tidak bisa diakses.';
+            $_SESSION['student_error'] = $key !== ''
+                ? 'Kode enroll tidak valid atau kelas tidak bisa diakses.'
+                : 'Kelas publik tidak tersedia untuk diikuti.';
         } else {
+            if ($returnClassId && $returnClassId === (int) $result['id']) {
+                $_SESSION['classroom_success'] = 'Kamu berhasil bergabung ke kelas ' . $result['judul'] . '.';
+                header('Location: ClassroomController.php?class_id=' . (int) $result['id'] . '&tab=overview');
+                exit();
+            }
             $_SESSION['student_success'] = 'Kamu berhasil bergabung ke kelas ' . $result['judul'] . '.';
         }
     }
@@ -78,6 +90,7 @@ if ($activeCourse !== null) {
         'id' => (int) $activeCourse['course_id'],
         'slug' => $activeCourse['slug'],
         'kategori' => $activeCourse['kategori'],
+        'cover_image' => $courseModel->getCoverImage((string) $activeCourse['kategori']),
         'judul' => $activeCourse['judul'],
         'level' => $activeCourse['level'],
         'tipe' => 'Self-paced',
@@ -96,6 +109,14 @@ $exploreCourses = $kategori === '' && $q === ''
 $kategoriKursus = $courseModel->getCategories();
 $kelasSaya = $instructorClassModel->getStudentDashboardClasses($userId);
 $kelasTersedia = $instructorClassModel->getAvailableClassesForStudent($userId);
+$pencapaian = array_merge(
+    $courseModel->getAchievements($userId),
+    $instructorClassModel->getStudentClassBadges($userId),
+    $instructorClassModel->getStudentClassCertificates($userId)
+);
+usort($pencapaian, static function (array $left, array $right): int {
+    return strtotime((string) ($right['tanggal'] ?? '')) <=> strtotime((string) ($left['tanggal'] ?? ''));
+});
 
 $data = [
     'username'    => $_SESSION['username'],
@@ -109,7 +130,7 @@ $data = [
     'kategoriKursus' => $kategoriKursus,
     'kategori'    => $kategori,
     'q'           => $q,
-    'pencapaian'  => array_slice($courseModel->getAchievements($userId), 0, 3),
+    'pencapaian'  => array_slice($pencapaian, 0, 3),
     'student_success' => $_SESSION['student_success'] ?? '',
     'student_error' => $_SESSION['student_error'] ?? '',
 ];

@@ -1,7 +1,3 @@
-﻿html {
-  overflow-y: scroll;
-}
-
 body {
   margin: 0;
   background: #e9efeb;
@@ -11,10 +7,6 @@ body {
 
 * {
   box-sizing: border-box;
-}
-
-html.instructor-dashboard {
-  scrollbar-gutter: stable;
 }
 
 a,
@@ -632,7 +624,21 @@ textarea {
 }
 
 .class-modal-dialog {
-  --bs-modal-width: 680px;
+  --bs-modal-width: 960px;
+}
+
+.class-modal-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 18px;
+}
+
+.class-modal-fields .form-field {
+  min-width: 0;
+}
+
+.class-modal-field-wide {
+  grid-column: 1 / -1;
 }
 
 .instructor-modal .modal-header {
@@ -1301,5 +1307,9 @@ code {
 
   .analytics-card-heading {
     flex-direction: column;
+  }
+
+  .class-modal-fields {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

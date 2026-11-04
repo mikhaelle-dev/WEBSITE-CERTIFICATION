@@ -16,7 +16,7 @@ $p   = $data['profil'];
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet">
     <link href="../../asset/css/dashboard.css?v=20261103-course-flow" rel="stylesheet">
-    <link href="../../asset/css/profile.css?v=20261103-course-flow" rel="stylesheet">
+    <link href="../../asset/css/profile.css?v=<?= e(substr(hash_file('sha256', __DIR__ . '/../../asset/css/profile.css'), 0, 12)) ?>" rel="stylesheet">
     <link href="../../asset/css/theme-soft.css?v=20261103-course-flow" rel="stylesheet">
 </head>
 <body class="soft-app">
@@ -50,7 +50,7 @@ $p   = $data['profil'];
         <div class="pf-stats">
             <div><i class="bi bi-award"></i> <span class="num"><?= (int) $data['totalSertifikat'] ?></span><small>Sertifikat</small></div>
             <div class="sep"></div>
-            <div><i class="bi bi-book"></i> <span class="num"><?= (int) $data['totalSelesai'] ?></span><small>Kursus selesai</small></div>
+            <div><i class="bi bi-book"></i> <span class="num"><?= (int) $data['totalSelesai'] ?></span><small>Pembelajaran selesai</small></div>
         </div>
         <?php endif; ?>
     </div>
@@ -217,7 +217,7 @@ $p   = $data['profil'];
             <div class="text-center text-muted py-5">
                 <i class="bi bi-patch-check fs-1 text-success"></i>
                 <h3 class="h5 mt-3 text-dark">Belum ada sertifikat</h3>
-                <p>Selesaikan kursus dan lulus asesmennya untuk dapat sertifikat dan lencana pertamamu.</p>
+                <p>Selesaikan kelas atau kursus dan penuhi syaratnya untuk mendapatkan sertifikat atau badge pertamamu.</p>
                 <a class="btn btn-enroll px-4" href="DashboardController.php#rekomendasi">Mulai belajar</a>
             </div>
         <?php elseif (!$data['pencapaian']): ?>
@@ -228,9 +228,10 @@ $p   = $data['profil'];
             <?php foreach ($data['pencapaian'] as $a): ?>
             <div class="col-sm-6 col-lg-3">
                 <?php if ($a['sertifikat_id'] !== null): ?>
-                    <a class="ach-card ach-card-link ach-certificate-card" href="CertificateController.php?id=<?= (int) $a['sertifikat_id'] ?>">
+                    <a class="ach-card ach-card-link ach-certificate-card" href="<?= e($a['certificate_url'] ?? ('CertificateController.php?id=' . (int) $a['sertifikat_id'])) ?>">
                 <?php else: ?>
-                    <article class="ach-card ach-badge-card">
+                    <?php $badgeColor = in_array($a['badge_color'] ?? '', ['purple', 'green', 'blue', 'amber'], true) ? $a['badge_color'] : 'green'; ?>
+                    <article class="ach-card ach-badge-card ach-badge-<?= e($badgeColor) ?>">
                 <?php endif; ?>
                     <span class="ach-tag"><?= e($a['jenis']) ?></span>
                     <span class="ach-medallion"><i class="bi <?= e($a['ikon']) ?> ach-icon"></i></span>
@@ -271,7 +272,7 @@ $p   = $data['profil'];
             <div class="text-center text-muted py-5">
                 <i class="bi bi-clock-history fs-1 text-success"></i>
                 <h3 class="h5 mt-3 text-dark">Belum ada riwayat belajar</h3>
-                <p>Kursus yang kamu ikuti akan muncul di sini.</p>
+                <p>Kursus dan kelas yang kamu ikuti akan muncul di sini.</p>
                 <a class="btn btn-enroll px-4" href="DashboardController.php#rekomendasi">Jelajahi kursus</a>
             </div>
         <?php elseif (!$data['riwayat']): ?>
@@ -279,11 +280,12 @@ $p   = $data['profil'];
         <?php endif; ?>
 
         <?php foreach ($data['riwayat'] as $r): ?>
-            <a class="hist-row" href="CourseOverviewController.php?slug=<?= urlencode($r['slug'] ?? '') ?>" aria-label="Lihat overview kursus <?= e($r['judul']) ?>">
+            <?php $isClassHistory = !empty($r['class_id']); ?>
+            <a class="hist-row" href="<?= $isClassHistory ? 'ClassroomController.php?class_id=' . (int) $r['class_id'] . '&amp;tab=overview' : 'CourseOverviewController.php?slug=' . urlencode($r['slug'] ?? '') ?>" aria-label="Lihat overview <?= $isClassHistory ? 'kelas' : 'kursus' ?> <?= e($r['judul']) ?>">
                 <div class="hist-main">
-                    <img class="hist-thumb" src="../../asset/img/courses/<?= e($r['cover_image'] ?? 'digital-learning.jpg') ?>" alt="" loading="lazy" decoding="async">
+                    <img class="hist-thumb" src="<?= $isClassHistory && !empty($r['cover_image']) ? e($r['cover_image']) : '../../asset/img/courses/' . e($r['cover_image'] ?? 'digital-learning.jpg') ?>" alt="" loading="lazy" decoding="async">
                     <div>
-                        <small class="text-muted"><i class="bi bi-book"></i> Kursus &middot; <?= e($r['tipe']) ?></small>
+                        <small class="text-muted"><i class="bi bi-book"></i> <?= $isClassHistory ? 'Kelas' : 'Kursus &middot; ' . e($r['tipe']) ?></small>
                         <div class="fw-bold text-success"><?= e($r['judul']) ?></div>
                         <small class="hist-quiz-status">
                             <i class="bi bi-patch-question" aria-hidden="true"></i>

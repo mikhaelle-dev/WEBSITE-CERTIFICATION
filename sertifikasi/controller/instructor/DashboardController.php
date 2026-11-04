@@ -67,6 +67,12 @@ if (isset($_GET['ajax']) && in_array($_GET['ajax'], ['get_class', 'class_detail'
                 'deskripsi' => (string) $class['deskripsi'],
                 'status' => (string) $class['status'],
                 'icon_url' => (string) ($class['icon_url'] ?? ''),
+                'enroll_key' => (string) ($class['enroll_key'] ?? ''),
+                'durasi_estimasi' => ($class['durasi_estimasi'] ?? null) !== null ? (int) $class['durasi_estimasi'] : '',
+                'tingkat' => (string) ($class['tingkat'] ?? 'Beginner'),
+                'badge_label' => (string) ($class['badge_label'] ?? ''),
+                'badge_aktif' => (int) ($class['badge_aktif'] ?? 0),
+                'badge_color' => (string) ($class['badge_color'] ?? 'purple'),
             ];
             $payload = [
                 'success' => true,
@@ -126,7 +132,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new DomainException('Kelas tidak valid.');
         }
         if ($action === 'save_class') {
+            $currentClass = null;
+            if ($classId) {
+                $currentClass = $model->getClassById($actorId, (int) $classId);
+                if ($currentClass === null) {
+                    throw new DomainException('Kelas tidak ditemukan.');
+                }
+            }
             $iconUrl = trim((string) ($_POST['icon_url'] ?? ''));
+            $newIconUrl = null;
             if (isset($_FILES['class_icon']) && (int) $_FILES['class_icon']['error'] !== UPLOAD_ERR_NO_FILE
                 && (int) $_FILES['class_icon']['error'] !== UPLOAD_ERR_OK) {
                 throw new InvalidArgumentException('Upload cover kelas gagal. Silakan pilih file kembali.');
@@ -158,12 +172,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     throw new RuntimeException('Gagal menyimpan ikon kelas.');
                 }
                 $iconUrl = '../../uploads/class-icons/' . $fileName;
+                $newIconUrl = $iconUrl;
             }
 
             $data = [
                 'judul' => (string) ($_POST['judul'] ?? ''),
                 'kategori' => (string) ($_POST['kategori'] ?? 'Umum'),
                 'deskripsi' => (string) ($_POST['deskripsi'] ?? ''),
+                'durasi_estimasi' => $_POST['durasi_estimasi'] ?? null,
+                'tingkat' => $_POST['tingkat'] ?? 'Beginner',
                 'status' => (string) ($_POST['status'] ?? 'draft'),
                 'enroll_key' => (string) ($_POST['enroll_key'] ?? ''),
                 'icon_url' => $iconUrl,
@@ -171,14 +188,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'badge_aktif' => !empty($_POST['badge_aktif']) ? 1 : 0,
                 'badge_color' => trim((string) ($_POST['badge_color'] ?? 'purple')),
             ];
-            if ($classId) {
-                $model->updateClass($actorId, (int) $classId, $data);
-                $savedClassId = (int) $classId;
-                $_SESSION['instructor_success'] = 'Kelas berhasil diperbarui.';
-            } else {
-                $savedClassId = $model->createClass($actorId, $data);
-                $_SESSION['instructor_success'] = 'Kelas berhasil dibuat.';
+            try {
+                if ($classId) {
+                    $data['badge_label'] = $currentClass['badge_label'] ?? null;
+                    $data['badge_aktif'] = (int) ($currentClass['badge_aktif'] ?? 0);
+                    $data['badge_color'] = $currentClass['badge_color'] ?? 'purple';
+                    $model->updateClass($actorId, (int) $classId, $data);
+                    $savedClassId = (int) $classId;
+                    $_SESSION['instructor_success'] = 'Kelas berhasil diperbarui.';
+                } else {
+                    $savedClassId = $model->createClass($actorId, $data);
+                    $_SESSION['instructor_success'] = 'Kelas berhasil dibuat.';
+                }
+            } catch (Throwable $e) {
+                if ($newIconUrl !== null) {
+                    try {
+                        $model->deleteClassUploadIfUnreferenced($newIconUrl, 'class-icons');
+                    } catch (Throwable $cleanupError) {
+                        error_log('New class icon cleanup failed: ' . $cleanupError->getMessage());
+                    }
+                }
+                throw $e;
             }
+            if ($savedClassId !== null) {
+                $tools->issueEligibleCertificatesAutomaticallyForClass($actorId, $savedClassId);
+            }
+            if ($data['badge_aktif'] && $savedClassId !== null) {
+                $model->awardClassBadgesForCompletedStudents($savedClassId);
+            }
+        } elseif ($action === 'save_class_overview') {
+            if (!$classId) {
+                throw new DomainException('Kelas tidak valid.');
+            }
+            $currentClass = $model->getClassById($actorId, (int) $classId);
+            if ($currentClass === null) {
+                throw new DomainException('Kelas tidak ditemukan.');
+            }
+            $overviewData = array_merge($currentClass, [
+                'kategori' => (string) ($_POST['kategori'] ?? ''),
+                'deskripsi' => (string) ($_POST['deskripsi'] ?? ''),
+                'durasi_estimasi' => $_POST['durasi_estimasi'] ?? '',
+                'tingkat' => $_POST['tingkat'] ?? '',
+                'badge_label' => trim((string) ($_POST['badge_label'] ?? '')),
+                'badge_aktif' => !empty($_POST['badge_aktif']) ? 1 : 0,
+                'badge_color' => (string) ($_POST['badge_color'] ?? 'purple'),
+            ]);
+            $model->updateClass($actorId, (int) $classId, $overviewData);
+            if (!empty($overviewData['badge_aktif'])) {
+                $model->awardClassBadgesForCompletedStudents((int) $classId);
+            }
+            $savedClassId = (int) $classId;
+            $_SESSION['instructor_success'] = 'Overview kelas berhasil disimpan.';
         } elseif ($action === 'delete_class') {
             if (!$classId) {
                 throw new DomainException('Kelas tidak valid.');
@@ -193,6 +253,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $moduleData = [
                 'judul' => (string) ($_POST['module_judul'] ?? ''),
                 'deskripsi' => (string) ($_POST['module_deskripsi'] ?? ''),
+                'enroll_key' => (string) ($_POST['module_enroll_key'] ?? ''),
                 'urutan' => isset($_POST['module_urutan']) ? (int) $_POST['module_urutan'] : 0,
             ];
             if ($moduleId) {
@@ -221,8 +282,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new DomainException('Modul untuk materi wajib dipilih.');
             }
             $materialId = isset($_POST['material_id']) ? filter_var($_POST['material_id'], FILTER_VALIDATE_INT) : false;
+            $currentMaterial = $materialId ? $model->getMaterialById($actorId, (int) $classId, (int) $materialId) : null;
+            if ($materialId && $currentMaterial === null) {
+                throw new DomainException('Materi tidak ditemukan.');
+            }
             $materialContent = (string) ($_POST['material_isi'] ?? '');
             $materialType = (string) ($_POST['material_tipe'] ?? 'teks');
+            $newMaterialFile = null;
             if (isset($_FILES['material_file']) && (int) $_FILES['material_file']['error'] !== UPLOAD_ERR_NO_FILE) {
                 if ((int) $_FILES['material_file']['error'] !== UPLOAD_ERR_OK) {
                     throw new InvalidArgumentException('Upload materi gagal. Pilih file kembali.');
@@ -235,12 +301,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'application/pdf' => ['pdf', 'dokumen'],
                     'video/mp4' => ['mp4', 'video'],
                     'video/webm' => ['webm', 'video'],
+                    'image/jpeg' => ['jpg', 'dokumen'],
+                    'image/png' => ['png', 'dokumen'],
+                    'image/webp' => ['webp', 'dokumen'],
                     'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => ['docx', 'dokumen'],
                     'application/vnd.openxmlformats-officedocument.presentationml.presentation' => ['pptx', 'dokumen'],
                 ];
                 $size = (int) ($_FILES['material_file']['size'] ?? 0);
-                if ($mime === null || !isset($allowedMime[$mime]) || $size < 1 || $size > 25 * 1024 * 1024) {
-                    throw new InvalidArgumentException('Materi harus berupa PDF, DOCX, PPTX, MP4, atau WebM maksimal 25 MB.');
+                $isImage = is_string($mime) && strpos($mime, 'image/') === 0;
+                $imageInfo = $isImage ? @getimagesize($tmpFile) : true;
+                if ($mime === null || !isset($allowedMime[$mime]) || $size < 1 || $size > 25 * 1024 * 1024 || $imageInfo === false) {
+                    throw new InvalidArgumentException('Materi harus berupa PDF, DOCX, PPTX, MP4, WebM, JPG, PNG, atau WebP maksimal 25 MB.');
                 }
                 $uploadDir = __DIR__ . '/../../uploads/class-materials';
                 if (!is_dir($uploadDir) && !mkdir($uploadDir, 0755, true) && !is_dir($uploadDir)) {
@@ -253,6 +324,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 $materialContent = '../../uploads/class-materials/' . $fileName;
                 $materialType = $allowedMime[$mime][1];
+                $newMaterialFile = $materialContent;
             }
             $materialData = [
                 'judul' => (string) ($_POST['material_judul'] ?? ''),
@@ -260,12 +332,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'tipe' => $materialType,
                 'urutan' => isset($_POST['material_urutan']) ? (int) $_POST['material_urutan'] : 0,
             ];
-            if ($materialId) {
-                $model->updateMaterial($actorId, (int) $classId, (int) $materialId, $materialData);
-                $_SESSION['instructor_success'] = 'Materi berhasil diperbarui.';
-            } else {
-                $model->createMaterial($actorId, (int) $classId, (int) $moduleId, $materialData);
-                $_SESSION['instructor_success'] = 'Materi berhasil dibuat.';
+            try {
+                if ($materialId) {
+                    $model->updateMaterial($actorId, (int) $classId, (int) $materialId, $materialData);
+                    $_SESSION['instructor_success'] = 'Materi berhasil diperbarui.';
+                } else {
+                    $model->createMaterial($actorId, (int) $classId, (int) $moduleId, $materialData);
+                    $_SESSION['instructor_success'] = 'Materi berhasil dibuat.';
+                }
+            } catch (Throwable $e) {
+                if ($newMaterialFile !== null) {
+                    try {
+                        $model->deleteClassUploadIfUnreferenced($newMaterialFile, 'class-materials');
+                    } catch (Throwable $cleanupError) {
+                        error_log('New class material cleanup failed: ' . $cleanupError->getMessage());
+                    }
+                }
+                throw $e;
             }
         } elseif ($action === 'delete_material') {
             if (!$classId) {
@@ -401,14 +484,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new DomainException('Aksi tidak valid.');
         }
     } catch (Throwable $e) {
+        $isExpectedError = $e instanceof InvalidArgumentException || $e instanceof DomainException;
         if ($ajaxRequest) {
-            $ajaxError = ($e instanceof InvalidArgumentException || $e instanceof DomainException)
+            if (!$isExpectedError) {
+                error_log('Instructor dashboard AJAX failed (' . $action . '): ' . $e->getMessage());
+            }
+            $ajaxError = $isExpectedError
                 ? $e->getMessage()
                 : 'Terjadi kesalahan saat memproses permintaan.';
-            $ajaxStatus = ($e instanceof InvalidArgumentException || $e instanceof DomainException) ? 422 : 500;
-            if ($ajaxError === 'Terjadi kesalahan saat menyimpan kelas.') {
-                error_log('Instructor dashboard AJAX failed: ' . $e->getMessage());
-            }
+            $ajaxStatus = $isExpectedError ? 422 : 500;
         } else {
             $_SESSION['instructor_error'] = $e->getMessage();
         }
@@ -423,7 +507,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($createdRecordId !== null) {
                 $payload['record_id'] = $createdRecordId;
             }
-            if ($action === 'save_class' && $savedClassId !== null) {
+            if (in_array($action, ['save_class', 'save_class_overview'], true) && $savedClassId !== null) {
                 $savedClass = $model->getClassById($actorId, $savedClassId);
                 $payload['class'] = $savedClass !== null ? [
                     'id' => (int) $savedClass['id'],
@@ -432,6 +516,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'deskripsi' => (string) $savedClass['deskripsi'],
                     'status' => (string) $savedClass['status'],
                     'icon_url' => (string) ($savedClass['icon_url'] ?? ''),
+                    'durasi_estimasi' => ($savedClass['durasi_estimasi'] ?? null) !== null ? (int) $savedClass['durasi_estimasi'] : '',
+                    'tingkat' => (string) ($savedClass['tingkat'] ?? 'Beginner'),
+                    'badge_label' => (string) ($savedClass['badge_label'] ?? ''),
+                    'badge_aktif' => (int) ($savedClass['badge_aktif'] ?? 0),
+                    'badge_color' => (string) ($savedClass['badge_color'] ?? 'purple'),
                 ] : null;
             }
         }

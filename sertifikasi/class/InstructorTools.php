@@ -10,72 +10,6 @@ class InstructorTools extends Database
         return $stmt;
     }
 
-    public function getCertificateTemplate(int $instructorId): array
-    {
-        return $this->run(
-            'SELECT * FROM certificate_templates WHERE instructor_id = ? LIMIT 1',
-            [$instructorId]
-        )->fetch() ?: [
-            'background_path' => '',
-            'signature_path' => '',
-            'signer_name' => '',
-            'signer_title' => 'Instruktur Utama',
-            'number_format' => 'CERT/{YEAR}/{CLASS_ID}/{RANDOM}',
-        ];
-    }
-
-    public function saveCertificateTemplate(int $instructorId, array $data): void
-    {
-        $signerName = trim((string) ($data['signer_name'] ?? ''));
-        $signerTitle = trim((string) ($data['signer_title'] ?? ''));
-        $numberFormat = trim((string) ($data['number_format'] ?? ''));
-        if ($signerName === '' || $signerTitle === '') {
-            throw new InvalidArgumentException('Nama dan jabatan penandatangan wajib diisi.');
-        }
-        if ($numberFormat === '' || strlen($numberFormat) > 180
-            || !str_contains($numberFormat, '{YEAR}')
-            || !str_contains($numberFormat, '{CLASS_ID}')
-            || !str_contains($numberFormat, '{RANDOM}')) {
-            throw new InvalidArgumentException('Format nomor harus memuat {YEAR}, {CLASS_ID}, dan {RANDOM}.');
-        }
-
-        $this->run(
-            'INSERT INTO certificate_templates (instructor_id, background_path, signature_path, signer_name, signer_title, number_format)
-             VALUES (?, ?, ?, ?, ?, ?)
-             ON DUPLICATE KEY UPDATE
-                background_path = VALUES(background_path),
-                signature_path = VALUES(signature_path),
-                signer_name = VALUES(signer_name),
-                signer_title = VALUES(signer_title),
-                number_format = VALUES(number_format)',
-            [
-                $instructorId,
-                (string) ($data['background_path'] ?? ''),
-                (string) ($data['signature_path'] ?? ''),
-                $signerName,
-                $signerTitle,
-                $numberFormat,
-            ]
-        );
-    }
-
-    public function getEligibleCertificates(int $instructorId): array
-    {
-        return $this->run(
-            "SELECT ks.user_id AS student_id, u.nama AS student_name, k.id AS class_id, k.judul AS class_title,
-                    COALESCE(uc.status, 'pending') AS certificate_status,
-                    uc.id AS certificate_id, uc.certificate_no, uc.issued_at, ks.selesai_pada AS passed_at,
-                    ks.progress, ks.status AS enrollment_status
-             FROM kelas_siswa ks
-             JOIN kelas k ON k.id = ks.kelas_id AND k.instruktur_id = ?
-             JOIN user u ON u.id = ks.user_id
-             LEFT JOIN user_certificates uc ON uc.student_id = ks.user_id AND uc.class_id = ks.kelas_id
-             WHERE (ks.status = 'selesai' OR ks.progress >= 100)
-             ORDER BY uc.issued_at DESC, k.judul ASC, u.nama ASC",
-            [$instructorId]
-        )->fetchAll();
-    }
-
     private function issueEligibleCertificate(int $instructorId, int $classId, int $studentId): bool
     {
         $eligible = $this->run(
@@ -100,18 +34,7 @@ class InstructorTools extends Database
             return false;
         }
 
-        $template = $this->getCertificateTemplate($instructorId);
-        if (trim((string) ($template['signer_name'] ?? '')) === '' || trim((string) ($template['signer_title'] ?? '')) === '') {
-            throw new InvalidArgumentException('Lengkapi dan simpan template sertifikat sebelum menerbitkan sertifikat.');
-        }
-        $number = str_replace(
-            ['{YEAR}', '{CLASS_ID}', '{RANDOM}'],
-            [date('Y'), (string) $classId, strtoupper(bin2hex(random_bytes(4)))],
-            (string) $template['number_format']
-        );
-        if (!preg_match('/\A[A-Za-z0-9._\/-]{1,180}\z/D', $number)) {
-            throw new InvalidArgumentException('Format nomor sertifikat menghasilkan kode yang tidak valid.');
-        }
+        $number = 'CERT/' . date('Y') . '/' . $classId . '/' . strtoupper(bin2hex(random_bytes(4)));
 
         $this->run(
             "INSERT INTO user_certificates (student_id, class_id, certificate_no, status, issued_at, issued_by)
@@ -126,66 +49,57 @@ class InstructorTools extends Database
         return true;
     }
 
-    public function issueCertificate(int $instructorId, int $classId, int $studentId): void
+    public function issueAutomaticClassCertificate(int $classId, int $studentId): bool
     {
-        $this->issueEligibleCertificate($instructorId, $classId, $studentId);
-    }
-
-    public function issueAllEligibleCertificates(int $instructorId): int
-    {
-        $this->db->beginTransaction();
-        try {
-            $eligible = $this->run(
-                "SELECT ks.kelas_id, ks.user_id
-                 FROM kelas_siswa ks
-                 JOIN kelas k ON k.id = ks.kelas_id
-                 LEFT JOIN user_certificates uc ON uc.student_id = ks.user_id AND uc.class_id = ks.kelas_id AND uc.status = 'issued'
-                 WHERE k.instruktur_id = ? AND uc.id IS NULL
-                   AND (ks.status = 'selesai' OR ks.progress >= 100)
-                 ORDER BY ks.kelas_id, ks.user_id",
-                [$instructorId]
-            )->fetchAll();
-
-            $issued = 0;
-            foreach ($eligible as $row) {
-                if ($this->issueEligibleCertificate($instructorId, (int) $row['kelas_id'], (int) $row['user_id'])) {
-                    $issued++;
-                }
-            }
-            $this->db->commit();
-            return $issued;
-        } catch (Throwable $e) {
-            if ($this->db->inTransaction()) {
-                $this->db->rollBack();
-            }
-            throw $e;
-        }
-    }
-
-    public function getIssuedCertificate(int $instructorId, int $certificateId): ?array
-    {
-        $row = $this->run(
-            "SELECT uc.*, u.nama AS student_name, k.judul AS class_title
-             FROM user_certificates uc
-             JOIN user u ON u.id = uc.student_id
-             JOIN kelas k ON k.id = uc.class_id
-             WHERE uc.id = ? AND uc.status = 'issued' AND k.instruktur_id = ?
-             LIMIT 1",
-            [$certificateId, $instructorId]
+        $class = $this->run(
+            'SELECT k.instruktur_id, ks.progress
+             FROM kelas k
+             JOIN kelas_siswa ks ON ks.kelas_id = k.id AND ks.user_id = ?
+             WHERE k.id = ?
+             LIMIT 1',
+            [$studentId, $classId]
         )->fetch();
-        return $row ?: null;
+        if (!$class || (int) $class['progress'] < 100) {
+            return false;
+        }
+
+        return $this->issueEligibleCertificate((int) $class['instruktur_id'], $classId, $studentId);
     }
 
-    public function verifyCertificate(string $certificateNumber, int $instructorId): ?array
+    public function issueEligibleCertificatesAutomaticallyForClass(int $instructorId, int $classId): int
+    {
+        $eligible = $this->run(
+            "SELECT ks.user_id
+             FROM kelas_siswa ks
+             JOIN kelas k ON k.id = ks.kelas_id
+             LEFT JOIN user_certificates uc
+                ON uc.student_id = ks.user_id AND uc.class_id = ks.kelas_id AND uc.status = 'issued'
+             WHERE k.id = ? AND k.instruktur_id = ?
+               AND uc.id IS NULL AND ks.progress >= 100
+             ORDER BY ks.user_id",
+            [$classId, $instructorId]
+        )->fetchAll(PDO::FETCH_COLUMN);
+
+        $issued = 0;
+        foreach ($eligible as $studentId) {
+            if ($this->issueEligibleCertificate($instructorId, $classId, (int) $studentId)) {
+                $issued++;
+            }
+        }
+        return $issued;
+    }
+
+    public function getStudentIssuedCertificate(int $studentId, int $certificateId): ?array
     {
         $row = $this->run(
-            "SELECT uc.certificate_no, uc.issued_at, u.nama AS student_name, k.judul AS class_title
+            "SELECT uc.*, u.nama AS student_name, k.judul AS class_title,
+                    k.kategori AS category
              FROM user_certificates uc
              JOIN user u ON u.id = uc.student_id
              JOIN kelas k ON k.id = uc.class_id
-             WHERE uc.certificate_no = ? AND uc.status = 'issued' AND k.instruktur_id = ?
+             WHERE uc.id = ? AND uc.student_id = ? AND uc.status = 'issued'
              LIMIT 1",
-            [$certificateNumber, $instructorId]
+            [$certificateId, $studentId]
         )->fetch();
         return $row ?: null;
     }

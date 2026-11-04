@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var classForm = document.getElementById('class-form');
   var classModalElement = document.getElementById('classModal');
   if (classForm && classModalElement && window.bootstrap) {
+    var classModal = window.bootstrap.Modal.getOrCreateInstance(classModalElement);
     var feedback = document.getElementById('class-form-feedback');
     var submitButton = document.getElementById('class-submit');
     var submitLabel = submitButton.querySelector('.js-submit-label');
@@ -53,6 +54,9 @@ document.addEventListener('DOMContentLoaded', function () {
       try {
         return await response.json();
       } catch (error) {
+        if (error.name === 'AbortError') {
+          throw error;
+        }
         throw new Error('Respons server tidak dapat dibaca. Silakan coba kembali.');
       }
     }
@@ -60,15 +64,35 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateClassRow(classData) {
       var row = document.querySelector('[data-class-row="' + classData.id + '"]');
       if (!row) {
+        window.location.reload();
         return;
       }
 
-      row.querySelector('.class-name-wrap strong').textContent = classData.judul;
-      row.querySelector('.class-name-wrap small').textContent = classData.deskripsi;
-      row.children[1].textContent = classData.kategori;
+      var previousStatus = row.dataset.classStatus;
+      var title = row.querySelector('.class-name-wrap strong');
+      var description = row.querySelector('.class-name-wrap small');
+      var category = row.querySelector('[data-class-category]');
       var statusBadge = row.querySelector('.status-badge');
+      if (!title || !description || !category || !statusBadge) {
+        window.location.reload();
+        return;
+      }
+
+      title.textContent = classData.judul;
+      description.textContent = classData.deskripsi;
+      category.textContent = classData.kategori;
       statusBadge.className = 'status-badge status-' + classData.status;
       statusBadge.textContent = classData.status === 'aktif' ? 'Publish' : (classData.status === 'ditutup' ? 'Ditutup' : 'Draft');
+      if (previousStatus !== classData.status) {
+        var activeClassCount = document.querySelector('[data-stat="active-classes"]');
+        if (activeClassCount) {
+          var count = Number(activeClassCount.textContent) || 0;
+          if (previousStatus === 'aktif') count--;
+          if (classData.status === 'aktif') count++;
+          activeClassCount.textContent = String(Math.max(0, count));
+        }
+      }
+      row.dataset.classStatus = classData.status;
       var image = row.querySelector('.class-thumb img');
       if (classData.icon_url) {
         if (!image) {
@@ -133,7 +157,10 @@ document.addEventListener('DOMContentLoaded', function () {
         classForm.querySelector('[name="judul"]').value = payload.class.judul;
         classForm.querySelector('[name="kategori"]').value = payload.class.kategori;
         classForm.querySelector('[name="deskripsi"]').value = payload.class.deskripsi;
+        classForm.querySelector('[name="durasi_estimasi"]').value = payload.class.durasi_estimasi || '';
+        classForm.querySelector('[name="tingkat"]').value = payload.class.tingkat || 'Beginner';
         classForm.querySelector('[name="status"][value="' + payload.class.status + '"]').checked = true;
+        classForm.querySelector('[name="enroll_key"]').value = payload.class.enroll_key || '';
         iconUrlField.value = payload.class.icon_url || '';
         coverHelp.textContent = payload.class.icon_url
           ? 'Cover saat ini dipertahankan jika Anda tidak memilih file baru.'
@@ -227,6 +254,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   var manageModal = document.getElementById('manageClassModal');
   var manageFeedback = document.getElementById('manage-class-feedback');
+  var manageModuleForm = document.getElementById('manage-module-form');
   var currentManageClassId = '';
   var csrfToken = classForm ? classForm.querySelector('[name="csrf_token"]').value : '';
 
@@ -242,12 +270,25 @@ document.addEventListener('DOMContentLoaded', function () {
     manageFeedback.textContent = message;
   }
 
+  function resetManageModuleForm() {
+    if (!manageModuleForm) return;
+    manageModuleForm.reset();
+    manageModuleForm.querySelector('[name="module_id"]').value = '';
+    manageModuleForm.querySelector('[data-module-access-key-field]').classList.add('d-none');
+    document.getElementById('manage-module-form-title').textContent = 'Tambah modul';
+    document.getElementById('manage-module-submit').textContent = 'Simpan modul';
+    manageModuleForm.querySelector('[data-cancel-module-edit]').classList.add('d-none');
+  }
+
   async function fetchJson(url, options) {
     var response = await fetch(url, options);
     var payload;
     try {
       payload = await response.json();
     } catch (error) {
+      if (error.name === 'AbortError') {
+        throw error;
+      }
       throw new Error('Respons server tidak dapat dibaca.');
     }
     if (!response.ok || !payload.success) {
@@ -256,28 +297,47 @@ document.addEventListener('DOMContentLoaded', function () {
     return payload;
   }
 
-  async function postDashboardForm(formData) {
+  async function postDashboardForm(formData, signal) {
     formData.append('ajax', '1');
     formData.append('class_id', currentManageClassId);
     formData.append('csrf_token', csrfToken);
-    return fetchJson('DashboardController.php', {
+    var options = {
       method: 'POST',
       body: formData,
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
       credentials: 'same-origin'
-    });
+    };
+    if (signal) {
+      options.signal = signal;
+    }
+    return fetchJson('DashboardController.php', options);
   }
 
   function renderManageDetails(payload) {
     var moduleSelect = manageModal.querySelector('[data-module-select]');
     var moduleList = document.getElementById('manage-module-list');
+    var overviewForm = document.getElementById('manage-overview-form');
+    var overviewModules = document.getElementById('manage-overview-modules');
     var quizList = document.getElementById('manage-quiz-list');
     var studentList = document.getElementById('manage-student-list');
     moduleSelect.innerHTML = '<option value="">Pilih modul</option>';
+    if (overviewForm && payload.class) {
+      overviewForm.querySelector('[name="kategori"]').value = payload.class.kategori || 'Umum';
+      overviewForm.querySelector('[name="deskripsi"]').value = payload.class.deskripsi || '';
+      overviewForm.querySelector('[name="durasi_estimasi"]').value = payload.class.durasi_estimasi || '';
+      overviewForm.querySelector('[name="tingkat"]').value = payload.class.tingkat || 'Beginner';
+      overviewForm.querySelector('[name="badge_label"]').value = payload.class.badge_label || '';
+      overviewForm.querySelector('[name="badge_color"]').value = payload.class.badge_color || 'purple';
+      overviewForm.querySelector('[name="badge_aktif"]').checked = Number(payload.class.badge_aktif) === 1;
+    }
 
     if (!payload.modules.length) {
       moduleList.innerHTML = '<p class="text-secondary">Belum ada modul atau materi.</p>';
+      overviewModules.innerHTML = '<p class="text-secondary mb-0">Belum ada modul. Tambahkan nama modul di tab Materi.</p>';
     } else {
+      overviewModules.innerHTML = '<ol>' + payload.modules.map(function (module) {
+        return '<li>' + escapeHtml(module.judul) + '</li>';
+      }).join('') + '</ol>';
       moduleList.innerHTML = payload.modules.map(function (module) {
         moduleSelect.insertAdjacentHTML('beforeend', '<option value="' + Number(module.id) + '">' + escapeHtml(module.judul) + '</option>');
         var materials = (module.materi || []).map(function (material) {
@@ -286,10 +346,31 @@ document.addEventListener('DOMContentLoaded', function () {
             : '<span>' + escapeHtml(material.isi) + '</span>';
           return '<li><strong>' + escapeHtml(material.judul) + '</strong> <small>(' + escapeHtml(material.tipe) + ')</small><div class="manage-content-preview">' + link + '</div></li>';
         }).join('');
-        return '<article class="manage-list-card"><h4>' + escapeHtml(module.judul) + '</h4><p>' + escapeHtml(module.deskripsi || '') + '</p>' +
+        var accessBadge = module.enroll_key
+          ? '<span class="badge text-bg-secondary">Privat</span>'
+          : '<span class="badge text-bg-success">Publik</span>';
+        var editModuleButton = '<button type="button" class="secondary-button compact" data-edit-module' +
+          ' data-id="' + Number(module.id) + '"' +
+          ' data-title="' + escapeHtml(module.judul) + '"' +
+          ' data-description="' + escapeHtml(module.deskripsi || '') + '"' +
+          ' data-key="' + escapeHtml(module.enroll_key || '') + '">Edit modul</button>';
+        return '<article class="manage-list-card"><div class="d-flex justify-content-between align-items-start gap-2"><h4>' + escapeHtml(module.judul) + '</h4>' + accessBadge + '</div><p>' + escapeHtml(module.deskripsi || '') + '</p>' + editModuleButton +
           (materials ? '<ul>' + materials + '</ul>' : '<p class="text-secondary mb-0">Belum ada materi.</p>') + '</article>';
       }).join('');
     }
+    moduleList.querySelectorAll('[data-edit-module]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        manageModuleForm.querySelector('[name="module_id"]').value = button.dataset.id;
+        manageModuleForm.querySelector('[name="module_judul"]').value = button.dataset.title;
+        manageModuleForm.querySelector('[name="module_deskripsi"]').value = button.dataset.description;
+        manageModuleForm.querySelector('[name="module_enroll_key"]').value = button.dataset.key;
+        manageModuleForm.querySelector('[data-module-access-key-field]').classList.remove('d-none');
+        document.getElementById('manage-module-form-title').textContent = 'Edit modul';
+        document.getElementById('manage-module-submit').textContent = 'Simpan perubahan';
+        manageModuleForm.querySelector('[data-cancel-module-edit]').classList.remove('d-none');
+        manageModuleForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    });
 
     var quizzesMarkup = payload.quizzes.map(function (quiz) {
       return '<article class="manage-list-card"><h4>' + escapeHtml(quiz.judul) + '</h4><p>' + Number(quiz.total_soal || 0) + ' soal pilihan ganda</p></article>';
@@ -360,10 +441,12 @@ document.addEventListener('DOMContentLoaded', function () {
       manageModal.querySelectorAll('form').forEach(function (form) {
         form.reset();
       });
+      resetManageModuleForm();
       manageModal.querySelectorAll('.manage-form-card button[type="submit"]').forEach(function (button) {
         button.disabled = false;
       });
       manageModal.querySelector('[data-module-select]').innerHTML = '<option value="">Pilih modul</option>';
+      document.getElementById('manage-overview-modules').innerHTML = '<p class="text-secondary mb-0">Pilih kelas untuk melihat daftar modul.</p>';
       document.getElementById('manage-module-list').innerHTML = '<p class="text-secondary">Pilih kelas untuk melihat modul dan materi.</p>';
       document.getElementById('manage-quiz-list').innerHTML = '<p class="text-secondary">Pilih kelas untuk melihat kuis dan tugas.</p>';
       document.getElementById('manage-student-list').innerHTML = '<p class="p-3 text-secondary mb-0">Pilih kelas untuk melihat daftar siswa.</p>';
@@ -376,25 +459,70 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     manageModal.querySelectorAll('.js-manage-form').forEach(function (form) {
+      var cancelButton = form.querySelector('[data-cancel-upload]');
+      var requestController = null;
+      var materialFileField = form.querySelector('[name="material_file"]');
+      var materialTypeField = form.querySelector('[name="material_tipe"]');
+      if (materialFileField && materialTypeField) {
+        materialFileField.addEventListener('change', function () {
+          var selectedFile = materialFileField.files[0];
+          if (!selectedFile) return;
+          if (selectedFile.type.indexOf('image/') === 0) {
+            materialTypeField.value = 'dokumen';
+          } else if (selectedFile.type.indexOf('video/') === 0) {
+            materialTypeField.value = 'video';
+          }
+        });
+      }
+
+      if (cancelButton) {
+        cancelButton.addEventListener('click', function () {
+          if (requestController) {
+            requestController.abort();
+            cancelButton.disabled = true;
+          }
+        });
+      }
+
       form.addEventListener('submit', async function (event) {
         event.preventDefault();
         if (!form.reportValidity()) return;
         var button = form.querySelector('[type="submit"]');
+        var isMaterialForm = form.dataset.action === 'save_material';
+        requestController = isMaterialForm ? new AbortController() : null;
         button.disabled = true;
+        if (isMaterialForm) {
+          button.textContent = 'Mengirim...';
+          cancelButton.classList.remove('d-none');
+          cancelButton.disabled = false;
+        }
         try {
           var formData = new FormData(form);
           formData.set('aksi', form.dataset.action);
-          var payload = await postDashboardForm(formData);
+          var payload = await postDashboardForm(formData, requestController ? requestController.signal : undefined);
           form.reset();
+          if (form === manageModuleForm) resetManageModuleForm();
           await refreshManageDetails(manageRequestId);
           showManageFeedback(payload.message, 'success');
         } catch (error) {
-          showManageFeedback(error.message, 'danger');
+          if (error.name === 'AbortError') {
+            showManageFeedback('Pengiriman dibatalkan. Jika server sudah menerima seluruh file, materi mungkin sudah tersimpan.', 'info');
+          } else {
+            showManageFeedback(error.message, 'danger');
+          }
         } finally {
           button.disabled = false;
+          if (isMaterialForm) {
+            button.textContent = 'Simpan materi';
+            cancelButton.classList.add('d-none');
+            cancelButton.disabled = false;
+            requestController = null;
+          }
         }
       });
     });
+
+    manageModuleForm.querySelector('[data-cancel-module-edit]').addEventListener('click', resetManageModuleForm);
 
     var quizForm = document.getElementById('manage-quiz-form');
     quizForm.addEventListener('submit', async function (event) {

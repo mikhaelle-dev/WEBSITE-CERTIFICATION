@@ -43,7 +43,7 @@ $certificate = $data['certificate'];
             <h2><?= e($certificate['nama_peserta']) ?></h2>
             <p class="completion-copy">telah menyelesaikan pembelajaran dan memenuhi persyaratan kelulusan untuk kursus</p>
             <h3><?= e($certificate['judul_kursus']) ?></h3>
-            <p class="category"><?= e($certificate['kategori']) ?> <span>·</span> <?= e($certificate['durasi']) ?></p>
+            <p class="category"><?= e($certificate['kategori']) ?><?php if (!empty($certificate['durasi'])): ?> <span>·</span> <?= e($certificate['durasi']) ?><?php endif; ?></p>
         </section>
 
         <section class="certificate-details" aria-label="Detail sertifikat">

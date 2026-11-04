@@ -29,7 +29,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../../asset/css/theme-soft.css?v=20261103-green2" rel="stylesheet">
     <link href="../../asset/css/instructor.css" rel="stylesheet">
-    <link href="../../asset/css/instructor-tools.css" rel="stylesheet">
+    <link href="../../asset/css/instructor-tools.css?v=<?= e(substr(hash_file('sha256', __DIR__ . '/../../asset/css/instructor-tools.css'), 0, 12)) ?>" rel="stylesheet">
 </head>
 <body class="instructor-dashboard-page">
     <div class="instructor-layout">
@@ -52,10 +52,6 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                 <a href="DashboardController.php?page=bank_materi" class="sidebar-item">
                     <span class="sidebar-icon"><i class="bi bi-collection"></i></span>
                     <span>Bank Materi</span>
-                </a>
-                <a href="CertificateController.php?page=sertifikat" class="sidebar-item">
-                    <span class="sidebar-icon"><i class="bi bi-patch-check"></i></span>
-                    <span>Kelola Sertifikat</span>
                 </a>
                 <a href="ForumController.php?page=forum" class="sidebar-item">
                     <span class="sidebar-icon"><i class="bi bi-chat-dots"></i></span>
@@ -131,6 +127,21 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
 
                                 <div class="two-column-field">
                                     <label class="form-field">
+                                        <span>Durasi estimasi (jam)</span>
+                                        <input type="number" name="durasi_estimasi" min="1" max="1000" step="1" placeholder="Contoh: 8" required>
+                                    </label>
+                                    <label class="form-field">
+                                        <span>Tingkat</span>
+                                        <select name="tingkat" required>
+                                            <option value="Beginner" selected>Beginner</option>
+                                            <option value="Intermediate">Intermediate</option>
+                                            <option value="Advanced">Advanced</option>
+                                        </select>
+                                    </label>
+                                </div>
+
+                                <div class="two-column-field">
+                                    <label class="form-field">
                                         <span>Status</span>
                                         <select name="status">
                                             <option value="draft">Draft</option>
@@ -140,8 +151,9 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                     </label>
 
                                     <label class="form-field">
-                                        <span>Kode enroll</span>
-                                        <input type="text" name="enroll_key" placeholder="Kosongkan agar kode otomatis">
+                                        <span>Kode enroll kelas (opsional)</span>
+                                        <input type="text" name="enroll_key" maxlength="50" placeholder="Isi untuk privat; kosong untuk publik">
+                                        <small>Kelas publik dapat diikuti tanpa kode. Kode ini hanya untuk bergabung ke kelas privat.</small>
                                     </label>
                                 </div>
 
@@ -152,15 +164,26 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                     </label>
 
                                     <label class="form-field">
-                                        <span>Label badge</span>
-                                        <input type="text" name="badge_label" placeholder="Misal: Belajar baru">
+                                        <span>Nama badge pencapaian</span>
+                                        <input type="text" name="badge_label" maxlength="60" placeholder="Misal: Lulus Pemrograman Jaringan">
+                                    </label>
+                                    <label class="form-field">
+                                        <span>Warna badge</span>
+                                        <select name="badge_color">
+                                            <option value="purple">Ungu</option>
+                                            <option value="green">Hijau</option>
+                                            <option value="blue">Biru</option>
+                                            <option value="amber">Emas</option>
+                                        </select>
                                     </label>
                                 </div>
 
                                 <label class="form-field checkbox-field wide">
                                     <input type="checkbox" name="badge_aktif" value="1">
-                                    <span>Tampilkan badge di kartu kelas</span>
+                                    <span>Berikan badge otomatis saat siswa menyelesaikan kelas</span>
                                 </label>
+                                <p class="form-field wide">Badge ini akan muncul di pencapaian profil siswa saat semua materi dibuka dan seluruh kuis lulus.</p>
+                                <p class="form-field wide">Sertifikat kelulusan diterbitkan otomatis dengan template default saat siswa menyelesaikan semua materi dan lulus seluruh kuis.</p>
                             </div>
 
                             <div class="form-actions">
@@ -206,11 +229,16 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                     </div>
                                     <div class="enroll-box">
                                         <span class="label">Kode enroll</span>
-                                        <div class="code-row">
-                                            <strong><?= e($selectedClass['enroll_key'] ?? '-') ?></strong>
-                                            <button type="button" class="tiny-button">Salin</button>
-                                        </div>
-                                        <small>Bagikan kode ini ke siswa.</small>
+                                        <?php if (!empty($selectedClass['enroll_key'])): ?>
+                                            <div class="code-row">
+                                                <strong><?= e($selectedClass['enroll_key']) ?></strong>
+                                                <button type="button" class="tiny-button">Salin</button>
+                                            </div>
+                                            <small>Kelas privat. Bagikan kode ini kepada siswa.</small>
+                                        <?php else: ?>
+                                            <div class="code-row"><strong>Kelas publik</strong></div>
+                                            <small>Siswa dapat bergabung tanpa kode kelas.</small>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
 
@@ -369,7 +397,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                     <div class="student-table-wrap">
                                         <table class="student-table">
                                             <thead>
-                                                <tr data-class-row="<?= (int) ($class['id'] ?? 0) ?>">
+                                                <tr>
                                                     <th>Siswa</th>
                                                     <th>Progress</th>
                                                     <th>Terakhir aktif</th>
@@ -454,14 +482,45 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                                 <textarea name="deskripsi" rows="4"><?= e($selectedClass['deskripsi'] ?? '') ?></textarea>
                                             </label>
                                             <label class="form-field">
-                                                <span>Kode enroll</span>
-                                                <input type="text" name="enroll_key" value="<?= e($selectedClass['enroll_key'] ?? '') ?>">
+                                                <span>Durasi estimasi (jam)</span>
+                                                <input type="number" name="durasi_estimasi" min="1" max="1000" step="1" value="<?= e((string) ($selectedClass['durasi_estimasi'] ?? '')) ?>" required>
+                                            </label>
+                                            <label class="form-field">
+                                                <span>Tingkat</span>
+                                                <select name="tingkat" required>
+                                                    <?php foreach (['Beginner', 'Intermediate', 'Advanced'] as $level): ?>
+                                                        <option value="<?= e($level) ?>" <?= ($selectedClass['tingkat'] ?? 'Beginner') === $level ? 'selected' : '' ?>><?= e($level) ?></option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </label>
+                                            <label class="form-field">
+                                                <span>Kode enroll kelas (opsional)</span>
+                                                <input type="text" name="enroll_key" maxlength="50" value="<?= e($selectedClass['enroll_key'] ?? '') ?>" placeholder="Kosongkan agar kelas publik">
+                                                <small>Isi kode untuk menjadikan kelas privat. Mengosongkannya membuat kelas publik.</small>
                                             </label>
                                             <label class="form-field">
                                                 <span>Ikon kelas</span>
                                                 <input type="file" name="class_icon" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
                                             </label>
+                                            <label class="form-field">
+                                                <span>Nama badge pencapaian</span>
+                                                <input type="text" name="badge_label" maxlength="60" value="<?= e($selectedClass['badge_label'] ?? '') ?>" placeholder="Misal: Lulus Pemrograman Jaringan">
+                                            </label>
+                                            <label class="form-field">
+                                                <span>Warna badge</span>
+                                                <select name="badge_color">
+                                                    <?php foreach (['purple' => 'Ungu', 'green' => 'Hijau', 'blue' => 'Biru', 'amber' => 'Emas'] as $color => $colorLabel): ?>
+                                                        <option value="<?= e($color) ?>" <?= ($selectedClass['badge_color'] ?? 'purple') === $color ? 'selected' : '' ?>><?= e($colorLabel) ?></option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </label>
                                         </div>
+                                        <label class="form-field checkbox-field wide">
+                                            <input type="checkbox" name="badge_aktif" value="1" <?= !empty($selectedClass['badge_aktif']) ? 'checked' : '' ?>>
+                                            <span>Berikan badge otomatis saat siswa menyelesaikan kelas</span>
+                                        </label>
+                                        <p class="small text-secondary">Badge akan muncul di pencapaian profil siswa ketika semua materi dibuka dan seluruh kuis lulus.</p>
+                                        <p class="small text-secondary">Sertifikat kelulusan diterbitkan otomatis dengan template default saat siswa menyelesaikan semua materi dan lulus seluruh kuis.</p>
                                         <div class="form-actions">
                                             <button type="submit" class="primary-button">Simpan perubahan</button>
                                             <button type="button" class="secondary-button">Batal</button>
@@ -504,7 +563,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                             <div class="stat-label">Kelas aktif</div>
                             <div class="stat-body">
                                 <div class="stat-icon"><i class="bi bi-play-circle"></i></div>
-                                <div class="stat-value"><?= (int) ($stats['kelas_aktif'] ?? 0) ?></div>
+                                <div class="stat-value" data-stat="active-classes"><?= (int) ($stats['kelas_aktif'] ?? 0) ?></div>
                             </div>
                             <div class="stat-foot">Kelas dengan status publish</div>
                         </article>
@@ -569,8 +628,8 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                     </thead>
                                     <tbody>
                                         <?php foreach ($classes as $class): ?>
+                                            <?php $classStatus = strtolower((string) ($class['status'] ?? 'draft')); ?>
                                             <?php
-                                            $classStatus = strtolower((string) ($class['status'] ?? 'draft'));
                                             $label = match ($classStatus) {
                                                 'aktif' => 'Publish',
                                                 'ditutup' => 'Ditutup',
@@ -578,7 +637,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                             };
                                             $statusClass = 'status-' . $classStatus;
                                             ?>
-                                            <tr>
+                                            <tr data-class-row="<?= (int) ($class['id'] ?? 0) ?>" data-class-status="<?= e($classStatus) ?>">
                                                 <td class="class-cell">
                                                     <div class="class-thumb">
                                                         <?php if (!empty($class['icon_url'])): ?>
@@ -592,7 +651,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                                         <small><?= e($class['deskripsi'] ?? 'Belum ada deskripsi kelas.') ?></small>
                                                     </div>
                                                 </td>
-                                                <td><?= e($class['kategori'] ?? 'Umum') ?></td>
+                                                <td data-class-category><?= e($class['kategori'] ?? 'Umum') ?></td>
                                                 <td><?= (int) ($class['total_siswa'] ?? 0) ?></td>
                                                 <td><span class="status-badge <?= e($statusClass) ?>"><?= e($label) ?></span></td>
                                                 <td><?= e(tgl_indo((string) ($class['dibuat_pada'] ?? ''))) ?></td>
@@ -614,9 +673,8 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
     </div>
 
     <div class="modal fade" id="classModal" tabindex="-1" aria-labelledby="class-modal-title" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered class-modal-dialog">
-            <div class="modal-content instructor-modal">
-                <form id="class-form" action="DashboardController.php" method="post" enctype="multipart/form-data">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable class-modal-dialog">
+            <form id="class-form" action="DashboardController.php" method="post" enctype="multipart/form-data" class="modal-content instructor-modal">
                     <input type="hidden" name="aksi" value="save_class">
                     <input type="hidden" name="ajax" value="1">
                     <input type="hidden" name="class_id" value="">
@@ -631,39 +689,58 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                     </div>
                     <div class="modal-body">
-                        <div id="class-form-feedback" class="alert alert-danger d-none" role="alert"></div>
-                        <label class="form-field mb-3">
-                            <span>Judul kelas</span>
-                            <input class="form-control" type="text" name="judul" maxlength="150" placeholder="Contoh: Dasar UI/UX" required>
-                        </label>
-                        <label class="form-field mb-3">
-                            <span>Kategori kelas</span>
-                            <select class="form-select" name="kategori" required>
-                                <option value="Umum">Umum</option>
-                                <option value="Teknologi">Teknologi</option>
-                                <option value="Bisnis">Bisnis</option>
-                                <option value="Desain">Desain</option>
-                                <option value="Data">Data</option>
-                                <option value="Lainnya">Lainnya</option>
-                            </select>
-                        </label>
-                        <label class="form-field mb-3">
-                            <span>Deskripsi singkat</span>
-                            <textarea class="form-control" name="deskripsi" rows="4" placeholder="Jelaskan topik dan tujuan kelas." required></textarea>
-                        </label>
-                        <label class="form-field mb-3">
-                            <span>Thumbnail / cover kelas</span>
-                            <input class="form-control" type="file" name="class_icon" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
-                            <small id="current-class-cover" class="text-secondary">JPG, PNG, atau WebP, maksimal 2 MB. Opsional.</small>
-                        </label>
-                        <fieldset class="form-field">
-                            <legend class="status-legend">Status kelas</legend>
-                            <div class="class-status-options">
-                                <label><input type="radio" name="status" value="draft" required> Draft</label>
-                                <label><input type="radio" name="status" value="aktif"> Publish</label>
-                                <label><input type="radio" name="status" value="ditutup"> Ditutup</label>
-                            </div>
-                        </fieldset>
+                        <div class="class-modal-fields">
+                            <div id="class-form-feedback" class="alert alert-danger d-none class-modal-field-wide" role="alert"></div>
+                            <label class="form-field mb-3">
+                                <span>Judul kelas</span>
+                                <input class="form-control" type="text" name="judul" maxlength="150" placeholder="Contoh: Dasar UI/UX" required>
+                            </label>
+                            <label class="form-field mb-3">
+                                <span>Kategori kelas</span>
+                                <select class="form-select" name="kategori" required>
+                                    <option value="Umum">Umum</option>
+                                    <option value="Teknologi">Teknologi</option>
+                                    <option value="Bisnis">Bisnis</option>
+                                    <option value="Desain">Desain</option>
+                                    <option value="Data">Data</option>
+                                    <option value="Lainnya">Lainnya</option>
+                                </select>
+                            </label>
+                            <label class="form-field mb-3">
+                                <span>Durasi estimasi (jam)</span>
+                                <input class="form-control" type="number" name="durasi_estimasi" min="1" max="1000" step="1" placeholder="Contoh: 8">
+                            </label>
+                            <label class="form-field mb-3">
+                                <span>Tingkat</span>
+                                <select class="form-select" name="tingkat" required>
+                                    <option value="Beginner" selected>Beginner</option>
+                                    <option value="Intermediate">Intermediate</option>
+                                    <option value="Advanced">Advanced</option>
+                                </select>
+                            </label>
+                            <label class="form-field mb-3 class-modal-field-wide">
+                                <span>Deskripsi singkat</span>
+                                <textarea class="form-control" name="deskripsi" rows="3" placeholder="Jelaskan topik dan tujuan kelas." required></textarea>
+                            </label>
+                            <label class="form-field mb-3">
+                                <span>Thumbnail / cover kelas</span>
+                                <input class="form-control" type="file" name="class_icon" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                                <small id="current-class-cover" class="text-secondary">JPG, PNG, atau WebP, maksimal 2 MB. Opsional.</small>
+                            </label>
+                            <fieldset class="form-field mb-3">
+                                <legend class="status-legend">Status kelas</legend>
+                                <div class="class-status-options">
+                                    <label><input type="radio" name="status" value="draft" required> Draft</label>
+                                    <label><input type="radio" name="status" value="aktif"> Publish</label>
+                                    <label><input type="radio" name="status" value="ditutup"> Ditutup</label>
+                                </div>
+                            </fieldset>
+                            <label class="form-field mb-3 class-modal-field-wide">
+                                <span>Kode enroll kelas (opsional)</span>
+                                <input class="form-control" type="text" name="enroll_key" maxlength="50" autocomplete="off" placeholder="Kosongkan agar kelas publik">
+                                <small>Kosong = publik. Isi kode agar kelas privat dan bagikan kepada siswa.</small>
+                            </label>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="secondary-button" data-bs-dismiss="modal">Batal</button>
@@ -672,8 +749,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                             <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                         </button>
                     </div>
-                </form>
-            </div>
+            </form>
         </div>
     </div>
 
@@ -690,28 +766,105 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                 <div class="modal-body">
                     <div id="manage-class-feedback" class="alert d-none" role="alert"></div>
                     <ul class="nav nav-tabs manage-tabs" role="tablist">
-                        <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#manage-materials" type="button" role="tab">Materi</button></li>
+                        <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#manage-overview" type="button" role="tab">Overview</button></li>
+                        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#manage-materials" type="button" role="tab">Materi</button></li>
                         <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#manage-quizzes" type="button" role="tab">Kuis &amp; Tugas</button></li>
                         <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#manage-students" type="button" role="tab">Daftar Siswa</button></li>
                     </ul>
                     <div class="tab-content pt-4">
-                        <section class="tab-pane fade show active" id="manage-materials" role="tabpanel">
+                        <section class="tab-pane fade show active" id="manage-overview" role="tabpanel">
+                            <form class="manage-form-card js-manage-form manage-overview-form" data-action="save_class_overview" id="manage-overview-form">
+                                <h3>Informasi overview kelas</h3>
+                                <div class="manage-overview-fields">
+                                    <label class="form-field">
+                                        <span>Kategori kelas</span>
+                                        <select class="form-select" name="kategori" required>
+                                            <option value="Umum">Umum</option>
+                                            <option value="Teknologi">Teknologi</option>
+                                            <option value="Bisnis">Bisnis</option>
+                                            <option value="Desain">Desain</option>
+                                            <option value="Data">Data</option>
+                                            <option value="Lainnya">Lainnya</option>
+                                        </select>
+                                    </label>
+                                    <label class="form-field manage-overview-wide">
+                                        <span>Gambaran kelas</span>
+                                        <textarea class="form-control" name="deskripsi" rows="4" required></textarea>
+                                        <small>Deskripsi ini tampil di overview siswa.</small>
+                                    </label>
+                                    <label class="form-field">
+                                        <span>Durasi estimasi (jam)</span>
+                                        <input class="form-control" type="number" name="durasi_estimasi" min="1" max="1000" step="1" placeholder="Contoh: 8">
+                                        <small>Kosongkan jika belum ingin menentukan durasi.</small>
+                                    </label>
+                                    <label class="form-field">
+                                        <span>Tingkat</span>
+                                        <select class="form-select" name="tingkat" required>
+                                            <option value="Beginner">Beginner</option>
+                                            <option value="Intermediate">Intermediate</option>
+                                            <option value="Advanced">Advanced</option>
+                                        </select>
+                                    </label>
+                                    <label class="form-field">
+                                        <span>Nama badge</span>
+                                        <input class="form-control" type="text" name="badge_label" maxlength="60" placeholder="Contoh: Lulus Pemrograman Jaringan">
+                                    </label>
+                                    <label class="form-field">
+                                        <span>Warna badge</span>
+                                        <select class="form-select" name="badge_color">
+                                            <option value="purple">Ungu</option>
+                                            <option value="green">Hijau</option>
+                                            <option value="blue">Biru</option>
+                                            <option value="amber">Emas</option>
+                                        </select>
+                                    </label>
+                                    <label class="form-field checkbox-field manage-overview-wide">
+                                        <input type="checkbox" name="badge_aktif" value="1">
+                                        <span>Aktifkan badge otomatis saat siswa menyelesaikan kelas</span>
+                                    </label>
+                                </div>
+                                <p class="small text-secondary mt-2">Sertifikat menggunakan template default dan diterbitkan otomatis sesuai syarat kelulusan kelas.</p>
+                                <div class="form-actions">
+                                    <button class="primary-button" type="submit">Simpan overview</button>
+                                </div>
+                            </form>
+
+                            <section class="manage-overview-modules mt-4" aria-labelledby="manage-overview-modules-title">
+                                <h3 id="manage-overview-modules-title">Modul yang akan dipelajari</h3>
+                                <p>Daftar ini otomatis mengikuti nama modul yang instruktur tambahkan di tab Materi.</p>
+                                <div id="manage-overview-modules" class="manage-list-card">
+                                    <p class="text-secondary mb-0">Memuat daftar modul...</p>
+                                </div>
+                            </section>
+                        </section>
+                        <section class="tab-pane fade" id="manage-materials" role="tabpanel">
                             <div class="manage-grid">
-                                <form class="manage-form-card js-manage-form" data-action="save_module">
-                                    <h3>Tambah modul</h3>
+                                <form class="manage-form-card js-manage-form" data-action="save_module" id="manage-module-form">
+                                    <h3 id="manage-module-form-title">Tambah modul</h3>
                                     <input type="hidden" name="module_id" value="">
                                     <label class="form-field mb-3"><span>Nama modul</span><input class="form-control" name="module_judul" maxlength="150" required></label>
                                     <label class="form-field mb-3"><span>Deskripsi</span><textarea class="form-control" name="module_deskripsi" rows="3"></textarea></label>
-                                    <button class="primary-button" type="submit">Simpan modul</button>
+                                    <label class="form-field mb-3 d-none" data-module-access-key-field>
+                                        <span>Kode akses modul (opsional)</span>
+                                        <input class="form-control" type="text" name="module_enroll_key" maxlength="50" autocomplete="off" placeholder="Kosongkan agar modul publik">
+                                        <small>Kosongkan agar modul publik. Isi kode agar siswa perlu kode ini untuk membuka materi modul.</small>
+                                    </label>
+                                    <div class="form-actions">
+                                        <button class="primary-button" type="submit" id="manage-module-submit">Simpan modul</button>
+                                        <button class="secondary-button d-none" type="button" data-cancel-module-edit>Batal edit</button>
+                                    </div>
                                 </form>
                                 <form class="manage-form-card js-manage-form" data-action="save_material" enctype="multipart/form-data">
-                                    <h3>Tambah video / dokumen</h3>
+                                    <h3>Tambah materi</h3>
                                     <label class="form-field mb-3"><span>Modul</span><select class="form-select" name="module_id" data-module-select required><option value="">Pilih modul</option></select></label>
                                     <label class="form-field mb-3"><span>Judul materi</span><input class="form-control" name="material_judul" maxlength="150" required></label>
                                     <label class="form-field mb-3"><span>Jenis</span><select class="form-select" name="material_tipe"><option value="video">Video</option><option value="dokumen">Dokumen</option><option value="teks">Teks / tautan</option></select></label>
                                     <label class="form-field mb-3"><span>Isi atau tautan (untuk teks)</span><textarea class="form-control" name="material_isi" rows="2"></textarea></label>
-                                    <label class="form-field mb-3"><span>File (PDF, DOCX, PPTX, MP4, WebM; maks. 25 MB)</span><input class="form-control" type="file" name="material_file" accept=".pdf,.docx,.pptx,.mp4,.webm,application/pdf,video/mp4,video/webm"></label>
-                                    <button class="primary-button" type="submit">Simpan materi</button>
+                                    <label class="form-field mb-3"><span>File (PDF, DOCX, PPTX, MP4, WebM, JPG, PNG, WebP; maks. 25 MB)</span><input class="form-control" type="file" name="material_file" accept=".pdf,.docx,.pptx,.mp4,.webm,.jpg,.jpeg,.png,.webp,application/pdf,video/mp4,video/webm,image/jpeg,image/png,image/webp"></label>
+                                    <div class="form-actions">
+                                        <button class="primary-button" type="submit">Simpan materi</button>
+                                        <button class="secondary-button d-none" type="button" data-cancel-upload>Batal kirim</button>
+                                    </div>
                                 </form>
                             </div>
                             <div id="manage-module-list" class="manage-list mt-4"><p class="text-secondary">Memuat daftar materi...</p></div>
@@ -753,6 +906,6 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <script src="../../asset/js/instructor.js"></script>
+    <script src="../../asset/js/instructor.js?v=<?= e(substr(hash_file('sha256', __DIR__ . '/../../asset/js/instructor.js'), 0, 12)) ?>"></script>
 </body>
 </html>

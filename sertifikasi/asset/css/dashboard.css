@@ -5,6 +5,8 @@
     --ink: var(--soft-ink, #202b27);
     --muted: var(--soft-muted, #78847e);
     --bg-side: var(--soft-surface-muted, #f1f7f1);
+    --student-thumbnail-width: 128px;
+    --student-thumbnail-height: 144px;
 }
 
 body { background: var(--soft-page, #f7f7f1); color: var(--ink); font-family: "Plus Jakarta Sans", sans-serif; }
@@ -249,6 +251,67 @@ body { background: var(--soft-page, #f7f7f1); color: var(--ink); font-family: "P
     transform: translateY(-2px);
 }
 
+.student-enrolled-overview,
+.student-available-overview {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    gap: 15px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.student-enrolled-overview {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+}
+
+.student-available-overview {
+    flex: 1;
+}
+
+.student-class-overview {
+    max-width: 960px;
+}
+
+.student-overview-icon {
+    display: grid;
+    width: 56px;
+    height: 56px;
+    flex: 0 0 56px;
+    place-items: center;
+    object-fit: cover;
+}
+
+.student-enrolled-overview:hover,
+.student-available-overview:hover {
+    color: inherit;
+}
+
+.student-available-title {
+    display: block;
+    margin: 6px 0 4px;
+    color: var(--soft-ink);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.student-available-overview:hover .student-available-title {
+    color: #21634d;
+}
+
+.student-available-description {
+    display: -webkit-box;
+    overflow: hidden;
+    margin: 0 0 11px;
+    color: var(--soft-muted);
+    font-size: .83rem;
+    line-height: 1.5;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
 .student-class-mark,
 .student-side-icon {
     display: grid;
@@ -265,6 +328,26 @@ body { background: var(--soft-page, #f7f7f1); color: var(--ink); font-family: "P
 .student-class-mark-muted {
     background: #f1f7f1;
     color: #438f6d;
+}
+
+.student-class-mark img {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    object-fit: cover;
+}
+
+.student-class-row .student-class-mark,
+.student-available-overview .student-class-mark {
+    width: var(--student-thumbnail-width);
+    height: var(--student-thumbnail-height);
+    flex: 0 0 var(--student-thumbnail-width);
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.student-available-overview .student-class-mark i {
+    font-size: 2rem;
 }
 
 .student-class-content {
@@ -356,10 +439,55 @@ body { background: var(--soft-page, #f7f7f1); color: var(--ink); font-family: "P
     color: #123f32;
 }
 
-.student-available-instructor {
-    color: var(--soft-muted);
-    font-size: .76rem;
+.student-available-meta,
+.student-available-badges {
+    display: flex;
+    min-width: 0;
+    align-items: center;
 }
+
+.student-available-meta {
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 5px;
+}
+
+.student-available-badges {
+    flex: 0 0 auto;
+    gap: 12px;
+}
+
+.student-available-access {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--soft-muted);
+    font-size: .88rem;
+}
+
+.student-available-image {
+    display: grid;
+    width: var(--student-thumbnail-width);
+    height: var(--student-thumbnail-height);
+    place-items: center;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #e4f1e8;
+    color: #21634d;
+}
+
+.student-available-image img {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    object-fit: cover;
+}
+
+.student-available-image i {
+    font-size: 2rem;
+}
+
+
 
 .student-available-row .student-class-content small {
     color: var(--soft-muted);
@@ -448,9 +576,8 @@ body { background: var(--soft-page, #f7f7f1); color: var(--ink); font-family: "P
 
 .student-course-image {
     display: block;
-    width: 128px;
-    height: 100%;
-    min-height: 132px;
+    width: var(--student-thumbnail-width);
+    height: var(--student-thumbnail-height);
     object-fit: cover;
     border-radius: 8px;
     background: #e4f1e8;
@@ -858,6 +985,11 @@ body { background: var(--soft-page, #f7f7f1); color: var(--ink); font-family: "P
 }
 
 @media (max-width: 620px) {
+    :root {
+        --student-thumbnail-width: 88px;
+        --student-thumbnail-height: 112px;
+    }
+
     .student-dashboard-shell {
         width: min(100% - 30px, 1440px);
         padding: 28px 0 50px;
@@ -904,6 +1036,13 @@ body { background: var(--soft-page, #f7f7f1); color: var(--ink); font-family: "P
         border-radius: 11px;
     }
 
+    .student-class-row .student-class-mark,
+    .student-available-overview .student-class-mark {
+        width: var(--student-thumbnail-width);
+        height: var(--student-thumbnail-height);
+        flex-basis: var(--student-thumbnail-width);
+    }
+
     .student-class-open {
         width: 32px;
         height: 32px;
@@ -923,14 +1062,14 @@ body { background: var(--soft-page, #f7f7f1); color: var(--ink); font-family: "P
     }
 
     .student-course {
-        grid-template-columns: 88px minmax(0, 1fr);
+        grid-template-columns: var(--student-thumbnail-width) minmax(0, 1fr);
         gap: 12px;
         padding: 8px;
     }
 
     .student-course-image {
-        width: 88px;
-        min-height: 112px;
+        width: var(--student-thumbnail-width);
+        height: var(--student-thumbnail-height);
     }
 
     .student-course-content {

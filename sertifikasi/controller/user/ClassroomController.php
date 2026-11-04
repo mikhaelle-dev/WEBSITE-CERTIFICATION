@@ -45,16 +45,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $token = $_POST['csrf_token'] ?? '';
     if (!is_string($token) || !hash_equals($_SESSION['csrf_token'], $token)) {
         $_SESSION['classroom_error'] = 'Sesi form tidak valid. Muat ulang halaman dan coba lagi.';
-        header('Location: ClassroomController.php?class_id=' . (int) $classId . '&tab=' . urlencode($_POST['tab'] ?? 'stream'));
+        header('Location: ClassroomController.php?class_id=' . (int) $classId . '&tab=' . urlencode($_POST['tab'] ?? 'overview'));
         exit();
     }
 
     $action = $_POST['aksi'] ?? '';
-    $tab = isset($_POST['tab']) && is_string($_POST['tab']) ? $_POST['tab'] : 'stream';
+    $tab = isset($_POST['tab']) && is_string($_POST['tab']) ? $_POST['tab'] : 'overview';
 
     try {
         $classInfo = $classModel->getStudentClassById($userId, (int) $classId);
-        if (($classInfo['status'] ?? null) === 'ditutup') {
+        if (($classInfo['status'] ?? null) === 'ditutup' && $action !== 'unlock_module') {
             throw new RuntimeException('Kelas ini sedang dalam mode read-only dan tidak menerima perubahan baru.');
         }
 
@@ -65,6 +65,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $classModel->markMaterialOpened($userId, (int) $classId, (int) $materialId);
             $_SESSION['classroom_success'] = 'Materi dibuka dan tercatat dalam progres kelas.';
+        } elseif ($action === 'unlock_module') {
+            $moduleId = filter_var($_POST['module_id'] ?? null, FILTER_VALIDATE_INT);
+            if (!$moduleId) {
+                throw new InvalidArgumentException('Modul tidak valid.');
+            }
+            $classModel->unlockModuleForStudent(
+                $userId,
+                (int) $classId,
+                (int) $moduleId,
+                (string) ($_POST['module_enroll_key'] ?? '')
+            );
+            $_SESSION['classroom_success'] = 'Modul berhasil dibuka.';
         } elseif ($action === 'submit_quiz') {
             $quizId = isset($_POST['quiz_id']) ? filter_var($_POST['quiz_id'], FILTER_VALIDATE_INT) : false;
             if (!$quizId) {
@@ -121,37 +133,120 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
             $_SESSION['classroom_success'] = 'Pertanyaan berhasil dikirim ke instruktur.';
         }
+        if (in_array($action, ['mark_material', 'submit_quiz'], true)) {
+            try {
+                if ($tools->issueAutomaticClassCertificate((int) $classId, $userId)) {
+                    $_SESSION['classroom_success'] .= ' Sertifikat kelulusan juga sudah diterbitkan.';
+                }
+            } catch (Throwable $certificateError) {
+                error_log('Automatic class certificate issuance failed: ' . $certificateError->getMessage());
+                $_SESSION['classroom_error'] = 'Aktivitas tersimpan, tetapi sertifikat belum bisa diterbitkan otomatis. Hubungi instruktur.';
+            }
+        }
     } catch (Throwable $e) {
         $_SESSION['classroom_error'] = $e->getMessage();
     }
 
-    header('Location: ClassroomController.php?class_id=' . (int) $classId . '&tab=' . urlencode($tab));
+    $redirect = 'ClassroomController.php?class_id=' . (int) $classId . '&tab=' . urlencode($tab);
+    if (in_array($action, ['mark_material', 'unlock_module'], true)) {
+        $returnModuleValue = $_POST['module_id'] ?? null;
+        $returnModuleId = is_string($returnModuleValue) || is_int($returnModuleValue)
+            ? filter_var($returnModuleValue, FILTER_VALIDATE_INT)
+            : false;
+        $returnMaterialValue = $_POST['return_material_id'] ?? null;
+        $returnMaterialId = is_string($returnMaterialValue) || is_int($returnMaterialValue)
+            ? filter_var($returnMaterialValue, FILTER_VALIDATE_INT)
+            : false;
+        if ($returnModuleId) {
+            $redirect .= '&module_id=' . (int) $returnModuleId;
+        }
+        if ($returnMaterialId) {
+            $redirect .= '&material_id=' . (int) $returnMaterialId;
+        }
+    }
+    if (in_array($action, ['submit_quiz', 'submit_assignment'], true)) {
+        $returnQuizValue = $_POST['return_quiz_id'] ?? null;
+        $returnQuizId = is_string($returnQuizValue) || is_int($returnQuizValue)
+            ? filter_var($returnQuizValue, FILTER_VALIDATE_INT)
+            : false;
+        if ($returnQuizId) {
+            $redirect .= '&quiz_id=' . (int) $returnQuizId;
+        }
+    }
+    header('Location: ' . $redirect);
     exit();
 }
 
 $class = $classModel->getStudentClassById($userId, (int) $classId);
 if ($class === null) {
+    $requestedTab = isset($_GET['tab']) && is_string($_GET['tab']) ? $_GET['tab'] : 'overview';
+    $previewClass = $requestedTab === 'overview'
+        ? $classModel->getAvailableClassOverview((int) $classId)
+        : null;
+    if ($previewClass !== null) {
+        $data = [
+            'username' => $_SESSION['username'] ?? 'Siswa',
+            'foto_profil' => $_SESSION['foto_profil'] ?? null,
+            'role' => $_SESSION['role'],
+            'class' => $previewClass,
+        ];
+        include __DIR__ . '/../../view/user/classroom-overview.php';
+        exit();
+    }
+
     http_response_code(404);
     exit('Kamu belum terdaftar di kelas ini atau kelas tidak tersedia untuk siswa.');
 }
 
-$tab = isset($_GET['tab']) && is_string($_GET['tab']) ? $_GET['tab'] : 'stream';
-$allowedTabs = ['stream', 'materi', 'kuis'];
+$tab = isset($_GET['tab']) && is_string($_GET['tab']) ? $_GET['tab'] : 'overview';
+$allowedTabs = ['overview', 'stream', 'materi', 'kuis'];
 if (!in_array($tab, $allowedTabs, true)) {
-    $tab = 'stream';
+    $tab = 'overview';
+}
+
+if (in_array($tab, ['overview', 'materi'], true)) {
+    $classModel->updateClassProgressForUser($userId, (int) $classId);
+    $class = $classModel->getStudentClassById($userId, (int) $classId);
+}
+
+$modules = $classModel->getStudentClassModules($userId, (int) $classId);
+$quizzes = $classModel->getClassQuizzes((int) $classId);
+$openedMaterialIds = $classModel->getOpenedMaterialIds($userId, (int) $classId);
+$results = $classModel->getStudentClassQuizResults($userId, (int) $classId);
+$resultsByQuiz = [];
+foreach ($results as $result) {
+    $quizId = (int) $result['kuis_id'];
+    if (!isset($resultsByQuiz[$quizId])) {
+        $resultsByQuiz[$quizId] = $result;
+    }
+}
+
+if ($tab === 'overview') {
+    $data = [
+        'username' => $_SESSION['username'],
+        'foto_profil' => $_SESSION['foto_profil'] ?? null,
+        'role' => $_SESSION['role'],
+        'class' => $class,
+        'enrolled' => true,
+        'modules' => $modules,
+        'quizzes' => $quizzes,
+        'openedMaterialIds' => $openedMaterialIds,
+        'resultsByQuiz' => $resultsByQuiz,
+        'certificate' => $classModel->getStudentClassCertificate($userId, (int) $classId),
+        'classBadge' => $classModel->getStudentClassBadge($userId, (int) $classId),
+        'success' => $_SESSION['classroom_success'] ?? '',
+        'error' => $_SESSION['classroom_error'] ?? '',
+    ];
+    unset($_SESSION['classroom_success'], $_SESSION['classroom_error']);
+
+    include __DIR__ . '/../../view/user/classroom-overview.php';
+    exit();
 }
 
 $announcements = $classModel->getClassAnnouncements((int) $classId);
-$modules = $classModel->getClassModules((int) $classId);
 $quizzes = $classModel->getClassQuizDetailed((int) $classId);
-$openedMaterialIds = $classModel->getOpenedMaterialIds($userId, (int) $classId);
-$results = $classModel->getStudentClassQuizResults($userId, (int) $classId);
 $assignments = $tools->getStudentClassAssignments($userId, (int) $classId);
 $forumThreads = $tools->getStudentForumThreads($userId, (int) $classId);
-$resultsByQuiz = [];
-foreach ($results as $result) {
-    $resultsByQuiz[(int) $result['kuis_id']] = $result;
-}
 
 $data = [
     'username' => $_SESSION['username'],

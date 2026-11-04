@@ -9,6 +9,7 @@ require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/helpers.php';
 require_once __DIR__ . '/../../class/Auth.php';
 require_once __DIR__ . '/../../class/Course.php';
+require_once __DIR__ . '/../../class/InstructorClass.php';
 
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true
     || !isset($_SESSION['id_user'])
@@ -288,9 +289,17 @@ $jenis       = isset($_GET['jenis']) && in_array($_GET['jenis'], $jenisValid, tr
 $q           = isset($_GET['q']) && is_string($_GET['q']) ? trim($_GET['q']) : '';
 
 $courseModel = new Course();
+$classModel = new InstructorClass();
 $semuaPencapaian = $_SESSION['role'] === 'siswa'
-    ? $courseModel->getAchievements((int) $_SESSION['id_user'])
+    ? array_merge(
+        $courseModel->getAchievements((int) $_SESSION['id_user']),
+        $classModel->getStudentClassBadges((int) $_SESSION['id_user']),
+        $classModel->getStudentClassCertificates((int) $_SESSION['id_user'])
+    )
     : [];
+usort($semuaPencapaian, static function (array $left, array $right): int {
+    return strtotime((string) ($right['tanggal'] ?? '')) <=> strtotime((string) ($left['tanggal'] ?? ''));
+});
 $pencapaian = array_values(array_filter($semuaPencapaian, function ($p) use ($jenis, $q) {
     if ($jenis !== 'Semua' && $p['jenis'] !== $jenis) return false;
     if (
@@ -305,8 +314,16 @@ $statusValid = ['Semua', 'Progres', 'Selesai'];
 $status      = isset($_GET['status_belajar']) && in_array($_GET['status_belajar'], $statusValid, true) ? $_GET['status_belajar'] : 'Semua';
 
 $riwayatKursus = $_SESSION['role'] === 'siswa'
-    ? $courseModel->getLearningHistory((int) $_SESSION['id_user'])
+    ? array_merge(
+        $courseModel->getLearningHistory((int) $_SESSION['id_user']),
+        $classModel->getStudentClassLearningHistory((int) $_SESSION['id_user'])
+    )
     : [];
+usort($riwayatKursus, static function (array $left, array $right): int {
+    $leftDate = strtotime((string) ($left['selesai_pada'] ?? $left['mulai_pada'] ?? '')) ?: 0;
+    $rightDate = strtotime((string) ($right['selesai_pada'] ?? $right['mulai_pada'] ?? '')) ?: 0;
+    return $rightDate <=> $leftDate;
+});
 $riwayat = array_values(array_filter($riwayatKursus, function ($r) use ($status, $q) {
     if ($status === 'Progres' && $r['status'] !== 'Berjalan') return false;
     if ($status === 'Selesai' && $r['status'] !== 'Selesai') return false;

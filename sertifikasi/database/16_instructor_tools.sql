@@ -1,19 +1,5 @@
 USE db_sertifikasi;
 
-CREATE TABLE IF NOT EXISTS certificate_templates (
-    id              INT AUTO_INCREMENT PRIMARY KEY,
-    instructor_id   INT NOT NULL,
-    background_path VARCHAR(255) NULL,
-    signature_path  VARCHAR(255) NULL,
-    signer_name     VARCHAR(150) NOT NULL,
-    signer_title    VARCHAR(150) NOT NULL,
-    number_format   VARCHAR(180) NOT NULL DEFAULT 'CERT/{YEAR}/{CLASS_ID}/{RANDOM}',
-    updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uq_certificate_template_instructor (instructor_id),
-    CONSTRAINT fk_certificate_template_instructor
-        FOREIGN KEY (instructor_id) REFERENCES user(id) ON DELETE CASCADE
-);
-
 CREATE TABLE IF NOT EXISTS user_certificates (
     id              INT AUTO_INCREMENT PRIMARY KEY,
     student_id      INT NOT NULL,

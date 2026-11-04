@@ -7,8 +7,10 @@ CREATE TABLE IF NOT EXISTS kelas (
     judul           VARCHAR(150) NOT NULL,
     deskripsi       TEXT NOT NULL,
     kategori        VARCHAR(80) NOT NULL DEFAULT 'Umum',
+    durasi_estimasi SMALLINT UNSIGNED NULL DEFAULT NULL,
+    tingkat         VARCHAR(30) NOT NULL DEFAULT 'Beginner',
     status          ENUM('draft', 'aktif', 'ditutup') NOT NULL DEFAULT 'draft',
-    enroll_key      VARCHAR(50) NOT NULL UNIQUE,
+    enroll_key      VARCHAR(50) NULL DEFAULT NULL UNIQUE,
     icon_url        VARCHAR(255) NULL DEFAULT NULL,
     badge_label     VARCHAR(60) NULL DEFAULT NULL,
     badge_aktif     TINYINT(1) NOT NULL DEFAULT 0,
@@ -45,9 +47,35 @@ CREATE TABLE IF NOT EXISTS modul_kelas (
     urutan      SMALLINT UNSIGNED NOT NULL,
     judul       VARCHAR(150) NOT NULL,
     deskripsi   TEXT NULL,
+    enroll_key  VARCHAR(50) NULL DEFAULT NULL,
     UNIQUE KEY uq_modul_kelas_urutan (kelas_id, urutan),
     CONSTRAINT fk_modul_kelas_kelas
         FOREIGN KEY (kelas_id) REFERENCES kelas(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS kelas_modul_siswa (
+    modul_id     INT NOT NULL,
+    user_id      INT NOT NULL,
+    dibuka_pada  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (modul_id, user_id),
+    CONSTRAINT fk_kelas_modul_siswa_modul
+        FOREIGN KEY (modul_id) REFERENCES modul_kelas(id) ON DELETE CASCADE,
+    CONSTRAINT fk_kelas_modul_siswa_user
+        FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS kelas_lencana_siswa (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    class_id    INT NOT NULL,
+    student_id  INT NOT NULL,
+    badge_label VARCHAR(60) NOT NULL,
+    badge_color VARCHAR(30) NOT NULL DEFAULT 'purple',
+    earned_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_kelas_lencana_siswa (class_id, student_id),
+    CONSTRAINT fk_kelas_lencana_siswa_class
+        FOREIGN KEY (class_id) REFERENCES kelas(id) ON DELETE CASCADE,
+    CONSTRAINT fk_kelas_lencana_siswa_user
+        FOREIGN KEY (student_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS materi_kelas (
