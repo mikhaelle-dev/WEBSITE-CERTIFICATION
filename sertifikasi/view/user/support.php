@@ -46,7 +46,7 @@
                     </div>
                     <div class="accordion-item">
                         <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCourse" aria-expanded="false" aria-controls="faqCourse">Bagaimana cara mulai belajar?</button></h3>
-                        <div id="faqCourse" class="accordion-collapse collapse" data-bs-parent="#supportFaq"><div class="accordion-body">Pilih kursus dari halaman Home, buka detailnya, lalu mulai belajar. Progres kursus dapat dilanjutkan dari dashboard.</div></div>
+                        <div id="faqCourse" class="accordion-collapse collapse" data-bs-parent="#supportFaq"><div class="accordion-body">Pilih kursus dari halaman Beranda, buka detailnya, lalu mulai belajar. Progres kursus dapat dilanjutkan dari dasbor.</div></div>
                     </div>
                     <div class="accordion-item">
                         <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCertificate" aria-expanded="false" aria-controls="faqCertificate">Di mana saya bisa melihat sertifikat?</button></h3>
@@ -60,11 +60,11 @@
                 <h2>Help Center</h2>
                 <p class="text-muted">Panduan singkat menggunakan aplikasi.</p>
                 <ol class="help-steps">
-                    <li><strong>Pilih kursus</strong><span>Jelajahi kursus yang tersedia dari halaman Home.</span></li>
+                    <li><strong>Pilih kursus</strong><span>Jelajahi kursus yang tersedia dari halaman Beranda.</span></li>
                     <li><strong>Ikuti materi</strong><span>Buka kursus dan selesaikan materi serta asesmen.</span></li>
                     <li><strong>Pantau progres</strong><span>Lihat progres belajar dan pencapaian di dashboard atau profil.</span></li>
                 </ol>
-                <a class="support-inline-link" href="<?= e($dashboardPath) ?>"><i class="bi bi-arrow-right"></i> Kembali ke dashboard</a>
+                <a class="support-inline-link" href="<?= e($dashboardPath) ?>"><i class="bi bi-arrow-right"></i> Kembali ke dasbor</a>
             </article>
 
             <article class="support-card support-contact-card">

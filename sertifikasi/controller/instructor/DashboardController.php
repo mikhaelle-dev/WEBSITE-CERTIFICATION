@@ -139,11 +139,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     throw new DomainException('Kelas tidak ditemukan.');
                 }
             }
-            $iconUrl = trim((string) ($_POST['icon_url'] ?? ''));
+            $iconUrl = trim((string) ($_POST['icon_url'] ?? ($currentClass['icon_url'] ?? '')));
             $newIconUrl = null;
             if (isset($_FILES['class_icon']) && (int) $_FILES['class_icon']['error'] !== UPLOAD_ERR_NO_FILE
                 && (int) $_FILES['class_icon']['error'] !== UPLOAD_ERR_OK) {
-                throw new InvalidArgumentException('Upload cover kelas gagal. Silakan pilih file kembali.');
+                throw new InvalidArgumentException('Pengunggahan gambar sampul kelas gagal. Silakan pilih berkas kembali.');
             }
             if (!empty($_FILES['class_icon']['tmp_name']) && is_uploaded_file($_FILES['class_icon']['tmp_name'])) {
                 $uploadDir = __DIR__ . '/../../uploads/class-icons';
@@ -238,7 +238,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $model->awardClassBadgesForCompletedStudents((int) $classId);
             }
             $savedClassId = (int) $classId;
-            $_SESSION['instructor_success'] = 'Overview kelas berhasil disimpan.';
+            $_SESSION['instructor_success'] = 'Ringkasan kelas berhasil disimpan.';
         } elseif ($action === 'delete_class') {
             if (!$classId) {
                 throw new DomainException('Kelas tidak valid.');
@@ -291,7 +291,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $newMaterialFile = null;
             if (isset($_FILES['material_file']) && (int) $_FILES['material_file']['error'] !== UPLOAD_ERR_NO_FILE) {
                 if ((int) $_FILES['material_file']['error'] !== UPLOAD_ERR_OK) {
-                    throw new InvalidArgumentException('Upload materi gagal. Pilih file kembali.');
+                    throw new InvalidArgumentException('Pengunggahan materi gagal. Silakan pilih berkas kembali.');
                 }
                 $tmpFile = $_FILES['material_file']['tmp_name'];
                 $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -524,7 +524,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ] : null;
             }
         }
-        unset($_SESSION['instructor_success']);
+        if (!($action === 'save_class' && !$classId)) {
+            unset($_SESSION['instructor_success']);
+        }
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-store');
         echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);

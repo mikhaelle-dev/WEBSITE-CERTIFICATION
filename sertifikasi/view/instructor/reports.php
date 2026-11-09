@@ -40,7 +40,7 @@ $chartStudents = array_slice($students, 0, 20);
 
             <?php if ($data['error'] !== ''): ?><div class="alert alert-danger" role="alert"><?= e($data['error']) ?></div><?php endif; ?>
 
-            <form class="manage-form-card mb-4" method="get" action="ReportsController.php">
+            <form class="manage-form-card mb-4" method="get" action="ReportsController.php" data-preserve-dashboard-scroll>
                 <div class="row g-3 align-items-end">
                     <div class="col-md-4">
                         <label class="form-field"><span>Pilih kelas</span>
@@ -114,5 +114,6 @@ $chartStudents = array_slice($students, 0, 20);
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script src="../../asset/js/instructor-tools.js"></script>
+<script src="../../asset/js/filter-scroll.js"></script>
 </body>
 </html>

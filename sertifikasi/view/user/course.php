@@ -2,6 +2,7 @@
 // View materi dan kuis. Data dimuat dari database oleh CourseController.
 $course = $data['course'];
 $quiz = $data['quiz'];
+$levelLabels = ['Beginner' => 'Pemula', 'Intermediate' => 'Menengah', 'Advanced' => 'Lanjutan'];
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -22,9 +23,9 @@ $quiz = $data['quiz'];
 <?php $aktif = 'mylearning'; include __DIR__ . '/../../component/navbar.php'; ?>
 
 <main class="container py-4 course-page">
-    <a class="course-back" href="DashboardController.php"><i class="bi bi-arrow-left"></i> Kembali ke Home</a>
+    <a class="course-back" href="DashboardController.php"><i class="bi bi-arrow-left"></i> Kembali ke Beranda</a>
     <header class="course-heading">
-        <span class="badge text-bg-success"><?= e($course['kategori']) ?> · <?= e($course['level']) ?></span>
+        <span class="badge text-bg-success"><?= e($course['kategori']) ?> · <?= e($levelLabels[$course['level'] ?? ''] ?? $course['level']) ?></span>
         <h1><?= e($course['judul']) ?></h1>
         <p><?= e($course['deskripsi']) ?></p>
         <small class="text-muted"><i class="bi bi-clock"></i> Estimasi <?= e($course['durasi']) ?></small>
@@ -71,7 +72,7 @@ $quiz = $data['quiz'];
                                <?= $overviewAktif ? 'aria-current="page"' : '' ?>
                                href="?slug=<?= urlencode($course['slug']) ?>&modul=<?= (int) $item['id'] ?>">
                                 <i class="bi bi-info-circle" aria-hidden="true"></i>
-                                <span>Overview modul</span>
+                                <span>Ringkasan modul</span>
                             </a>
                             <?php foreach ($item['submateri'] as $sublesson): ?>
                                 <?php
@@ -198,7 +199,7 @@ $quiz = $data['quiz'];
                 </article>
             <?php elseif ($data['isModuleOverview']): ?>
                 <article class="course-content">
-                    <div class="lesson-counter">Overview modul <?= (int) $data['lesson']['urutan'] ?> dari <?= count($data['lessons']) ?></div>
+                    <div class="lesson-counter">Ringkasan modul <?= (int) $data['lesson']['urutan'] ?> dari <?= count($data['lessons']) ?></div>
                     <h2><?= e($data['lesson']['judul']) ?></h2>
                     <div class="lesson-body"><?= $data['lesson']['isi'] ?></div>
                     <div class="lesson-navigation">

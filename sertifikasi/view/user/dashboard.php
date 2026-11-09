@@ -10,6 +10,7 @@ $q = $data['q'] ?? '';
 $kategori = $data['kategori'] ?? '';
 $activeCourse = $kursusSaya[0] ?? null;
 $learningCount = count($kelasSaya) + ($activeCourse !== null ? 1 : 0);
+$levelLabels = ['Beginner' => 'Pemula', 'Intermediate' => 'Menengah', 'Advanced' => 'Lanjutan'];
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -35,7 +36,7 @@ $learningCount = count($kelasSaya) + ($activeCourse !== null ? 1 : 0);
             <p>Temukan kelas, lanjutkan kursus, dan lihat perkembangan belajarmu.</p>
         </div>
         <a class="student-browse-link" href="#rekomendasi">
-            Jelajahi kursus <i class="bi bi-arrow-down-right" aria-hidden="true"></i>
+            Jelajahi kelas <i class="bi bi-arrow-down-right" aria-hidden="true"></i>
         </a>
     </header>
 
@@ -63,7 +64,7 @@ $learningCount = count($kelasSaya) + ($activeCourse !== null ? 1 : 0);
                         <p>Pilih kursus mandiri atau kelas aktif dari instruktur.</p>
                     </div>
                     <?php if ($q !== '' || $kategori !== ''): ?>
-                        <a class="student-reset-link" href="DashboardController.php#rekomendasi">Hapus filter</a>
+                        <a class="student-reset-link" href="DashboardController.php" data-preserve-dashboard-scroll>Hapus filter</a>
                     <?php endif; ?>
                 </div>
 
@@ -74,14 +75,14 @@ $learningCount = count($kelasSaya) + ($activeCourse !== null ? 1 : 0);
                                 <img class="student-course-image" src="../../asset/img/courses/<?= e($kursus['cover_image'] ?? 'digital-learning.jpg') ?>" alt="" loading="lazy" decoding="async">
                                 <div class="student-course-content">
                                     <div class="student-course-top">
-                                        <span class="student-course-level"><?= e(strtoupper($kursus['level'] ?? '')) ?></span>
+                                        <span class="student-course-level"><?= e(strtoupper($levelLabels[$kursus['level'] ?? ''] ?? ($kursus['level'] ?? ''))) ?></span>
                                     </div>
                                     <p class="student-course-category"><?= e($kursus['kategori'] ?? '') ?></p>
                                     <h3><?= e($kursus['judul'] ?? '') ?></h3>
                                     <p class="student-course-description"><?= e($kursus['deskripsi'] ?? '') ?></p>
                                     <div class="student-course-footer">
                                         <span><i class="bi bi-clock" aria-hidden="true"></i> <?= e($kursus['durasi'] ?? '') ?></span>
-                                        <span class="student-course-open">Lihat kursus</span>
+                                        <span class="student-course-open">Lihat kelas</span>
                                     </div>
                                 </div>
                             </a>
@@ -117,13 +118,13 @@ $learningCount = count($kelasSaya) + ($activeCourse !== null ? 1 : 0);
                                                     <i class="bi bi-lock-fill" aria-hidden="true"></i>
                                                 </span>
                                             <?php endif; ?>
-                                            <span class="student-course-level"><?= e(strtoupper($kelas['tingkat'] ?? 'Beginner')) ?></span>
+                                            <span class="student-course-level"><?= e(strtoupper($levelLabels[$kelas['tingkat'] ?? 'Beginner'] ?? 'Pemula')) ?></span>
                                         </span>
                                     </div>
                                     <h3><?= e($kelas['judul'] ?? 'Kelas') ?></h3>
                                     <p class="student-course-description"><?= e($kelas['deskripsi'] ?? '') ?></p>
                                     <div class="student-course-footer">
-                                        <span><i class="bi bi-clock" aria-hidden="true"></i> <?= ($kelas['durasi_estimasi'] ?? null) !== null ? (int) $kelas['durasi_estimasi'] . ' jam' : 'Durasi belum ditentukan' ?></span>
+                                        <span><i class="bi bi-clock" aria-hidden="true"></i> Estimasi belajar: <?= ($kelas['durasi_estimasi'] ?? null) !== null ? (int) $kelas['durasi_estimasi'] . ' jam' : 'belum ditentukan' ?></span>
                                         <span class="student-course-open">Lihat kursus <i class="bi bi-arrow-right" aria-hidden="true"></i></span>
                                     </div>
                                 </div>
@@ -182,7 +183,7 @@ $learningCount = count($kelasSaya) + ($activeCourse !== null ? 1 : 0);
                                 <a class="student-class-content student-enrolled-overview" href="ClassroomController.php?class_id=<?= (int) ($kelas['id'] ?? 0) ?>&amp;tab=overview" aria-label="Buka overview kelas <?= e($kelas['judul'] ?? 'Kelas') ?>">
                                     <div class="student-class-meta">
                                         <span><?= e($kelas['instruktur_nama'] ?? 'Instruktur') ?></span>
-                                        <span class="student-status"><?= e(ucfirst($kelas['status'] ?? 'aktif')) ?></span>
+                                        <span class="student-status"><?= ($kelas['status'] ?? 'aktif') === 'ditutup' ? 'Privat' : (($kelas['status'] ?? 'aktif') === 'aktif' ? 'Publik' : 'Draf') ?></span>
                                     </div>
                                     <h3><?= e($kelas['judul'] ?? 'Kelas') ?></h3>
                                     <p><?= e($kelas['deskripsi'] ?? '') ?></p>
@@ -266,5 +267,6 @@ $learningCount = count($kelasSaya) + ($activeCourse !== null ? 1 : 0);
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../../asset/js/page-actions.js"></script>
+<script src="../../asset/js/filter-scroll.js"></script>
 </body>
 </html>

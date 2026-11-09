@@ -1,12 +1,13 @@
 <?php
 $course = $data['course'];
+$levelLabels = ['Beginner' => 'Pemula', 'Intermediate' => 'Menengah', 'Advanced' => 'Lanjutan'];
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e($course['judul']) ?> | Overview Kursus</title>
+    <title><?= e($course['judul']) ?> | Informasi Kursus</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -20,11 +21,11 @@ $course = $data['course'];
 <?php $aktif = 'mylearning'; include __DIR__ . '/../../component/navbar.php'; ?>
 
 <main class="container course-page py-4">
-    <a class="course-back" href="DashboardController.php"><i class="bi bi-arrow-left"></i> Kembali ke Home</a>
+    <a class="course-back" href="DashboardController.php"><i class="bi bi-arrow-left"></i> Kembali ke Beranda</a>
 
     <section class="overview-hero">
         <div class="overview-hero-content">
-            <span class="badge text-bg-success"><?= e($course['kategori']) ?> · <?= e($course['level']) ?></span>
+            <span class="badge text-bg-success"><?= e($course['kategori']) ?> · <?= e($levelLabels[$course['level'] ?? ''] ?? $course['level']) ?></span>
             <h1><?= e($course['judul']) ?></h1>
             <p><?= e($course['deskripsi']) ?></p>
             <div class="overview-meta">
@@ -80,8 +81,8 @@ $course = $data['course'];
                 <div class="overview-section-heading">
                     <span class="overview-section-icon"><i class="bi bi-award"></i></span>
                     <div>
-                        <h2>Badge yang bisa kamu dapatkan</h2>
-                        <p class="text-muted mb-0">Setiap badge diberikan otomatis setelah seluruh submateri dalam modul milestone dibuka.</p>
+                        <h2>Lencana yang bisa kamu dapatkan</h2>
+                        <p class="text-muted mb-0">Setiap lencana diberikan otomatis setelah seluruh submateri dalam modul pencapaian dibuka.</p>
                     </div>
                 </div>
                 <?php if ($data['badges']): ?>
@@ -93,7 +94,7 @@ $course = $data['course'];
                                 </span>
                                 <div class="overview-badge-content">
                                     <span class="overview-badge-status">
-                                        <?= $badge['diperoleh_pada'] !== null ? 'Badge didapat' : 'Milestone materi ' . (int) $badge['materi_urutan'] ?>
+                                        <?= $badge['diperoleh_pada'] !== null ? 'Lencana didapat' : 'Pencapaian materi ' . (int) $badge['materi_urutan'] ?>
                                     </span>
                                     <h3><?= e($badge['judul']) ?></h3>
                                     <p><?= e($badge['deskripsi']) ?></p>
@@ -109,7 +110,7 @@ $course = $data['course'];
                 <?php else: ?>
                     <div class="overview-empty-award">
                         <i class="bi bi-award"></i>
-                        <p>Badge untuk kursus ini belum tersedia.</p>
+                        <p>Lencana untuk kursus ini belum tersedia.</p>
                     </div>
                 <?php endif; ?>
             </article>
@@ -153,12 +154,12 @@ $course = $data['course'];
                     <?php endif; ?>
                     <a class="btn btn-outline-success w-100" href="ProfileController.php?tab=riwayat">Kembali ke riwayat kursus</a>
                 <?php elseif ($data['active']): ?>
-                    <p class="text-muted">Kursus ini sudah ada di Home. Lanjutkan dari progres terakhirmu.</p>
-                    <a class="btn btn-enroll w-100" href="CourseController.php?slug=<?= urlencode($course['slug']) ?>&submateri=<?= (int) $data['resumeSublessonId'] ?>">Resume Course</a>
+                    <p class="text-muted">Kursus ini sudah ada di beranda. Lanjutkan dari progres terakhirmu.</p>
+                    <a class="btn btn-enroll w-100" href="CourseController.php?slug=<?= urlencode($course['slug']) ?>&submateri=<?= (int) $data['resumeSublessonId'] ?>">Lanjutkan belajar</a>
                 <?php elseif ($data['activeCourse'] !== null): ?>
                     <p class="fw-semibold">Selesaikan kursus aktifmu terlebih dahulu.</p>
                     <p class="text-muted mb-3"><?= e($data['activeCourse']['judul']) ?> masih berjalan.</p>
-                    <a class="btn btn-enroll w-100" href="DashboardController.php">Kembali ke Home</a>
+                    <a class="btn btn-enroll w-100" href="DashboardController.php">Kembali ke Beranda</a>
                 <?php else: ?>
                     <p class="text-muted">Mulai belajar mandiri dan lanjutkan progresmu kapan saja.</p>
                     <form method="POST">
@@ -173,7 +174,7 @@ $course = $data['course'];
                     <li><i class="bi bi-clock"></i><span>Durasi estimasi</span><strong><?= e($course['durasi']) ?></strong></li>
                     <li><i class="bi bi-bar-chart"></i><span>Tingkat</span><strong><?= e($course['level']) ?></strong></li>
                     <li><i class="bi bi-journal-check"></i><span>Materi dan kuis</span><strong><?= count($data['lessons']) ?> materi · 1 kuis</strong></li>
-                    <li><i class="bi bi-award"></i><span>Badge</span><strong><?= count($data['badges']) ?> milestone</strong></li>
+                    <li><i class="bi bi-award"></i><span>Lencana</span><strong><?= count($data['badges']) ?> pencapaian</strong></li>
                     <li><i class="bi bi-patch-check"></i><span>Sertifikat</span><strong><?= $data['certificate'] !== null ? 'Sudah terbit' : 'Setelah lulus' ?></strong></li>
                 </ul>
             </div>

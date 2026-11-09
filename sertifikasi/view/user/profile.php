@@ -61,7 +61,7 @@ $p   = $data['profil'];
         <div class="alert alert-success py-2" role="status"><?= e($data['pesan']) ?></div>
     <?php endif; ?>
     <?php if (!$data['mustChangePassword']): ?>
-        <a class="btn btn-sm btn-outline-dark mb-3" href="DashboardController.php"><i class="bi bi-arrow-left me-1"></i>Kembali ke Home</a>
+        <a class="btn btn-sm btn-outline-dark mb-3" href="DashboardController.php"><i class="bi bi-arrow-left me-1"></i>Kembali ke Beranda</a>
     <?php endif; ?>
 
     <!-- TAB -->
@@ -199,7 +199,7 @@ $p   = $data['profil'];
     <!-- ============ TAB SERTIFIKAT & LENCANA ============ -->
         <?php $kosongSertifikat = !$data['pencapaian'] && $data['jenis'] === 'Semua' && $data['q'] === ''; ?>
         <?php if (!$kosongSertifikat): ?>
-        <form method="GET" class="pf-filter">
+        <form method="GET" class="pf-filter" data-preserve-dashboard-scroll>
             <input type="hidden" name="tab" value="sertifikat">
             <div class="search-box">
                 <i class="bi bi-search"></i>
@@ -255,7 +255,7 @@ $p   = $data['profil'];
     <?php else: ?>
     <!-- ============ TAB RIWAYAT BELAJAR ============ -->
         <?php $kosongRiwayat = !$data['riwayat'] && $data['statusBelajar'] === 'Semua' && $data['q'] === ''; ?>
-        <form method="GET" class="pf-filter">
+        <form method="GET" class="pf-filter" data-preserve-dashboard-scroll>
             <input type="hidden" name="tab" value="riwayat">
             <div class="search-box">
                 <i class="bi bi-search"></i>
@@ -281,7 +281,7 @@ $p   = $data['profil'];
 
         <?php foreach ($data['riwayat'] as $r): ?>
             <?php $isClassHistory = !empty($r['class_id']); ?>
-            <a class="hist-row" href="<?= $isClassHistory ? 'ClassroomController.php?class_id=' . (int) $r['class_id'] . '&amp;tab=overview' : 'CourseOverviewController.php?slug=' . urlencode($r['slug'] ?? '') ?>" aria-label="Lihat overview <?= $isClassHistory ? 'kelas' : 'kursus' ?> <?= e($r['judul']) ?>">
+            <a class="hist-row" href="<?= $isClassHistory ? 'ClassroomController.php?class_id=' . (int) $r['class_id'] . '&amp;tab=overview' : 'CourseOverviewController.php?slug=' . urlencode($r['slug'] ?? '') ?>" aria-label="Lihat informasi <?= $isClassHistory ? 'kelas' : 'kursus' ?> <?= e($r['judul']) ?>">
                 <div class="hist-main">
                     <img class="hist-thumb" src="<?= $isClassHistory && !empty($r['cover_image']) ? e($r['cover_image']) : '../../asset/img/courses/' . e($r['cover_image'] ?? 'digital-learning.jpg') ?>" alt="" loading="lazy" decoding="async">
                     <div>
@@ -347,6 +347,7 @@ $p   = $data['profil'];
 <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
 <script src="../../asset/js/profile-photo.js?v=3"></script>
 <script src="../../asset/js/page-actions.js"></script>
+<script src="../../asset/js/filter-scroll.js"></script>
 <?php if ($data['mustChangePassword']): ?>
     <script src="../../asset/js/required-password-change.js"></script>
 <?php endif; ?>

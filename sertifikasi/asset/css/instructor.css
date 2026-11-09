@@ -684,6 +684,54 @@ textarea {
   min-height: 0;
 }
 
+.instructor-file-picker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-height: 44px;
+  padding: 6px;
+  border: 1px solid rgba(38, 62, 51, 0.18);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.instructor-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.instructor-file-input:focus-visible + .instructor-file-button {
+  outline: 3px solid rgba(45, 106, 85, 0.25);
+  outline-offset: 2px;
+}
+
+.instructor-file-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: 7px;
+  background: #e4f0e8;
+  color: #24563f;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.instructor-file-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #65796f;
+  font-size: 0.85rem;
+}
+
 .classes-panel {
   border-top: 1px solid rgba(30, 42, 36, 0.08);
   padding-top: 18px;

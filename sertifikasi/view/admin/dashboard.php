@@ -177,7 +177,7 @@ $todayLabel = $weekdayNames[(int) date('N')] . ', ' . $today;
             </div>
         </div>
         <div class="admin-filter-bar">
-            <form class="row g-2 align-items-center" method="GET">
+            <form class="row g-2 align-items-center" method="GET" data-preserve-dashboard-scroll>
                 <div class="col-12 col-lg-5">
                     <label class="visually-hidden" for="searchUsers">Cari nama atau email</label>
                     <div class="admin-search">
@@ -205,7 +205,7 @@ $todayLabel = $weekdayNames[(int) date('N')] . ', ' . $today;
                 <div class="col-12 col-lg-2 d-flex gap-2">
                     <button class="btn btn-admin-filter flex-grow-1" type="submit"><i class="bi bi-funnel me-1"></i>Filter</button>
                     <?php if ($data['search'] !== '' || $data['roleFilter'] !== '' || $data['statusFilter'] !== ''): ?>
-                        <a class="btn btn-admin-quiet" href="DashboardController.php" aria-label="Hapus filter"><i class="bi bi-x-lg"></i></a>
+                        <a class="btn btn-admin-quiet" href="DashboardController.php" aria-label="Hapus filter" data-preserve-dashboard-scroll><i class="bi bi-x-lg"></i></a>
                     <?php endif; ?>
                 </div>
             </form>
@@ -513,11 +513,12 @@ $todayLabel = $weekdayNames[(int) date('N')] . ', ' . $today;
             <input type="hidden" name="tab" value="<?= e($data['activeTab']) ?>">
         </form>
     <?php endif; ?>
-    <footer class="admin-console-footer">© <?= date('Y') ?> Sertifikasi Academy <span>·</span> Admin Panel</footer>
+    <footer class="admin-console-footer">© <?= date('Y') ?> Sertifikasi Academy <span>·</span> Panel Admin</footer>
 </main>
     </div>
 </div>
 <script src="../../asset/js/admin-dashboard.js?v=4"></script>
+<script src="../../asset/js/filter-scroll.js"></script>
 <script src="../../asset/js/page-actions.js"></script>
 </body>
 </html>

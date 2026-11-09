@@ -43,7 +43,7 @@
                     <a class="module-overview-link <?= $tab === 'materi' && $isSelectedModule && $selectedMaterial === null ? 'active' : '' ?>"
                        href="ClassroomController.php?class_id=<?= (int) $class['id'] ?>&amp;tab=materi&amp;module_id=<?= $moduleId ?>">
                         <i class="bi bi-info-circle" aria-hidden="true"></i>
-                        <span>Overview modul</span>
+                        <span>Ringkasan modul</span>
                     </a>
                     <?php foreach ($materials as $material): ?>
                         <?php

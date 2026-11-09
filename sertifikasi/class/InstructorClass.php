@@ -282,6 +282,9 @@ class InstructorClass extends Database
         $f = $this->classFields($data);
 
         $key = strtoupper(trim((string) ($data['enroll_key'] ?? '')));
+        if ($f['status'] === 'aktif') {
+            $key = '';
+        }
         if (strlen($key) > 50) {
             throw new InvalidArgumentException('Kode enroll kelas maksimal 50 karakter.');
         }
@@ -313,6 +316,9 @@ class InstructorClass extends Database
         $f = $this->classFields($data, $class);
 
         $key = strtoupper(trim((string) ($data['enroll_key'] ?? '')));
+        if ($f['status'] === 'aktif') {
+            $key = '';
+        }
         if (strlen($key) > 50) {
             throw new InvalidArgumentException('Kode enroll kelas maksimal 50 karakter.');
         }
@@ -1112,7 +1118,7 @@ class InstructorClass extends Database
              JOIN user u ON u.id = k.instruktur_id
              LEFT JOIN kelas_siswa terdaftar
                 ON terdaftar.kelas_id = k.id AND terdaftar.user_id = ?
-             WHERE k.status = 'aktif' AND terdaftar.id IS NULL
+             WHERE k.status = 'aktif' AND COALESCE(k.enroll_key, '') = '' AND terdaftar.id IS NULL
              ORDER BY k.diperbarui_pada DESC, k.dibuat_pada DESC",
             [$userId]
         )->fetchAll();
@@ -1127,7 +1133,7 @@ class InstructorClass extends Database
                     u.nama AS instruktur_nama
              FROM kelas k
              JOIN user u ON u.id = k.instruktur_id
-             WHERE k.id = ? AND k.status = 'aktif'
+             WHERE k.id = ? AND k.status = 'aktif' AND COALESCE(k.enroll_key, '') = ''
              LIMIT 1",
             [$classId]
         )->fetch();

@@ -14,14 +14,14 @@ $modules = $data['modules'] ?? [];
 $quizzes = $data['quizzes'] ?? [];
 $announcements = $data['announcements'] ?? [];
 $selectedClassStatus = strtolower((string) ($selectedClass['status'] ?? 'draft'));
-$selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedClassStatus === 'ditutup' ? 'Ditutup' : 'Draft');
+$selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Publik' : ($selectedClassStatus === 'ditutup' ? 'Privat' : 'Draf');
 ?>
 <!DOCTYPE html>
 <html lang="id" class="instructor-dashboard">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Instruktur | Sertifikasi Academy</title>
+    <title>Dasbor Pengajar | Sertifikasi Academy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -51,11 +51,11 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                 </a>
                 <a href="DashboardController.php?page=bank_materi" class="sidebar-item">
                     <span class="sidebar-icon"><i class="bi bi-collection"></i></span>
-                    <span>Bank Materi</span>
+                    <span>Pustaka Materi</span>
                 </a>
                 <a href="ForumController.php?page=forum" class="sidebar-item">
                     <span class="sidebar-icon"><i class="bi bi-chat-dots"></i></span>
-                    <span>Forum Q&amp;A</span>
+                    <span>Forum Tanya Jawab</span>
                 </a>
                 <a href="ReportsController.php?page=laporan" class="sidebar-item">
                     <span class="sidebar-icon"><i class="bi bi-bar-chart"></i></span>
@@ -68,7 +68,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                     <div class="mini-avatar"><?= e(strtoupper(substr($_SESSION['username'] ?? 'I', 0, 1))) ?></div>
                     <div class="mini-meta">
                         <strong><?= e($_SESSION['username'] ?? 'Instruktur') ?></strong>
-                        <small>Instruktur</small>
+                        <small>Pengajar</small>
                     </div>
                 </div>
                 <a href="../../controller/AuthController.php?aksi=logout" class="logout-link">Keluar</a>
@@ -77,7 +77,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
         <main class="instructor-main">
             <header class="instructor-topbar">
                 <div class="instructor-breadcrumbs">
-                    <span>Instruktur</span>
+                    <span>Pengajar</span>
                     <span class="slash">/</span>
                     <span>Kelas Saya</span>
                     <?php if (!empty($selectedClass)): ?>
@@ -87,7 +87,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                 </div>
                 <div class="topbar-user">
                     <span class="topbar-avatar"><?= e(strtoupper(substr($_SESSION['username'] ?? 'I', 0, 1))) ?></span>
-                    <span>Instruktur</span>
+                    <span>Pengajar</span>
                     <a href="../../controller/AuthController.php?aksi=logout" class="topbar-logout">Keluar</a>
                 </div>
             </header>
@@ -133,9 +133,9 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                     <label class="form-field">
                                         <span>Tingkat</span>
                                         <select name="tingkat" required>
-                                            <option value="Beginner" selected>Beginner</option>
-                                            <option value="Intermediate">Intermediate</option>
-                                            <option value="Advanced">Advanced</option>
+                                            <option value="Beginner" selected>Pemula</option>
+                                            <option value="Intermediate">Menengah</option>
+                                            <option value="Advanced">Lanjutan</option>
                                         </select>
                                     </label>
                                 </div>
@@ -144,24 +144,28 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                     <label class="form-field">
                                         <span>Status</span>
                                         <select name="status">
-                                            <option value="draft">Draft</option>
-                                            <option value="aktif">Aktif</option>
-                                            <option value="ditutup">Ditutup</option>
+                                            <option value="draft">Draf</option>
+                                            <option value="aktif">Publik</option>
+                                            <option value="ditutup">Privat</option>
                                         </select>
                                     </label>
 
                                     <label class="form-field">
-                                        <span>Kode enroll kelas (opsional)</span>
-                                        <input type="text" name="enroll_key" maxlength="50" placeholder="Isi untuk privat; kosong untuk publik">
-                                        <small>Kelas publik dapat diikuti tanpa kode. Kode ini hanya untuk bergabung ke kelas privat.</small>
+                                        <span>Kode akses kelas (opsional)</span>
+                                        <input type="text" name="enroll_key" maxlength="50" placeholder="Kode dihapus otomatis jika kelas dipublikasikan">
+                                        <small>Kelas berstatus Publik dapat diikuti tanpa kode. Kode akses akan dihapus otomatis saat kelas dipublikasikan.</small>
                                     </label>
                                 </div>
 
                                 <div class="two-column-field">
-                                    <label class="form-field">
+                                    <div class="form-field">
                                         <span>Ikon kelas</span>
-                                        <input type="file" name="class_icon" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
-                                    </label>
+                                        <div class="instructor-file-picker" data-file-picker>
+                                            <input id="create-class-icon" class="instructor-file-input" type="file" name="class_icon" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                                            <label class="instructor-file-button" for="create-class-icon">Pilih file</label>
+                                            <span class="instructor-file-name" data-file-name>Belum ada file dipilih</span>
+                                        </div>
+                                    </div>
 
                                     <label class="form-field">
                                         <span>Nama badge pencapaian</span>
@@ -182,7 +186,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                     <input type="checkbox" name="badge_aktif" value="1">
                                     <span>Berikan badge otomatis saat siswa menyelesaikan kelas</span>
                                 </label>
-                                <p class="form-field wide">Badge ini akan muncul di pencapaian profil siswa saat semua materi dibuka dan seluruh kuis lulus.</p>
+                                <p class="form-field wide">Lencana ini akan muncul di pencapaian profil siswa saat semua materi dibuka dan seluruh kuis lulus.</p>
                                 <p class="form-field wide">Sertifikat kelulusan diterbitkan otomatis dengan template default saat siswa menyelesaikan semua materi dan lulus seluruh kuis.</p>
                             </div>
 
@@ -229,7 +233,10 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                     </div>
                                     <div class="enroll-box">
                                         <span class="label">Kode enroll</span>
-                                        <?php if (!empty($selectedClass['enroll_key'])): ?>
+                                        <?php if ($selectedClassStatus === 'ditutup'): ?>
+                                            <div class="code-row"><strong>Kelas privat</strong></div>
+                                            <small>Kelas ditutup dan tidak tersedia untuk umum.</small>
+                                        <?php elseif (!empty($selectedClass['enroll_key'])): ?>
                                             <div class="code-row">
                                                 <strong><?= e($selectedClass['enroll_key']) ?></strong>
                                                 <button type="button" class="tiny-button">Salin</button>
@@ -281,7 +288,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                             <li>Isi modul dengan materi</li>
                                             <li>Buat kuis dan soal</li>
                                             <li>Aktifkan status kelas</li>
-                                            <li>Bagikan kode enroll ke siswa</li>
+                                            <li>Bagikan kode akses kepada siswa</li>
                                         </ul>
                                     </div>
                                     <div class="summary-card">
@@ -455,7 +462,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                 <div class="section-head-row">
                                     <div>
                                         <h3>Pengaturan kelas</h3>
-                                        <small>Kelola status, ikon, kode enroll, dan tampilan kelas.</small>
+                                        <small>Kelola status, ikon, kode akses, dan tampilan kelas.</small>
                                     </div>
                                 </div>
                                 <div class="setting-form-card">
@@ -472,9 +479,9 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                             <label class="form-field">
                                                 <span>Status</span>
                                                 <select name="status">
-                                                    <option value="draft" <?= ($selectedClassStatus === 'draft') ? 'selected' : '' ?>>Draft</option>
-                                                    <option value="aktif" <?= ($selectedClassStatus === 'aktif') ? 'selected' : '' ?>>Aktif</option>
-                                                    <option value="ditutup" <?= ($selectedClassStatus === 'ditutup') ? 'selected' : '' ?>>Ditutup</option>
+                                                    <option value="draft" <?= ($selectedClassStatus === 'draft') ? 'selected' : '' ?>>Draf</option>
+                                                    <option value="aktif" <?= ($selectedClassStatus === 'aktif') ? 'selected' : '' ?>>Publik</option>
+                                                    <option value="ditutup" <?= ($selectedClassStatus === 'ditutup') ? 'selected' : '' ?>>Privat</option>
                                                 </select>
                                             </label>
                                             <label class="form-field wide">
@@ -488,20 +495,24 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                             <label class="form-field">
                                                 <span>Tingkat</span>
                                                 <select name="tingkat" required>
-                                                    <?php foreach (['Beginner', 'Intermediate', 'Advanced'] as $level): ?>
-                                                        <option value="<?= e($level) ?>" <?= ($selectedClass['tingkat'] ?? 'Beginner') === $level ? 'selected' : '' ?>><?= e($level) ?></option>
+                                                    <?php foreach (['Beginner' => 'Pemula', 'Intermediate' => 'Menengah', 'Advanced' => 'Lanjutan'] as $level => $levelLabel): ?>
+                                                        <option value="<?= e($level) ?>" <?= ($selectedClass['tingkat'] ?? 'Beginner') === $level ? 'selected' : '' ?>><?= e($levelLabel) ?></option>
                                                     <?php endforeach; ?>
                                                 </select>
                                             </label>
                                             <label class="form-field">
-                                                <span>Kode enroll kelas (opsional)</span>
-                                                <input type="text" name="enroll_key" maxlength="50" value="<?= e($selectedClass['enroll_key'] ?? '') ?>" placeholder="Kosongkan agar kelas publik">
-                                                <small>Isi kode untuk menjadikan kelas privat. Mengosongkannya membuat kelas publik.</small>
+                                                <span>Kode akses kelas (opsional)</span>
+                                                <input type="text" name="enroll_key" maxlength="50" value="<?= e($selectedClass['enroll_key'] ?? '') ?>" placeholder="Kode dihapus otomatis jika kelas dipublikasikan">
+                                                <small>Kelas berstatus Publik dapat diikuti tanpa kode. Kode akses akan dihapus otomatis saat kelas dipublikasikan.</small>
                                             </label>
-                                            <label class="form-field">
+                                            <div class="form-field">
                                                 <span>Ikon kelas</span>
-                                                <input type="file" name="class_icon" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
-                                            </label>
+                                                <div class="instructor-file-picker" data-file-picker>
+                                                    <input id="settings-class-icon" class="instructor-file-input" type="file" name="class_icon" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                                                    <label class="instructor-file-button" for="settings-class-icon">Pilih file</label>
+                                                    <span class="instructor-file-name" data-file-name>Belum ada file dipilih</span>
+                                                </div>
+                                            </div>
                                             <label class="form-field">
                                                 <span>Nama badge pencapaian</span>
                                                 <input type="text" name="badge_label" maxlength="60" value="<?= e($selectedClass['badge_label'] ?? '') ?>" placeholder="Misal: Lulus Pemrograman Jaringan">
@@ -519,7 +530,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                             <input type="checkbox" name="badge_aktif" value="1" <?= !empty($selectedClass['badge_aktif']) ? 'checked' : '' ?>>
                                             <span>Berikan badge otomatis saat siswa menyelesaikan kelas</span>
                                         </label>
-                                        <p class="small text-secondary">Badge akan muncul di pencapaian profil siswa ketika semua materi dibuka dan seluruh kuis lulus.</p>
+                                        <p class="small text-secondary">Lencana akan muncul di pencapaian profil siswa ketika semua materi dibuka dan seluruh kuis lulus.</p>
                                         <p class="small text-secondary">Sertifikat kelulusan diterbitkan otomatis dengan template default saat siswa menyelesaikan semua materi dan lulus seluruh kuis.</p>
                                         <div class="form-actions">
                                             <button type="submit" class="primary-button">Simpan perubahan</button>
@@ -565,11 +576,11 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                 <div class="stat-icon"><i class="bi bi-play-circle"></i></div>
                                 <div class="stat-value" data-stat="active-classes"><?= (int) ($stats['kelas_aktif'] ?? 0) ?></div>
                             </div>
-                            <div class="stat-foot">Kelas dengan status publish</div>
+                            <div class="stat-foot">Kelas berstatus publik</div>
                         </article>
 
                         <article class="stat-card">
-                            <div class="stat-label">Pertanyaan unread</div>
+                            <div class="stat-label">Pertanyaan belum dijawab</div>
                             <div class="stat-body">
                                 <div class="stat-icon"><i class="bi bi-chat-dots"></i></div>
                                 <div class="stat-value"><?= $unansweredCount === null ? '—' : (int) $unansweredCount ?></div>
@@ -603,7 +614,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                             <button type="button" class="primary-button" data-bs-toggle="modal" data-bs-target="#classModal">+ Buat Kelas Baru</button>
                         </div>
 
-                        <form method="get" action="DashboardController.php" class="filter-row">
+                        <form method="get" action="DashboardController.php" class="filter-row" data-preserve-dashboard-scroll>
                             <div class="search-field">
                                 <i class="bi bi-search"></i>
                                 <input type="search" name="q" value="<?= e($search) ?>" placeholder="Cari judul, kelas, atau kode enroll..." aria-label="Cari kelas">
@@ -631,9 +642,9 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                             <?php $classStatus = strtolower((string) ($class['status'] ?? 'draft')); ?>
                                             <?php
                                             $label = match ($classStatus) {
-                                                'aktif' => 'Publish',
-                                                'ditutup' => 'Ditutup',
-                                                default => 'Draft',
+                                                'aktif' => 'Publik',
+                                                'ditutup' => 'Privat',
+                                                default => 'Draf',
                                             };
                                             $statusClass = 'status-' . $classStatus;
                                             ?>
@@ -713,39 +724,43 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                             <label class="form-field mb-3">
                                 <span>Tingkat</span>
                                 <select class="form-select" name="tingkat" required>
-                                    <option value="Beginner" selected>Beginner</option>
-                                    <option value="Intermediate">Intermediate</option>
-                                    <option value="Advanced">Advanced</option>
+                                    <option value="Beginner" selected>Pemula</option>
+                                    <option value="Intermediate">Menengah</option>
+                                    <option value="Advanced">Lanjutan</option>
                                 </select>
                             </label>
                             <label class="form-field mb-3 class-modal-field-wide">
                                 <span>Deskripsi singkat</span>
                                 <textarea class="form-control" name="deskripsi" rows="3" placeholder="Jelaskan topik dan tujuan kelas." required></textarea>
                             </label>
-                            <label class="form-field mb-3">
+                                <div class="form-field mb-3">
                                 <span>Thumbnail / cover kelas</span>
-                                <input class="form-control" type="file" name="class_icon" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
-                                <small id="current-class-cover" class="text-secondary">JPG, PNG, atau WebP, maksimal 2 MB. Opsional.</small>
-                            </label>
+                                    <div class="instructor-file-picker" data-file-picker>
+                                        <input id="modal-class-icon" class="instructor-file-input" type="file" name="class_icon" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                                        <label class="instructor-file-button" for="modal-class-icon">Pilih file</label>
+                                        <span class="instructor-file-name" data-file-name>Belum ada file dipilih</span>
+                                    </div>
+                                    <small id="current-class-cover" class="text-secondary">JPG, PNG, atau WebP, maksimal 2 MB. Opsional.</small>
+                                </div>
                             <fieldset class="form-field mb-3">
                                 <legend class="status-legend">Status kelas</legend>
                                 <div class="class-status-options">
-                                    <label><input type="radio" name="status" value="draft" required> Draft</label>
-                                    <label><input type="radio" name="status" value="aktif"> Publish</label>
-                                    <label><input type="radio" name="status" value="ditutup"> Ditutup</label>
+                                    <label><input type="radio" name="status" value="draft" required> Draf</label>
+                                    <label><input type="radio" name="status" value="aktif"> Publik</label>
+                                    <label><input type="radio" name="status" value="ditutup"> Privat</label>
                                 </div>
                             </fieldset>
                             <label class="form-field mb-3 class-modal-field-wide">
-                                <span>Kode enroll kelas (opsional)</span>
-                                <input class="form-control" type="text" name="enroll_key" maxlength="50" autocomplete="off" placeholder="Kosongkan agar kelas publik">
-                                <small>Kosong = publik. Isi kode agar kelas privat dan bagikan kepada siswa.</small>
+                                <span>Kode akses kelas (opsional)</span>
+                                <input class="form-control" type="text" name="enroll_key" maxlength="50" autocomplete="off" placeholder="Kode dihapus otomatis jika kelas dipublikasikan">
+                                <small>Kelas berstatus Publik dapat diikuti tanpa kode. Kode akses akan dihapus otomatis saat kelas dipublikasikan.</small>
                             </label>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="secondary-button" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="primary-button" id="class-submit">
-                            <span class="js-submit-label">Simpan</span>
+                            <span class="js-submit-label">Simpan Kelas</span>
                             <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                         </button>
                     </div>
@@ -766,7 +781,7 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                 <div class="modal-body">
                     <div id="manage-class-feedback" class="alert d-none" role="alert"></div>
                     <ul class="nav nav-tabs manage-tabs" role="tablist">
-                        <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#manage-overview" type="button" role="tab">Overview</button></li>
+                        <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#manage-overview" type="button" role="tab">Ringkasan</button></li>
                         <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#manage-materials" type="button" role="tab">Materi</button></li>
                         <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#manage-quizzes" type="button" role="tab">Kuis &amp; Tugas</button></li>
                         <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#manage-students" type="button" role="tab">Daftar Siswa</button></li>
@@ -800,9 +815,9 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                     <label class="form-field">
                                         <span>Tingkat</span>
                                         <select class="form-select" name="tingkat" required>
-                                            <option value="Beginner">Beginner</option>
-                                            <option value="Intermediate">Intermediate</option>
-                                            <option value="Advanced">Advanced</option>
+                                            <option value="Beginner">Pemula</option>
+                                            <option value="Intermediate">Menengah</option>
+                                            <option value="Advanced">Lanjutan</option>
                                         </select>
                                     </label>
                                     <label class="form-field">
@@ -860,7 +875,13 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
                                     <label class="form-field mb-3"><span>Judul materi</span><input class="form-control" name="material_judul" maxlength="150" required></label>
                                     <label class="form-field mb-3"><span>Jenis</span><select class="form-select" name="material_tipe"><option value="video">Video</option><option value="dokumen">Dokumen</option><option value="teks">Teks / tautan</option></select></label>
                                     <label class="form-field mb-3"><span>Isi atau tautan (untuk teks)</span><textarea class="form-control" name="material_isi" rows="2"></textarea></label>
-                                    <label class="form-field mb-3"><span>File (PDF, DOCX, PPTX, MP4, WebM, JPG, PNG, WebP; maks. 25 MB)</span><input class="form-control" type="file" name="material_file" accept=".pdf,.docx,.pptx,.mp4,.webm,.jpg,.jpeg,.png,.webp,application/pdf,video/mp4,video/webm,image/jpeg,image/png,image/webp"></label>
+                                    <div class="form-field mb-3"><span>Berkas (PDF, DOCX, PPTX, MP4, WebM, JPG, PNG, WebP; maks. 25 MB)</span>
+                                        <div class="instructor-file-picker" data-file-picker>
+                                            <input id="manage-material-file" class="instructor-file-input" type="file" name="material_file" accept=".pdf,.docx,.pptx,.mp4,.webm,.jpg,.jpeg,.png,.webp,application/pdf,video/mp4,video/webm,image/jpeg,image/png,image/webp">
+                                            <label class="instructor-file-button" for="manage-material-file">Pilih file</label>
+                                            <span class="instructor-file-name" data-file-name>Belum ada file dipilih</span>
+                                        </div>
+                                    </div>
                                     <div class="form-actions">
                                         <button class="primary-button" type="submit">Simpan materi</button>
                                         <button class="secondary-button d-none" type="button" data-cancel-upload>Batal kirim</button>
@@ -907,5 +928,6 @@ $selectedStatusLabel = $selectedClassStatus === 'aktif' ? 'Aktif' : ($selectedCl
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <script src="../../asset/js/instructor.js?v=<?= e(substr(hash_file('sha256', __DIR__ . '/../../asset/js/instructor.js'), 0, 12)) ?>"></script>
+    <script src="../../asset/js/filter-scroll.js"></script>
 </body>
 </html>

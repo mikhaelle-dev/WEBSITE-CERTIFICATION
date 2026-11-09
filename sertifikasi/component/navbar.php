@@ -33,7 +33,7 @@ $logoutPath = '../AuthController.php?aksi=logout';
             <?php if ($role === 'siswa'): ?>
             <div class="dropdown me-3">
                 <button class="btn btn-explore dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                    <i class="bi bi-grid-3x3-gap-fill"></i> Explore
+                    <i class="bi bi-grid-3x3-gap-fill"></i> Jelajahi
                 </button>
                 <div class="dropdown-menu mega p-0">
                     <div class="row g-0">
@@ -41,17 +41,17 @@ $logoutPath = '../AuthController.php?aksi=logout';
                             <div class="mega-head">Bidang</div>
                             <?php if ($menuKategori !== []): ?>
                                 <?php foreach ($menuKategori as $kat): ?>
-                                    <a class="mega-link" href="DashboardController.php?kategori=<?= urlencode($kat) ?>#rekomendasi">
+                                    <a class="mega-link" href="DashboardController.php?kategori=<?= urlencode($kat) ?>" data-preserve-dashboard-scroll>
                                         <?= e($kat) ?> <i class="bi bi-chevron-right"></i>
                                     </a>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <div class="p-3 text-muted small">Belum ada kategori tersedia.</div>
                             <?php endif; ?>
-                            <a class="btn btn-enroll w-100 mt-3" href="DashboardController.php#rekomendasi">Lihat semua kursus</a>
+                            <a class="btn btn-enroll w-100 mt-3" href="DashboardController.php#rekomendasi">Lihat semua kelas dan kursus</a>
                         </div>
                         <div class="col-md-8 mega-right">
-                            <div class="mega-head">Rekomendasi kursus</div>
+                            <div class="mega-head">Rekomendasi kelas dan kursus</div>
                             <?php if ($menuKursus !== []): ?>
                                 <?php foreach ($menuKursus as $mk): ?>
                                     <a class="mega-course" href="CourseOverviewController.php?slug=<?= urlencode($mk['slug']) ?>">
@@ -91,15 +91,15 @@ $logoutPath = '../AuthController.php?aksi=logout';
             <?php endif; ?>
 
             <?php if ($role === 'siswa'): ?>
-            <form class="search-box flex-grow-1 me-3" action="DashboardController.php" method="GET">
+            <form class="search-box flex-grow-1 me-3" action="DashboardController.php" method="GET" data-preserve-dashboard-scroll>
                 <i class="bi bi-search"></i>
-                <input type="search" name="q" placeholder="Cari kursus..." class="form-control" value="<?= e($data['q'] ?? '') ?>">
+                <input type="search" name="q" placeholder="Cari kelas atau kursus..." class="form-control" value="<?= e($data['q'] ?? '') ?>">
             </form>
             <?php endif; ?>
 
             <ul class="navbar-nav align-items-lg-center ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link <?= $aktif === 'mylearning' ? 'nav-active' : '' ?>" href="<?= e($dashboardPath) ?>"><i class="bi bi-house-door me-1"></i><?= $role === 'admin' ? 'Dashboard Admin' : ($role === 'instruktur' ? 'Dashboard Instruktur' : 'Home') ?></a>
+                    <a class="nav-link <?= $aktif === 'mylearning' ? 'nav-active' : '' ?>" href="<?= e($dashboardPath) ?>"><i class="bi bi-house-door me-1"></i><?= $role === 'admin' ? 'Dasbor Admin' : ($role === 'instruktur' ? 'Dasbor Instruktur' : 'Beranda') ?></a>
                 </li>
                 <li class="nav-item ms-lg-4">
                     <!-- klik avatar -> buka drawer -->
@@ -133,8 +133,8 @@ $logoutPath = '../AuthController.php?aksi=logout';
 
     <div class="offcanvas-body p-0">
         <div class="drawer-sec">
-            <div class="drawer-title"><i class="bi bi-speedometer2"></i> Dashboard</div>
-            <a class="drawer-link" href="<?= e($dashboardPath) ?>"><?= $role === 'admin' ? 'Dashboard Admin' : ($role === 'instruktur' ? 'Dashboard Instruktur' : 'Home') ?> <i class="bi bi-chevron-right"></i></a>
+            <div class="drawer-title"><i class="bi bi-speedometer2"></i> Dasbor</div>
+            <a class="drawer-link" href="<?= e($dashboardPath) ?>"><?= $role === 'admin' ? 'Dasbor Admin' : ($role === 'instruktur' ? 'Dasbor Instruktur' : 'Beranda') ?> <i class="bi bi-chevron-right"></i></a>
         </div>
 
         <div class="drawer-sec">

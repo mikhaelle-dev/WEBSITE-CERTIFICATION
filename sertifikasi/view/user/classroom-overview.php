@@ -14,7 +14,9 @@ $classBadge = $data['classBadge'] ?? null;
 $badgeLabel = trim((string) ($class['badge_label'] ?? ''));
 $badgeEnabled = !empty($class['badge_aktif']) && $badgeLabel !== '';
 $duration = (int) ($class['durasi_estimasi'] ?? 0);
-$durationLabel = $duration > 0 ? $duration . ' jam' : 'Belum ditentukan';
+$durationLabel = $duration > 0 ? $duration . ' jam belajar' : 'Belum ditentukan';
+$levelLabels = ['Beginner' => 'Pemula', 'Intermediate' => 'Menengah', 'Advanced' => 'Lanjutan'];
+$levelLabel = $levelLabels[$class['tingkat'] ?? ''] ?? 'Pemula';
 $continueUrl = 'ClassroomController.php?class_id=' . (int) $class['id'] . '&tab=materi';
 $continueLabel = 'Mulai belajar';
 $continueIcon = 'bi-play-circle';
@@ -71,7 +73,7 @@ if ($enrolled) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Overview <?= e($class['judul']) ?> | Sertifikasi Academy</title>
+    <title>Informasi kelas <?= e($class['judul']) ?> | Sertifikasi Academy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -85,7 +87,7 @@ if ($enrolled) {
 <?php $aktif = 'mylearning'; include __DIR__ . '/../../component/navbar.php'; ?>
 
 <main class="container py-4 py-lg-5 course-page">
-    <a class="course-back" href="DashboardController.php"><i class="bi bi-arrow-left" aria-hidden="true"></i> Kembali ke Home</a>
+    <a class="course-back" href="DashboardController.php"><i class="bi bi-arrow-left" aria-hidden="true"></i> Kembali ke Dasbor</a>
 
     <?php if (!empty($data['success'])): ?>
         <div class="alert alert-success mt-3" role="status"><?= e($data['success']) ?></div>
@@ -96,11 +98,11 @@ if ($enrolled) {
 
     <section class="overview-hero">
         <div class="overview-hero-content">
-            <span class="badge text-bg-success"><?= e($class['kategori'] ?? 'Umum') ?> · <?= e($class['tingkat'] ?? 'Beginner') ?></span>
+            <span class="badge text-bg-success"><?= e($class['kategori'] ?? 'Umum') ?> · <?= e($levelLabel) ?></span>
             <h1><?= e($class['judul']) ?></h1>
             <p><?= e($class['deskripsi'] ?? '') ?></p>
             <div class="overview-meta">
-                <span><i class="bi bi-clock" aria-hidden="true"></i> <?= e($durationLabel) ?></span>
+                <span><i class="bi bi-clock" aria-hidden="true"></i> Estimasi belajar: <?= e($durationLabel) ?></span>
                 <span><i class="bi bi-journal-text" aria-hidden="true"></i> <?= $totalModules ?> modul</span>
                 <span><i class="bi bi-patch-question" aria-hidden="true"></i> <?= $totalQuizzes ?> kuis</span>
                 <span><i class="bi bi-person-workspace" aria-hidden="true"></i> <?= e($class['instruktur_nama'] ?? 'Instruktur') ?></span>
@@ -198,8 +200,8 @@ if ($enrolled) {
                 <div class="overview-section-heading">
                     <span class="overview-section-icon"><i class="bi bi-award" aria-hidden="true"></i></span>
                     <div>
-                        <h2>Badge yang bisa kamu dapatkan</h2>
-                        <p class="text-muted mb-0">Badge ditentukan instruktur dan diberikan otomatis setelah kelas diselesaikan.</p>
+                        <h2>Lencana yang bisa kamu dapatkan</h2>
+                        <p class="text-muted mb-0">Lencana ditentukan instruktur dan diberikan otomatis setelah kelas diselesaikan.</p>
                     </div>
                 </div>
                 <?php if ($badgeEnabled): ?>
@@ -209,9 +211,9 @@ if ($enrolled) {
                             <i class="bi bi-award" aria-hidden="true"></i>
                         </span>
                         <div class="overview-badge-content">
-                            <span class="overview-badge-status"><?= $badgeEarned ? 'Badge didapat' : 'Milestone penyelesaian kelas' ?></span>
+                            <span class="overview-badge-status"><?= $badgeEarned ? 'Lencana didapat' : 'Pencapaian penyelesaian kelas' ?></span>
                             <h3><?= e($badgeLabel) ?></h3>
-                            <p>Badge ini diberikan otomatis setelah semua materi dibuka dan seluruh kuis lulus.</p>
+                            <p>Lencana ini diberikan otomatis setelah semua materi dibuka dan seluruh kuis lulus.</p>
                             <?php if ($badgeEarned): ?>
                                 <small><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Diraih <?= e(date('d M Y', strtotime((string) $classBadge['earned_at']))) ?></small>
                             <?php else: ?>
@@ -297,9 +299,9 @@ if ($enrolled) {
                 <hr>
                 <ul class="overview-facts">
                     <li><i class="bi bi-clock" aria-hidden="true"></i><span>Durasi estimasi</span><strong><?= e($durationLabel) ?></strong></li>
-                    <li><i class="bi bi-bar-chart" aria-hidden="true"></i><span>Tingkat</span><strong><?= e($class['tingkat'] ?? 'Beginner') ?></strong></li>
+                    <li><i class="bi bi-bar-chart" aria-hidden="true"></i><span>Tingkat</span><strong><?= e($levelLabel) ?></strong></li>
                     <li><i class="bi bi-journal-check" aria-hidden="true"></i><span>Materi dan kuis</span><strong><?= $totalMaterials ?> materi · <?= $totalQuizzes ?> kuis</strong></li>
-                    <li><i class="bi bi-award" aria-hidden="true"></i><span>Badge</span><strong><?= $badgeEnabled ? '1 milestone' : 'Belum ditambahkan' ?></strong></li>
+                    <li><i class="bi bi-award" aria-hidden="true"></i><span>Lencana</span><strong><?= $badgeEnabled ? '1 pencapaian' : 'Belum ditambahkan' ?></strong></li>
                     <li><i class="bi bi-patch-check" aria-hidden="true"></i><span>Sertifikat</span><strong><?= $certificate !== null ? 'Sudah terbit' : 'Setelah lulus' ?></strong></li>
                 </ul>
             </div>

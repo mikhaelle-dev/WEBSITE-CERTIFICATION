@@ -6,6 +6,20 @@ document.addEventListener('DOMContentLoaded', function () {
     bar.style.width = value + '%';
   });
 
+  document.querySelectorAll('[data-file-picker]').forEach(function (picker) {
+    var input = picker.querySelector('input[type="file"]');
+    var fileName = picker.querySelector('[data-file-name]');
+    if (!input || !fileName) return;
+    input.addEventListener('change', function () {
+      fileName.textContent = input.files.length ? input.files[0].name : 'Belum ada file dipilih';
+    });
+    if (input.form) {
+      input.form.addEventListener('reset', function () {
+        fileName.textContent = 'Belum ada file dipilih';
+      });
+    }
+  });
+
   document.querySelectorAll('[data-confirm]').forEach(function (button) {
     button.addEventListener('click', function (event) {
       var message = button.dataset.confirm || 'Apakah Anda yakin?';
@@ -47,7 +61,9 @@ document.addEventListener('DOMContentLoaded', function () {
     function setSubmitting(isSubmitting) {
       submitButton.disabled = isSubmitting;
       spinner.classList.toggle('d-none', !isSubmitting);
-      submitLabel.textContent = isSubmitting ? 'Menyimpan...' : 'Simpan';
+      submitLabel.textContent = isSubmitting
+        ? (classIdField.value ? 'Menyimpan perubahan...' : 'Menyimpan kelas...')
+        : (classIdField.value ? 'Simpan perubahan' : 'Simpan Kelas');
     }
 
     async function readJson(response) {
@@ -82,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function () {
       description.textContent = classData.deskripsi;
       category.textContent = classData.kategori;
       statusBadge.className = 'status-badge status-' + classData.status;
-      statusBadge.textContent = classData.status === 'aktif' ? 'Publish' : (classData.status === 'ditutup' ? 'Ditutup' : 'Draft');
+      statusBadge.textContent = classData.status === 'aktif' ? 'Publik' : (classData.status === 'ditutup' ? 'Privat' : 'Draf');
       if (previousStatus !== classData.status) {
         var activeClassCount = document.querySelector('[data-stat="active-classes"]');
         if (activeClassCount) {
@@ -154,6 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         classIdField.value = payload.class.id;
+        setSubmitting(false);
         classForm.querySelector('[name="judul"]').value = payload.class.judul;
         classForm.querySelector('[name="kategori"]').value = payload.class.kategori;
         classForm.querySelector('[name="deskripsi"]').value = payload.class.deskripsi;
